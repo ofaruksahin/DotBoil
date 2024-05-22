@@ -2,7 +2,7 @@
 
 namespace DotBoil.Swag.Configuration
 {
-    public class SwagOptions : IOptions
+    internal class SwagOptions : IOptions
     {
         public string Key => "DotBoil:Swagger";
     }
