@@ -15,6 +15,8 @@ namespace DotBoil.Health
         {
             var healthOptions = builder.Configuration.GetConfigurations<HealthOptions>();
 
+            var healthCheckBuilder = builder.Services.AddHealthChecks();
+
             var healthCheckUIBuilder = builder.Services.AddHealthChecksUI(settings =>
             {
                 healthOptions.UI.Services.ForEach(service => settings.AddHealthCheckEndpoint(service.Name, service.Uri));
@@ -49,12 +51,13 @@ namespace DotBoil.Health
 
             app.UseHealthChecks(healthOptions.Url, new HealthCheckOptions
             {
+                Predicate = _ => true,
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             });
 
-            app.UseHealthChecksUI(configure =>
+            app.UseHealthChecksUI(setup =>
             {
-                configure.UIPath = healthOptions.UI.Url;
+                setup.UIPath = healthOptions.UI.Url;
             });
 
             return Task.FromResult(app);
