@@ -5,11 +5,15 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil", "src\DotBoil\DotBoil.csproj", "{948D0C0B-A73C-4EE1-8EF4-29F2912ABA42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil", "src\DotBoil\DotBoil.csproj", "{948D0C0B-A73C-4EE1-8EF4-29F2912ABA42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.Versioning", "src\DotBoil.Versioning\DotBoil.Versioning.csproj", "{4BECB59B-F52A-49AF-AE6B-9BA064B86BC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Versioning", "src\DotBoil.Versioning\DotBoil.Versioning.csproj", "{4BECB59B-F52A-49AF-AE6B-9BA064B86BC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.Swag", "src\DotBoil.Swag\DotBoil.Swag.csproj", "{D5316D0E-F269-4001-9E83-EB651FECBBE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Swag", "src\DotBoil.Swag\DotBoil.Swag.csproj", "{D5316D0E-F269-4001-9E83-EB651FECBBE1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Logging", "src\DotBoil.Logging\DotBoil.Logging.csproj", "{96F78663-8055-4578-A289-907B66ACA122}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.Health", "src\DotBoil.Health\DotBoil.Health.csproj", "{C44401F9-3183-43F4-BEFE-978CA2B77BBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +33,14 @@ Global
 		{D5316D0E-F269-4001-9E83-EB651FECBBE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5316D0E-F269-4001-9E83-EB651FECBBE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5316D0E-F269-4001-9E83-EB651FECBBE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96F78663-8055-4578-A289-907B66ACA122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96F78663-8055-4578-A289-907B66ACA122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96F78663-8055-4578-A289-907B66ACA122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96F78663-8055-4578-A289-907B66ACA122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C44401F9-3183-43F4-BEFE-978CA2B77BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C44401F9-3183-43F4-BEFE-978CA2B77BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C44401F9-3183-43F4-BEFE-978CA2B77BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C44401F9-3183-43F4-BEFE-978CA2B77BBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,6 +49,8 @@ Global
 		{948D0C0B-A73C-4EE1-8EF4-29F2912ABA42} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{4BECB59B-F52A-49AF-AE6B-9BA064B86BC5} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{D5316D0E-F269-4001-9E83-EB651FECBBE1} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
+		{96F78663-8055-4578-A289-907B66ACA122} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
+		{C44401F9-3183-43F4-BEFE-978CA2B77BBE} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40415635-D3DD-4116-98C9-30E9D789EF4F}
