@@ -4,6 +4,6 @@ namespace DotBoil.Health
 {
     internal abstract class UIPersistenceOptions
     {
-       public abstract void AddPersistence(HealthChecksUIBuilder healthChecksUIBuilder);
+        public abstract void AddPersistence(HealthChecksUIBuilder healthChecksUIBuilder);
     }
 }

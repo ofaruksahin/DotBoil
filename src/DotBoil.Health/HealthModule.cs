@@ -5,7 +5,6 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace DotBoil.Health
 {
@@ -43,7 +42,7 @@ namespace DotBoil.Health
 
             return Task.FromResult(builder);
         }
-        
+
         public override Task<WebApplication> UseModule(WebApplication app)
         {
             using var scope = app.Services.CreateScope();

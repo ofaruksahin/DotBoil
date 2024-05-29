@@ -24,7 +24,7 @@ namespace DotBoil.Health.Configuration.UI
                     return PersistenceType.SqLite;
                 if (PostgreSQL is not null)
                     return PersistenceType.PostgreSQL;
-                if(MySql is not null)
+                if (MySql is not null)
                     return PersistenceType.MySql;
 
                 throw new ArgumentNullException(nameof(PersistenceType));
