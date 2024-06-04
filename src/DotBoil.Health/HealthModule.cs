@@ -1,6 +1,7 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.Dependency;
 using DotBoil.Health.Configuration;
+using DotBoil.Reflection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -14,30 +15,45 @@ namespace DotBoil.Health
         {
             var healthOptions = builder.Configuration.GetConfigurations<HealthOptions>();
 
-            var healthCheckBuilder = builder.Services.AddHealthChecks();
-
-            var healthCheckUIBuilder = builder.Services.AddHealthChecksUI(settings =>
+            if (!string.IsNullOrEmpty(healthOptions.Url))
             {
-                healthOptions.UI.Services.ForEach(service => settings.AddHealthCheckEndpoint(service.Name, service.Uri));
-            });
+                var healthCheckBuilder = builder.Services.AddHealthChecks();
 
-            switch (healthOptions.UI.PersistenceType)
+                var configureType = AppDomain.CurrentDomain.FindTypeWithBaseType(typeof(ConfigureHealthCheck));
+
+                if (configureType is not null)
+                {
+                    var configureInstance = (ConfigureHealthCheck)Activator.CreateInstance(configureType);
+
+                    configureInstance.Configure(builder, healthCheckBuilder);
+                }
+            }
+
+            if (healthOptions.UI is not null)
             {
-                case Configuration.UI.PersistenceType.InMemory:
-                    healthOptions.UI.InMemory.AddPersistence(healthCheckUIBuilder);
-                    break;
-                case Configuration.UI.PersistenceType.SqlServer:
-                    healthOptions.UI.SqlServer.AddPersistence(healthCheckUIBuilder);
-                    break;
-                case Configuration.UI.PersistenceType.SqLite:
-                    healthOptions.UI.SqLite.AddPersistence(healthCheckUIBuilder);
-                    break;
-                case Configuration.UI.PersistenceType.PostgreSQL:
-                    healthOptions.UI.PostgreSQL.AddPersistence(healthCheckUIBuilder);
-                    break;
-                case Configuration.UI.PersistenceType.MySql:
-                    healthOptions.UI.MySql.AddPersistence(healthCheckUIBuilder);
-                    break;
+                var healthCheckUIBuilder = builder.Services.AddHealthChecksUI(settings =>
+                {
+                    healthOptions.UI.Services.ForEach(service => settings.AddHealthCheckEndpoint(service.Name, service.Uri));
+                });
+
+                switch (healthOptions.UI.PersistenceType)
+                {
+                    case Configuration.UI.PersistenceType.InMemory:
+                        healthOptions.UI.InMemory.AddPersistence(healthCheckUIBuilder);
+                        break;
+                    case Configuration.UI.PersistenceType.SqlServer:
+                        healthOptions.UI.SqlServer.AddPersistence(healthCheckUIBuilder);
+                        break;
+                    case Configuration.UI.PersistenceType.SqLite:
+                        healthOptions.UI.SqLite.AddPersistence(healthCheckUIBuilder);
+                        break;
+                    case Configuration.UI.PersistenceType.PostgreSQL:
+                        healthOptions.UI.PostgreSQL.AddPersistence(healthCheckUIBuilder);
+                        break;
+                    case Configuration.UI.PersistenceType.MySql:
+                        healthOptions.UI.MySql.AddPersistence(healthCheckUIBuilder);
+                        break;
+                }
             }
 
             return Task.FromResult(builder);
@@ -48,16 +64,22 @@ namespace DotBoil.Health
             using var scope = app.Services.CreateScope();
             var healthOptions = scope.ServiceProvider.GetService<HealthOptions>();
 
-            app.UseHealthChecks(healthOptions.Url, new HealthCheckOptions
+            if (!string.IsNullOrEmpty(healthOptions.Url))
             {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
+                app.UseHealthChecks(healthOptions.Url, new HealthCheckOptions
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+            }
 
-            app.UseHealthChecksUI(setup =>
+            if (healthOptions.UI is not null)
             {
-                setup.UIPath = healthOptions.UI.Url;
-            });
+                app.UseHealthChecksUI(setup =>
+                {
+                    setup.UIPath = healthOptions.UI.Url;
+                });
+            }
 
             return Task.FromResult(app);
         }

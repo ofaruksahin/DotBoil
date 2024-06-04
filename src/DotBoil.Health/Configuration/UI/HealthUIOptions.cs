@@ -27,7 +27,7 @@ namespace DotBoil.Health.Configuration.UI
                 if (MySql is not null)
                     return PersistenceType.MySql;
 
-                throw new ArgumentNullException(nameof(PersistenceType));
+                throw new Exception("Please set up a data storage method");
             }
         }
 

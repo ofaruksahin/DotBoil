@@ -4,9 +4,11 @@ namespace DotBoil.Health.Configuration.UI
 {
     internal class HealthUISqlServerPersistenceOptions : UIPersistenceOptions
     {
+        public string ConnectionString { get; set; }
+
         public override void AddPersistence(HealthChecksUIBuilder healthChecksUIBuilder)
         {
-            throw new NotImplementedException();
+            healthChecksUIBuilder.AddSqlServerStorage(ConnectionString);
         }
     }
 }
