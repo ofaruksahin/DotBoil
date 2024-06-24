@@ -7,5 +7,10 @@ namespace DotBoil.Mediator
         public string Key => "DotBoil:Mediator";
 
         public List<string> Pipelines { get; set; }
+
+        public MediatorOptions()
+        {
+            Pipelines = new List<string>();
+        }
     }
 }
