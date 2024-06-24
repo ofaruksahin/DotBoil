@@ -1,6 +1,4 @@
-﻿using System.Security.AccessControl;
-
-namespace DotBoil.Reflection
+﻿namespace DotBoil.Reflection
 {
     public static class ReflectionExtensions
     {
