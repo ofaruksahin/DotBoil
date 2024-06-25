@@ -1,4 +1,6 @@
-﻿namespace DotBoil.Entities
+﻿using DotBoil.Events;
+
+namespace DotBoil.Entities
 {
     public abstract class BaseEntity
     {
@@ -8,5 +10,18 @@
         public DateTime CreateTime { get; set; }
         public DateTime? UpdateTime { get; set; }
         public bool IsDeleted { get; set; }
+
+        private List<IDomainEvent> _domainEvents;
+        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
+
+        protected BaseEntity()
+        {
+            _domainEvents = new List<IDomainEvent>();
+        }
+
+        public void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
     }
 }

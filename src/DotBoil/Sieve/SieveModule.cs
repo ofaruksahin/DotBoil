@@ -10,9 +10,9 @@ namespace DotBoil.Sieve
     {
         public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
         {
-            var processors = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(SieveProcessor));
-            var filters = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomFilterMethods));
-            var sorts = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomSortMethods));
+            var processors = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(SieveProcessor)) ?? new List<Type>();
+            var filters = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomFilterMethods)) ?? new List<Type>();
+            var sorts = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomSortMethods)) ?? new List<Type>();
 
             foreach (var proccessor in processors)
                 builder.Services.AddScoped(typeof(ISieveProcessor), proccessor);
