@@ -23,10 +23,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Mapper", "src\DotBo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Email", "src\DotBoil.Email\DotBoil.Email.csproj", "{6C961CDE-9185-4928-B207-F8E7CBC07285}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.EntityFrameworkCore", "src\DotBoil.EntityFrameworkCore\DotBoil.EntityFrameworkCore.csproj", "{198DC3C9-7828-44AF-BDEC-2BB404830DFD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.MassTransit", "src\DotBoil.MassTransit\DotBoil.MassTransit.csproj", "{2DAFB8FE-25A7-41F9-A909-9128874F3148}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,14 +65,6 @@ Global
 		{6C961CDE-9185-4928-B207-F8E7CBC07285}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C961CDE-9185-4928-B207-F8E7CBC07285}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C961CDE-9185-4928-B207-F8E7CBC07285}.Release|Any CPU.Build.0 = Release|Any CPU
-		{198DC3C9-7828-44AF-BDEC-2BB404830DFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{198DC3C9-7828-44AF-BDEC-2BB404830DFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{198DC3C9-7828-44AF-BDEC-2BB404830DFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{198DC3C9-7828-44AF-BDEC-2BB404830DFD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DAFB8FE-25A7-41F9-A909-9128874F3148}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DAFB8FE-25A7-41F9-A909-9128874F3148}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DAFB8FE-25A7-41F9-A909-9128874F3148}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DAFB8FE-25A7-41F9-A909-9128874F3148}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,8 +79,6 @@ Global
 		{5CDC081B-7686-48DE-A869-0BA7B312D1EA} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{3FCC150F-9AAA-4EE0-AC6B-B8E30EF9D7FB} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{6C961CDE-9185-4928-B207-F8E7CBC07285} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
-		{198DC3C9-7828-44AF-BDEC-2BB404830DFD} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
-		{2DAFB8FE-25A7-41F9-A909-9128874F3148} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40415635-D3DD-4116-98C9-30E9D789EF4F}
