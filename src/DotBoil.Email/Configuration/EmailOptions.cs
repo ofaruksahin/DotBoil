@@ -3,13 +3,13 @@ using DotBoil.Email.Models;
 
 namespace DotBoil.Email.Configuration
 {
-    public class EmailSettings : IOptions
+    public class EmailOptions : IOptions
     {
         public string Key => "DotBoil:Email";
 
         public IDictionary<string, ServerSettings> ServerSettings { get; set; }
 
-        public EmailSettings()
+        public EmailOptions()
         {
             ServerSettings = new Dictionary<string, ServerSettings>();
         }
