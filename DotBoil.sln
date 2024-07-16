@@ -27,9 +27,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Caching", "src\DotB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MassTransit", "MassTransit", "{6E2EABAB-AED7-4FBF-9E40-2B0FDF34A743}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.MassTransit.Publisher", "src\DotBoil.MassTransit.Publisher\DotBoil.MassTransit.Publisher.csproj", "{C10B5E00-B2C1-418D-B825-CA97A0BBC837}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.MassTransit.Publisher", "src\DotBoil.MassTransit.Publisher\DotBoil.MassTransit.Publisher.csproj", "{C10B5E00-B2C1-418D-B825-CA97A0BBC837}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.MassTransit.Consumer", "src\DotBoil.MassTransit.Consumer\DotBoil.MassTransit.Consumer.csproj", "{4854BC85-EDDE-46E4-AD34-C53A53F824B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.MassTransit.Consumer", "src\DotBoil.MassTransit.Consumer\DotBoil.MassTransit.Consumer.csproj", "{4854BC85-EDDE-46E4-AD34-C53A53F824B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.MassTransit", "src\DotBoil.MassTransit\DotBoil.MassTransit.csproj", "{2477EE88-BD49-4BBB-A3E0-82315D5877A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +87,10 @@ Global
 		{4854BC85-EDDE-46E4-AD34-C53A53F824B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4854BC85-EDDE-46E4-AD34-C53A53F824B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4854BC85-EDDE-46E4-AD34-C53A53F824B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2477EE88-BD49-4BBB-A3E0-82315D5877A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2477EE88-BD49-4BBB-A3E0-82315D5877A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2477EE88-BD49-4BBB-A3E0-82315D5877A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2477EE88-BD49-4BBB-A3E0-82315D5877A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +109,7 @@ Global
 		{6E2EABAB-AED7-4FBF-9E40-2B0FDF34A743} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{C10B5E00-B2C1-418D-B825-CA97A0BBC837} = {6E2EABAB-AED7-4FBF-9E40-2B0FDF34A743}
 		{4854BC85-EDDE-46E4-AD34-C53A53F824B3} = {6E2EABAB-AED7-4FBF-9E40-2B0FDF34A743}
+		{2477EE88-BD49-4BBB-A3E0-82315D5877A3} = {6E2EABAB-AED7-4FBF-9E40-2B0FDF34A743}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40415635-D3DD-4116-98C9-30E9D789EF4F}
