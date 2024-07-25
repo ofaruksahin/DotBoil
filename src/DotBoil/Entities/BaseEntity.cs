@@ -1,4 +1,4 @@
-﻿using DotBoil.Events;
+﻿using DotBoil.MessageBroker;
 
 namespace DotBoil.Entities
 {
@@ -11,17 +11,17 @@ namespace DotBoil.Entities
         public DateTime? UpdateTime { get; set; }
         public bool IsDeleted { get; set; }
 
-        private List<IDomainEvent> _domainEvents;
-        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
+        private List<IEvent> _events;
+        public IReadOnlyList<IEvent> Events => _events;
 
         protected BaseEntity()
         {
-            _domainEvents = new List<IDomainEvent>();
+            _events = new List<IEvent>();
         }
 
-        public void AddDomainEvent(IDomainEvent domainEvent)
+        public void AddEvent(IEvent domainEvent)
         {
-            _domainEvents.Add(domainEvent);
+            _events.Add(domainEvent);
         }
     }
 }
