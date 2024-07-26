@@ -1,6 +1,6 @@
-﻿using MediatR;
+﻿using DotBoil.Serialization;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using DotBoil.Serialization;
 
 namespace DotBoil.Logging
 {

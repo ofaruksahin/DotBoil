@@ -9,7 +9,7 @@ namespace DotBoil.MassTransit.Configuration
     {
         public string ConnectionString { get; set; }
 
-        
+
         public async Task<WebApplicationBuilder> ConfigurePersistence(WebApplicationBuilder builder)
         {
             builder.Services.AddDbContext<MassTransitDbContext>(options =>

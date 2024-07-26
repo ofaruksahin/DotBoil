@@ -11,9 +11,9 @@
         {
         }
 
-        public Attachment(string fileName,string mediaType, string subMediaType, MemoryStream stream)
+        public Attachment(string fileName, string mediaType, string subMediaType, MemoryStream stream)
         {
-            FileName = fileName; 
+            FileName = fileName;
             MediaType = mediaType;
             SubMediaType = subMediaType;
             Stream = stream;

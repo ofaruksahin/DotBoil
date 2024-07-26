@@ -42,10 +42,13 @@ namespace DotBoil.MassTransit.Persistence
                         {
                             Id = Guid.NewGuid(),
                             MessageType = @event.GetType().AssemblyQualifiedName,
-                            Content = await (@event as object).SerializeAsync(),
                             CreateTime = DateTimeOffset.UtcNow,
                             Processed = false
                         };
+
+                        @event.Id = outboxMessage.Id;
+
+                        outboxMessage.Content = await (@event as object).SerializeAsync();
 
                         await _context.Outbox.AddAsync(outboxMessage);
 
@@ -56,7 +59,7 @@ namespace DotBoil.MassTransit.Persistence
                         }
                         catch (Exception)
                         {
-                        }                       
+                        }
                     }
                 }
             }

@@ -1,7 +1,6 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.Dependency;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
 using System.Reflection;
 
 namespace DotBoil

@@ -12,7 +12,7 @@ namespace DotBoil.Caching
     {
         public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
         {
-            var options =  builder.Configuration.GetConfigurations<RedisConfiguration>();
+            var options = builder.Configuration.GetConfigurations<RedisConfiguration>();
 
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             {

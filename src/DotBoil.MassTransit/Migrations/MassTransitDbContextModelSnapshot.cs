@@ -36,7 +36,7 @@ namespace DotBoil.MassTransit.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Inbox", "MessageBroker");
+                    b.ToTable("Inbox");
                 });
 
             modelBuilder.Entity("DotBoil.MassTransit.Entities.OutboxMessage", b =>
@@ -66,7 +66,32 @@ namespace DotBoil.MassTransit.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Outbox", "MessageBroker");
+                    b.ToTable("Outbox");
+                });
+
+            modelBuilder.Entity("DotBoil.MassTransit.Entities.RetryPolicyException", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    b.Property<DateTimeOffset>("CreateTime")
+                        .HasColumnType("datetime")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Exception")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("Exception");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("MessageId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RetryPolicyExceptions");
                 });
 #pragma warning restore 612, 618
         }

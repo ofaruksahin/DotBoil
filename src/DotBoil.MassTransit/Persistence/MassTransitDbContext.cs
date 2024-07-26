@@ -7,6 +7,7 @@ namespace DotBoil.MassTransit.Persistence
     {
         public DbSet<OutboxMessage> Outbox { get; set; }
         public DbSet<InboxMessage> Inbox { get; set; }
+        public DbSet<RetryPolicyException> RetryPolicyExceptions { get; set; }
 
         public MassTransitDbContext(DbContextOptions<MassTransitDbContext> options) : base(options)
         {

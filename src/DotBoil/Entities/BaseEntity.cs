@@ -1,4 +1,6 @@
 ﻿using DotBoil.MessageBroker;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace DotBoil.Entities
 {
@@ -11,7 +13,11 @@ namespace DotBoil.Entities
         public DateTime? UpdateTime { get; set; }
         public bool IsDeleted { get; set; }
 
+
         private List<IEvent> _events;
+
+        [NotMapped]
+        [JsonIgnore]
         public IReadOnlyList<IEvent> Events => _events;
 
         protected BaseEntity()
