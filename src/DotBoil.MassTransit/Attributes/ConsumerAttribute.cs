@@ -1,6 +1,6 @@
 ﻿namespace DotBoil.MassTransit.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ConsumerAttribute : Attribute
     {
         public string QueueName { get; set; }
