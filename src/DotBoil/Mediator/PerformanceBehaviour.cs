@@ -22,7 +22,7 @@ namespace DotBoil.Mediator
 
             stopWatch.Stop();
 
-            _logger.LogInformation("Elapsed Millisecond : {0}", stopWatch.ElapsedMilliseconds);
+            _logger.LogInformation("Method {0}, Elapsed Millisecond : {0}", next.Method.Name, stopWatch.ElapsedMilliseconds);
 
             return response;
         }
