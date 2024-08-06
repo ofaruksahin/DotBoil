@@ -11,13 +11,13 @@ namespace DotBoil.Health
 {
     internal class HealthModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            var healthOptions = builder.Configuration.GetConfigurations<HealthOptions>();
+            var healthOptions = DotBoilApp.Configuration.GetConfigurations<HealthOptions>();
 
             if (!string.IsNullOrEmpty(healthOptions.Url))
             {
-                var healthCheckBuilder = builder.Services.AddHealthChecks();
+                var healthCheckBuilder = DotBoilApp.Services.AddHealthChecks();
 
                 var configureType = AppDomain.CurrentDomain.FindTypeWithBaseType(typeof(ConfigureHealthCheck));
 
@@ -25,13 +25,13 @@ namespace DotBoil.Health
                 {
                     var configureInstance = (ConfigureHealthCheck)Activator.CreateInstance(configureType);
 
-                    configureInstance.Configure(builder, healthCheckBuilder);
+                    configureInstance.Configure(healthCheckBuilder);
                 }
             }
 
             if (healthOptions.UI is not null)
             {
-                var healthCheckUIBuilder = builder.Services.AddHealthChecksUI(settings =>
+                var healthCheckUIBuilder = DotBoilApp.Services.AddHealthChecksUI(settings =>
                 {
                     healthOptions.UI.Services.ForEach(service => settings.AddHealthCheckEndpoint(service.Name, service.Uri));
                 });
@@ -56,11 +56,12 @@ namespace DotBoil.Health
                 }
             }
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
+            var app = DotBoilApp.Host as WebApplication;
             using var scope = app.Services.CreateScope();
             var healthOptions = scope.ServiceProvider.GetService<HealthOptions>();
 

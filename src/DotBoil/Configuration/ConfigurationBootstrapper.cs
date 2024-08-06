@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -7,7 +6,7 @@ namespace DotBoil.Configuration
 {
     internal static class ConfigurationBootstrapper
     {
-        public static Task<WebApplicationBuilder> AddDotBoilConfigurations(this WebApplicationBuilder builder, params Assembly[] assemblies)
+        public static Task AddDotBoilConfigurations(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -17,12 +16,12 @@ namespace DotBoil.Configuration
                 {
                     var configuration = (IOptions)Activator.CreateInstance(configurationLoader);
 
-                    builder.Configuration.GetSection(configuration.Key).Bind(configuration);
-                    builder.Services.AddSingleton(configurationLoader, configuration);
+                    DotBoilApp.Configuration.GetSection(configuration.Key).Bind(configuration);
+                    DotBoilApp.Services.AddSingleton(configurationLoader, configuration);
                 }
             }
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
         private static IReadOnlyList<Type> GetConfigurationLoaders(Assembly assembly)

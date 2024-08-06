@@ -2,16 +2,15 @@
 using DotBoil.Configuration;
 using DotBoil.Dependency;
 using DotBoil.Versioning.Configuration;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Versioning
 {
     internal class VersioningModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            var versioningOptions = builder.Configuration.GetConfigurations<VersioningOptions>();
+            var versioningOptions = DotBoilApp.Configuration.GetConfigurations<VersioningOptions>();
 
             var apiVersionReaders = new List<IApiVersionReader>();
 
@@ -21,7 +20,7 @@ namespace DotBoil.Versioning
             if (versioningOptions.HeaderApiVersioningEnable)
                 apiVersionReaders.Add(new HeaderApiVersionReader(versioningOptions.HeaderApiVersioningHeaderName));
 
-            builder.Services.AddApiVersioning(configure =>
+            DotBoilApp.Services.AddApiVersioning(configure =>
             {
                 configure.DefaultApiVersion = new ApiVersion(
                     versioningOptions.DefaultMajorVersion,
@@ -35,12 +34,12 @@ namespace DotBoil.Versioning
                 configure.SubstituteApiVersionInUrl = true;
             });
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

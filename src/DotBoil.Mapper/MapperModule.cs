@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using DotBoil.Dependency;
 using DotBoil.Reflection;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Mapper
 {
     internal class MapperModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
             var mapperProfiles = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(Profile));
 
@@ -19,14 +18,14 @@ namespace DotBoil.Mapper
             });
 
             var mapper = mapperConfig.CreateMapper();
-            builder.Services.AddSingleton(mapper);
+            DotBoilApp.Services.AddSingleton(mapper);
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

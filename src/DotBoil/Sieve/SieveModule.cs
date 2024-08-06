@@ -1,6 +1,5 @@
 ﻿using DotBoil.Dependency;
 using DotBoil.Reflection;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Sieve.Services;
 
@@ -8,27 +7,27 @@ namespace DotBoil.Sieve
 {
     internal class SieveModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
             var processors = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(SieveProcessor)) ?? new List<Type>();
             var filters = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomFilterMethods)) ?? new List<Type>();
             var sorts = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(ISieveCustomSortMethods)) ?? new List<Type>();
 
             foreach (var proccessor in processors)
-                builder.Services.AddScoped(typeof(ISieveProcessor), proccessor);
+                DotBoilApp.Services.AddScoped(typeof(ISieveProcessor), proccessor);
 
             foreach (var filter in filters)
-                builder.Services.AddScoped(typeof(ISieveCustomFilterMethods), filter);
+                DotBoilApp.Services.AddScoped(typeof(ISieveCustomFilterMethods), filter);
 
             foreach (var sort in sorts)
-                builder.Services.AddScoped(typeof(ISieveCustomSortMethods), sort);
+                DotBoilApp.Services.AddScoped(typeof(ISieveCustomSortMethods), sort);
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

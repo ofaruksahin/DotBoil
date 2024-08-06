@@ -8,11 +8,11 @@ namespace DotBoil.Cors
 {
     internal class CorsModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            var options = builder.Configuration.GetConfigurations<CorsOptions>();
+            var options = DotBoilApp.Configuration.GetConfigurations<CorsOptions>();
 
-            builder.Services.AddCors(configure =>
+            DotBoilApp.Services.AddCors(configure =>
             {
                 configure.AddPolicy(options.PolicyName, policy =>
                 {
@@ -22,11 +22,12 @@ namespace DotBoil.Cors
                 });
             });
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task<WebApplication> UseModule()
         {
+            var app = DotBoilApp.Host as WebApplication;
             using var scope = app.Services.CreateScope();
             var options = scope.ServiceProvider.GetService<CorsOptions>();
 

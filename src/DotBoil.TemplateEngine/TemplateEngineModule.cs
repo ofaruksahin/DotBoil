@@ -1,6 +1,5 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.TemplateEngine.Configuration;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using RazorLight;
 using Module = DotBoil.Dependency.Module;
@@ -9,16 +8,16 @@ namespace DotBoil.TemplateEngine
 {
     internal class TemplateEngineModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            var configuration = builder.Configuration.GetConfigurations<RazorViewEngineConfiguration>();
+            var configuration = DotBoilApp.Configuration.GetConfigurations<RazorViewEngineConfiguration>();
 
             var assembly = AppDomain
                 .CurrentDomain
                 .GetAssemblies()
                 .FirstOrDefault(ass => ass.GetName().Name.Contains(configuration.AssemblyName));
 
-            builder.Services.AddSingleton<RazorLightEngine>(sp =>
+            DotBoilApp.Services.AddSingleton<RazorLightEngine>(sp =>
             {
                 return new RazorLightEngineBuilder()
                     .UseEmbeddedResourcesProject(assembly, configuration.RootNamespace)
@@ -26,14 +25,14 @@ namespace DotBoil.TemplateEngine
                     .Build();
             });
 
-            builder.Services.AddSingleton<IRazorRenderer, RazorRenderer>();
+            DotBoilApp.Services.AddSingleton<IRazorRenderer, RazorRenderer>();
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

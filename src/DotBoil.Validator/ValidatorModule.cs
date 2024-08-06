@@ -1,14 +1,13 @@
 ﻿using DotBoil.Dependency;
 using DotBoil.Reflection;
 using FluentValidation;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Validator
 {
     internal class ValidatorModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
             var validators = AppDomain.CurrentDomain.FindTypesWithBaseType(predicate =>
                 predicate.BaseType != null &&
@@ -18,21 +17,24 @@ namespace DotBoil.Validator
             {
                 foreach (var validator in validators)
                 {
+                    if (!string.IsNullOrEmpty(validator.Namespace) && validator.Namespace.StartsWith("Fluent"))
+                        continue;
+
                     var validateType = validator.BaseType.GetGenericArguments().FirstOrDefault();
 
                     if (validateType is null)
                         continue;
 
-                    builder.Services.AddScoped(typeof(IValidator<>).MakeGenericType(validateType), validator);
+                    DotBoilApp.Services.AddScoped(typeof(IValidator<>).MakeGenericType(validateType), validator);
                 }
             }
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

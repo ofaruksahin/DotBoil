@@ -1,21 +1,20 @@
 ﻿using DotBoil.Dependency;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Email
 {
     internal class MailSenderModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            builder.Services.AddSingleton<IMailSender, SmtpSender>();
+            DotBoilApp.Services.AddSingleton<IMailSender, SmtpSender>();
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

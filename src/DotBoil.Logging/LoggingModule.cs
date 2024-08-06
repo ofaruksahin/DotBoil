@@ -3,7 +3,6 @@ using DotBoil.Dependency;
 using DotBoil.Logging.Configuration;
 using DotBoil.Logging.Sink;
 using DotBoil.Reflection;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -11,9 +10,9 @@ namespace DotBoil.Logging
 {
     internal class LoggingModule : Module
     {
-        public override async Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override async Task AddModule()
         {
-            var loggingOptions = builder.Configuration.GetConfigurations<LoggingOptions>();
+            var loggingOptions = DotBoilApp.Configuration.GetConfigurations<LoggingOptions>();
 
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Information();
@@ -25,20 +24,18 @@ namespace DotBoil.Logging
                 if (sinkType is null) continue;
 
                 var sinkInstance = (ISink)Activator.CreateInstance(sinkType);
-                await sinkInstance.UseSink(builder, loggerConfiguration);
+                await sinkInstance.UseSink(loggerConfiguration);
             }
 
             var logger = loggerConfiguration.CreateLogger();
 
-            builder.Logging.ClearProviders();
-            builder.Logging.AddSerilog(logger);
-
-            return builder;
+            DotBoilApp.Logging.ClearProviders();
+            DotBoilApp.Logging.AddSerilog(logger);
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

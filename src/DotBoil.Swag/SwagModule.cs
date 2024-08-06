@@ -10,20 +10,22 @@ namespace DotBoil.Swag
 {
     internal class SwagModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            builder.Services.AddSwaggerGen(configure =>
+            DotBoilApp.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            DotBoilApp.Services.AddSwaggerGen(configure =>
             {
-                var options = builder.Configuration.GetConfigurations<SwagOptions>();
+                var options = DotBoilApp.Configuration.GetConfigurations<SwagOptions>();
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, options.XmlFile);
                 configure.IncludeXmlComments(xmlPath);
             });
-            return Task.FromResult(builder);
+
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
+            var app = DotBoilApp.Host as WebApplication;
             using var scope = app.Services.CreateScope();
             var options = scope.ServiceProvider.GetRequiredService<SwagOptions>();
 
@@ -33,7 +35,8 @@ namespace DotBoil.Swag
                 foreach (var version in options.Versions)
                     configure.SwaggerEndpoint(string.Format("/swagger/{0}/swagger.json", version.VersionName), version.VersionDescription);
             });
-            return Task.FromResult(app);
+
+            return Task.CompletedTask;
         }
     }
 }

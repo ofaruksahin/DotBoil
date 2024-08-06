@@ -2,23 +2,22 @@
 using DotBoil.Dependency;
 using DotBoil.Reflection;
 using MediatR;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Mediator
 {
     internal class MediatorModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-            builder.Services.AddMediatR(configure =>
+            DotBoilApp.Services.AddMediatR(configure =>
             {
                 configure.RegisterServicesFromAssemblies(assemblies);
             });
 
-            var mediatorOptions = builder.Configuration.GetConfigurations<MediatorOptions>();
+            var mediatorOptions = DotBoilApp.Configuration.GetConfigurations<MediatorOptions>();
 
             foreach (var pipeline in mediatorOptions.Pipelines)
             {
@@ -27,15 +26,15 @@ namespace DotBoil.Mediator
                 if (pipelineType is null)
                     continue;
 
-                builder.Services.AddTransient(typeof(IPipelineBehavior<,>), pipelineType);
+                DotBoilApp.Services.AddTransient(typeof(IPipelineBehavior<,>), pipelineType);
             }
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using DotBoil.MassTransit.Persistence;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,14 +9,14 @@ namespace DotBoil.MassTransit.Configuration
         public string ConnectionString { get; set; }
 
 
-        public async Task<WebApplicationBuilder> ConfigurePersistence(WebApplicationBuilder builder)
+        public Task ConfigurePersistence()
         {
-            builder.Services.AddDbContext<MassTransitDbContext>(options =>
+            DotBoilApp.Services.AddDbContext<MassTransitDbContext>(options =>
             {
                 options.UseMySQL(ConnectionString);
             });
 
-            return builder;
+            return Task.CompletedTask;
         }
     }
 }

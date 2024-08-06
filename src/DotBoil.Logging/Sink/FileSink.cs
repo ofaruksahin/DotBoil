@@ -1,15 +1,14 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.Logging.Configuration.FileSink;
-using Microsoft.AspNetCore.Builder;
 using Serilog;
 
 namespace DotBoil.Logging.Sink
 {
     internal class FileSink : ISink
     {
-        public Task UseSink(WebApplicationBuilder builder, LoggerConfiguration loggerConfiguration)
+        public Task UseSink(LoggerConfiguration loggerConfiguration)
         {
-            var fileSinkOptions = builder.Configuration.GetConfigurations<FileSinkOptions>();
+            var fileSinkOptions = DotBoilApp.Configuration.GetConfigurations<FileSinkOptions>();
 
             loggerConfiguration
                 .WriteTo.File(fileSinkOptions.LogFileName, rollingInterval: fileSinkOptions.RollingInterval);

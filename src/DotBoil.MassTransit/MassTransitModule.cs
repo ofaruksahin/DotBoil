@@ -5,7 +5,6 @@ using DotBoil.MassTransit.Persistence;
 using DotBoil.MassTransit.Publishers;
 using DotBoil.Reflection;
 using MassTransit;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -13,21 +12,21 @@ namespace DotBoil.MassTransit
 {
     internal class MassTransitModule : Dependency.Module
     {
-        public override async Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override async Task AddModule()
         {
-            var persistenceConfiguration = builder.Configuration.GetConfigurations<MassTransitPersistenceConfiguration>();
-            var rabbitMqConfiguration = builder.Configuration.GetConfigurations<MassTransitRabbitMqConfiguration>();
+            var persistenceConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitPersistenceConfiguration>();
+            var rabbitMqConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitRabbitMqConfiguration>();
 
             switch (persistenceConfiguration.PersistenceType)
             {
                 case MassTransitPersistenceType.MySql:
-                    await persistenceConfiguration.MySql.ConfigurePersistence(builder);
+                    await persistenceConfiguration.MySql.ConfigurePersistence();
                     break;
                 default:
                     throw new Exception("Not supported persistence type");
             }
 
-            builder.Services.AddMassTransit(x =>
+            DotBoilApp.Services.AddMassTransit(x =>
             {
                 var queueConsumerMappings = GetConsumerMappings();
 
@@ -63,16 +62,14 @@ namespace DotBoil.MassTransit
                 });
             });
 
-            builder.Services.AddScoped<MassTransitDbContextSaveChangesInterceptor>();
+            DotBoilApp.Services.AddScoped<MassTransitDbContextSaveChangesInterceptor>();
 
-            builder.Services.AddScoped<IBusPublisher, RabbitMqPublisher>();
-
-            return builder;
+            DotBoilApp.Services.AddScoped<IBusPublisher, RabbitMqPublisher>();
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
 
         private IDictionary<string, List<Type>> GetConsumerMappings()

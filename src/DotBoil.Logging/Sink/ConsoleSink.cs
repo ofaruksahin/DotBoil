@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Serilog;
+﻿using Serilog;
 
 namespace DotBoil.Logging.Sink
 {
     internal class ConsoleSink : ISink
     {
-        public Task UseSink(WebApplicationBuilder builder, LoggerConfiguration loggerConfiguration)
+        public Task UseSink(LoggerConfiguration loggerConfiguration)
         {
             loggerConfiguration
                 .WriteTo.Console();

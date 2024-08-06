@@ -2,7 +2,6 @@
 using DotBoil.Caching.Redis;
 using DotBoil.Configuration;
 using DotBoil.Dependency;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
@@ -10,11 +9,11 @@ namespace DotBoil.Caching
 {
     internal class CachingModule : Module
     {
-        public override Task<WebApplicationBuilder> AddModule(WebApplicationBuilder builder)
+        public override Task AddModule()
         {
-            var options = builder.Configuration.GetConfigurations<RedisConfiguration>();
+            var options = DotBoilApp.Configuration.GetConfigurations<RedisConfiguration>();
 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            DotBoilApp.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var connectionMultiplexerOptions = new ConfigurationOptions();
 
@@ -25,14 +24,14 @@ namespace DotBoil.Caching
                 return ConnectionMultiplexer.Connect(connectionMultiplexerOptions);
             });
 
-            builder.Services.AddSingleton<ICache, RedisCache>();
+            DotBoilApp.Services.AddSingleton<ICache, RedisCache>();
 
-            return Task.FromResult(builder);
+            return Task.CompletedTask;
         }
 
-        public override Task<WebApplication> UseModule(WebApplication app)
+        public override Task UseModule()
         {
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
     }
 }

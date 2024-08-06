@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace DotBoil.Dependency
 {
     internal static class DependencyBootstrapper
     {
-        public static async Task<WebApplicationBuilder> AddDotBoilDependencies(this WebApplicationBuilder builder, params Assembly[] assemblies)
+        public static async Task AddDotBoilDependencies(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -14,14 +13,12 @@ namespace DotBoil.Dependency
                 foreach (var moduleLoader in moduleLoaders)
                 {
                     var module = (Module)Activator.CreateInstance(moduleLoader);
-                    await module.AddModule(builder);
+                    await module.AddModule();
                 }
             }
-
-            return builder;
         }
 
-        public static async Task<WebApplication> UseDotBoilDependencies(this WebApplication app, params Assembly[] assemblies)
+        public static async Task UseDotBoilDependencies(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -30,10 +27,9 @@ namespace DotBoil.Dependency
                 foreach (var moduleLoader in moduleLoaders)
                 {
                     var module = (Module)Activator.CreateInstance(moduleLoader);
-                    await module.UseModule(app);
+                    await module.UseModule();
                 }
             }
-            return app;
         }
 
         private static IReadOnlyList<Type> GetDependencyLoaders(Assembly assembly)
