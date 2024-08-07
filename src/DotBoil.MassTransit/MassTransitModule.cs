@@ -5,7 +5,7 @@ using DotBoil.MassTransit.Persistence;
 using DotBoil.MassTransit.Publishers;
 using DotBoil.Reflection;
 using MassTransit;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace DotBoil.MassTransit
@@ -62,9 +62,9 @@ namespace DotBoil.MassTransit
                 });
             });
 
-            DotBoilApp.Services.AddScoped<MassTransitDbContextSaveChangesInterceptor>();
+            DotBoilApp.Services.TryAddScoped<MassTransitDbContextSaveChangesInterceptor>();
 
-            DotBoilApp.Services.AddScoped<IBusPublisher, RabbitMqPublisher>();
+            DotBoilApp.Services.TryAddScoped<IBusPublisher, RabbitMqPublisher>();
         }
 
         public override Task UseModule()

@@ -1,5 +1,5 @@
 ﻿using DotBoil.Dependency;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DotBoil.Email
 {
@@ -7,7 +7,7 @@ namespace DotBoil.Email
     {
         public override Task AddModule()
         {
-            DotBoilApp.Services.AddSingleton<IMailSender, SmtpSender>();
+            DotBoilApp.Services.TryAddSingleton<IMailSender, SmtpSender>();
 
             return Task.CompletedTask;
         }

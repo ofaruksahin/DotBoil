@@ -2,7 +2,7 @@
 using DotBoil.Caching.Redis;
 using DotBoil.Configuration;
 using DotBoil.Dependency;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 
 namespace DotBoil.Caching
@@ -13,7 +13,7 @@ namespace DotBoil.Caching
         {
             var options = DotBoilApp.Configuration.GetConfigurations<RedisConfiguration>();
 
-            DotBoilApp.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            DotBoilApp.Services.TryAddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var connectionMultiplexerOptions = new ConfigurationOptions();
 
@@ -24,7 +24,7 @@ namespace DotBoil.Caching
                 return ConnectionMultiplexer.Connect(connectionMultiplexerOptions);
             });
 
-            DotBoilApp.Services.AddSingleton<ICache, RedisCache>();
+            DotBoilApp.Services.TryAddSingleton<ICache, RedisCache>();
 
             return Task.CompletedTask;
         }

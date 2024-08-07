@@ -1,7 +1,7 @@
 ﻿using DotBoil.Dependency;
 using DotBoil.Reflection;
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DotBoil.Validator
 {
@@ -25,7 +25,7 @@ namespace DotBoil.Validator
                     if (validateType is null)
                         continue;
 
-                    DotBoilApp.Services.AddScoped(typeof(IValidator<>).MakeGenericType(validateType), validator);
+                    DotBoilApp.Services.TryAddScoped(typeof(IValidator<>).MakeGenericType(validateType), validator);
                 }
             }
 

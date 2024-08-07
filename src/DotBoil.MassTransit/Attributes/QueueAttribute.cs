@@ -3,7 +3,7 @@
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class QueueAttribute : Attribute
     {
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
         public QueueAttribute(string name)
         {

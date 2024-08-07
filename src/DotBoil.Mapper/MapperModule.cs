@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using DotBoil.Dependency;
 using DotBoil.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DotBoil.Mapper
 {
@@ -18,7 +18,7 @@ namespace DotBoil.Mapper
             });
 
             var mapper = mapperConfig.CreateMapper();
-            DotBoilApp.Services.AddSingleton(mapper);
+            DotBoilApp.Services.TryAddSingleton(mapper);
 
             return Task.CompletedTask;
         }

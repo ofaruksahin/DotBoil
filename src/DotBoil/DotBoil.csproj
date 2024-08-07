@@ -9,7 +9,6 @@
     <PackageReference Include="MediatR" Version="12.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.6.24327.7" />
-    <PackageReference Include="Sieve" Version="3.0.0-beta0015" />
   </ItemGroup>
 
 </Project>

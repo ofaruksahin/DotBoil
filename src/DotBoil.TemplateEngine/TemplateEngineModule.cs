@@ -1,6 +1,6 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.TemplateEngine.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RazorLight;
 using Module = DotBoil.Dependency.Module;
 
@@ -17,7 +17,7 @@ namespace DotBoil.TemplateEngine
                 .GetAssemblies()
                 .FirstOrDefault(ass => ass.GetName().Name.Contains(configuration.AssemblyName));
 
-            DotBoilApp.Services.AddSingleton<RazorLightEngine>(sp =>
+            DotBoilApp.Services.TryAddSingleton<RazorLightEngine>(sp =>
             {
                 return new RazorLightEngineBuilder()
                     .UseEmbeddedResourcesProject(assembly, configuration.RootNamespace)
@@ -25,7 +25,7 @@ namespace DotBoil.TemplateEngine
                     .Build();
             });
 
-            DotBoilApp.Services.AddSingleton<IRazorRenderer, RazorRenderer>();
+            DotBoilApp.Services.TryAddSingleton<IRazorRenderer, RazorRenderer>();
 
             return Task.CompletedTask;
         }
