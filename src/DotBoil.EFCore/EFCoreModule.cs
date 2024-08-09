@@ -25,22 +25,25 @@ namespace DotBoil.EFCore
             foreach (var interceptor in interceptors)
                 DotBoilApp.Services.TryAddScoped(interceptor);
 
-            var loader = AppDomain.CurrentDomain.FindTypeWithBaseType(typeof(EFCoreDbContextLoader));
+            var loaders = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(EFCoreDbContextLoader));
 
-            if (loader == null)
+            if (loaders == null || !loaders.Any())
                 throw new EFCoreDbContextLoaderException();
 
-            var loaderInstance = (EFCoreDbContextLoader)Activator.CreateInstance(loader);
+            foreach(var loader in loaders)
+            {
+                var loaderInstance = (EFCoreDbContextLoader)Activator.CreateInstance(loader);
 
-            if (loaderInstance == null)
-                throw new EFCoreDbContextLoaderException();
+                if (loaderInstance == null)
+                    throw new EFCoreDbContextLoaderException();
+
+                loaderInstance.LoadDbContext(DotBoilApp.Configuration, DotBoilApp.Services);
+            }
 
             var entityTypeConfigurations = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(IEntityTypeConfiguration<>));
 
             foreach(var entityTypeConfiguration in entityTypeConfigurations)
                 DotBoilApp.Services.TryAddSingleton(entityTypeConfiguration);
-
-            loaderInstance.LoadDbContext(DotBoilApp.Configuration, DotBoilApp.Services);
 
             DotBoilApp.Services.AddScoped(typeof(IRepository<,>),typeof(EFCoreRepository<,>));
 
