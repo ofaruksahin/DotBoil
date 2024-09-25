@@ -20,6 +20,7 @@ At this point, the following integrations have been automated for developers:
 | **Template Engine**    | Use Razor syntax to create email and message templates in your project.                                  |
 | **FluentValidator**    | Automate validation for the models in your project.                                                      |
 | **API Versioning**     | Automate API versioning and handle deprecation of versions seamlessly.                                   |
+| **Localization**        | Provides multilingual support for applications using Redis and MySQL.                                   |
 
 ## Upcoming Packages
 
@@ -27,7 +28,6 @@ The following packages are planned for future integration:
 
 | Package                 | Description                                                                                              |
 |-------------------------|----------------------------------------------------------------------------------------------------------|
-| **Localization**        | Provides multilingual support for applications using Redis and MySQL.                                   |
 | **Parameters**          | Manages application parameters using Redis and MySQL.                                                  |
 | **Pagination and Sorting** | Implements sorting and pagination operations in database tables using EntityFrameworkCore.             |
 | **Authentication & Authorization** | Creates a membership system based on tenant and OAuth 2.0 protocol, handling authorization for created memberships. |
