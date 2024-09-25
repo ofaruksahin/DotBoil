@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="StackExchange.Redis" Version="2.8.16" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+	</ItemGroup>
 
 </Project>
