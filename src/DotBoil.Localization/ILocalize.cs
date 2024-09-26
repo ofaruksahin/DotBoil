@@ -4,7 +4,5 @@
     {
         Task<string> LocalizeText(string name);
         Task<string> LocalizeText(string group, string name);
-
-        Task Initialize();
     }
 }

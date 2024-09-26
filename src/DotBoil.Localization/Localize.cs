@@ -13,8 +13,8 @@ namespace DotBoil.Localization
         private string _prefix = "DotBoil:Localization:";
         private IDatabase _cache;
         private ICurrentLanguage _currentLanguage;
+        private IServiceProvider _serivceProvider;
         private LocalizationConfiguration _configuration;
-        private LocalizationDbContext _localizationDbContext;
 
         public Localize(IServiceProvider serviceProvider)
         {
@@ -22,36 +22,45 @@ namespace DotBoil.Localization
             _configuration = scope.ServiceProvider.GetService<LocalizationConfiguration>();
             _cache = ConnectionMultiplexer.Connect(_configuration.Caching.ConnectionString).GetDatabase(0);
             _currentLanguage = scope.ServiceProvider.GetService<ICurrentLanguage>();
-            _localizationDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
+            _serivceProvider = serviceProvider;
+
+            Initialize()
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
         }
 
         public async Task<string> LocalizeText(string name)
         {
-            return await LocalizeText("DotBoil", name);
+            return await LocalizeText(string.Empty, name);
         }
 
         public async Task<string> LocalizeText(string group, string name)
         {
             try
             {
-                var key = string.Concat(_prefix, string.Join(":", _currentLanguage.Language, group, name));
-                var exists = await _cache.KeyExistsAsync(key);
+                var key = string.Concat(_prefix, string.Join(":", _currentLanguage.Language, string.IsNullOrEmpty(group) ? "DotBoil" : group, name));
 
-                if (!exists)
-                    await Initialize();
+                TimeSpan? timeSpan = null;
 
-                exists = await _cache.KeyExistsAsync(key);
+                if (_configuration.Caching.ExpireInHour.HasValue)
+                    timeSpan = TimeSpan.FromHours(_configuration.Caching.ExpireInHour.Value);
 
-                if (!exists)
+                var localizedText = await GetOrSetAsync(key, async () =>
+                {
+                    using var scope = _serivceProvider.CreateAsyncScope();
+                    var localizeDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
+
+                    return (await localizeDbContext.Localizations.FirstOrDefaultAsync(l =>
+                        l.Language == _currentLanguage.Language &&
+                        l.Group == group &&
+                        l.Key == name))?.Value;
+                }, timeSpan);
+
+                if (string.IsNullOrEmpty(localizedText))
                     throw new LocalizeException(_currentLanguage.Language, group, name);
 
-                var localizeJson = await _cache.StringGetAsync(key);
-
-                if (string.IsNullOrEmpty(localizeJson))
-                    throw new LocalizeException(_currentLanguage.Language, group, name);
-
-                return (await localizeJson.ToString().DeserializeAsync<Models.Localization>()).Value ??
-                    throw new LocalizeException(_currentLanguage.Language, group, name);
+                return localizedText;
             }
             catch (Exception)
             {
@@ -59,9 +68,12 @@ namespace DotBoil.Localization
             }
         }
 
-        public async Task Initialize()
+        private async Task Initialize()
         {
-            var localizations = await _localizationDbContext.Localizations.ToListAsync();
+            using var scope = _serivceProvider.CreateAsyncScope();
+
+            var localizationDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
+            var localizations = await localizationDbContext.Localizations.ToListAsync();
 
             foreach (var item in localizations.Where(l => string.IsNullOrEmpty(l.Group)))
                 item.Group = "DotBoil";
@@ -81,6 +93,19 @@ namespace DotBoil.Localization
                     await _cache.StringSetAsync(cacheKey, await localization.SerializeAsync(), timeSpan);
                 }
             }
+        }
+
+        private async Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> action, TimeSpan? expire = default)
+        {
+            var cachedValue = await _cache.StringGetAsync(key);
+            if (cachedValue.HasValue)
+                return (T)Convert.ChangeType(cachedValue.ToString(), typeof(T));
+
+            var result = await action();
+
+            await _cache.StringSetAsync(key, result.ToString(), expire);
+
+            return result;
         }
     }
 }

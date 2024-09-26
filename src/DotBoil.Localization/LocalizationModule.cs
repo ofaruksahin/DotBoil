@@ -26,8 +26,7 @@ namespace DotBoil.Localization
         public override async Task UseModule()
         {
             var scope = DotBoilApp.Host.Services.CreateScope();
-            var localize = scope.ServiceProvider.GetRequiredService<ILocalize>();
-            await localize.Initialize();
+            scope.ServiceProvider.GetRequiredService<ILocalize>();
         }
     }
 }

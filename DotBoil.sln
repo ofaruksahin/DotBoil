@@ -40,7 +40,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Localization", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoil.Parameter", "src\DotBoil.Parameter\DotBoil.Parameter.csproj", "{F195F132-823A-42A1-A98E-28EFA95B0CFC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoilExample", "..\DotBoilExample\DotBoilExample.csproj", "{9B433067-456C-4993-9F62-12E03EF6BD97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotBoilExample", "..\DotBoilExample\DotBoilExample.csproj", "{D6ABD493-B33B-42D3-BFE4-4B93CFA4D2DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,10 +108,10 @@ Global
 		{F195F132-823A-42A1-A98E-28EFA95B0CFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F195F132-823A-42A1-A98E-28EFA95B0CFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F195F132-823A-42A1-A98E-28EFA95B0CFC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9B433067-456C-4993-9F62-12E03EF6BD97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9B433067-456C-4993-9F62-12E03EF6BD97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9B433067-456C-4993-9F62-12E03EF6BD97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9B433067-456C-4993-9F62-12E03EF6BD97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6ABD493-B33B-42D3-BFE4-4B93CFA4D2DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6ABD493-B33B-42D3-BFE4-4B93CFA4D2DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6ABD493-B33B-42D3-BFE4-4B93CFA4D2DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6ABD493-B33B-42D3-BFE4-4B93CFA4D2DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
