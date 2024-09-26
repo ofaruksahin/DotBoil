@@ -59,7 +59,7 @@ namespace DotBoil.EFCore
                 if (entityTypeConfigurationAttribute.DbContextType == GetType())
                 {
                     var entityTypeConfiguration = _serviceProvider.GetService(type);
-                    applyConfigurationMethod.MakeGenericMethod(type.BaseType.GetGenericArguments().FirstOrDefault())?.Invoke(modelBuilder, new[] {entityTypeConfiguration});
+                    applyConfigurationMethod.MakeGenericMethod(type.BaseType.GetGenericArguments().FirstOrDefault())?.Invoke(modelBuilder, new[] { entityTypeConfiguration });
                 }
             }
         }

@@ -30,7 +30,7 @@ namespace DotBoil.EFCore
             if (loaders == null || !loaders.Any())
                 throw new EFCoreDbContextLoaderException();
 
-            foreach(var loader in loaders)
+            foreach (var loader in loaders)
             {
                 var loaderInstance = (EFCoreDbContextLoader)Activator.CreateInstance(loader);
 
@@ -42,10 +42,10 @@ namespace DotBoil.EFCore
 
             var entityTypeConfigurations = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(IEntityTypeConfiguration<>));
 
-            foreach(var entityTypeConfiguration in entityTypeConfigurations)
+            foreach (var entityTypeConfiguration in entityTypeConfigurations)
                 DotBoilApp.Services.TryAddSingleton(entityTypeConfiguration);
 
-            DotBoilApp.Services.AddScoped(typeof(IRepository<,>),typeof(EFCoreRepository<,>));
+            DotBoilApp.Services.AddScoped(typeof(IRepository<,>), typeof(EFCoreRepository<,>));
 
             return Task.CompletedTask;
         }

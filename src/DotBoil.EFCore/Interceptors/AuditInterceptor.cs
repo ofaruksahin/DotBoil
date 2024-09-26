@@ -19,15 +19,17 @@ namespace DotBoil.EFCore.Interceptors
 
             foreach (var entity in entities)
             {
-                if(entity.State == EntityState.Added)
+                if (entity.State == EntityState.Added)
                 {
                     entity.Entity.CreateUser = await _auditUser.GetModifierName();
                     entity.Entity.CreateTime = DateTime.Now;
-                }else if(entity.State == EntityState.Modified)
+                }
+                else if (entity.State == EntityState.Modified)
                 {
                     entity.Entity.ModifyUser = await _auditUser.GetModifierName();
                     entity.Entity.UpdateTime = DateTime.Now;
-                }else if(entity.State == EntityState.Deleted)
+                }
+                else if (entity.State == EntityState.Deleted)
                 {
                     entity.Entity.ModifyUser = await _auditUser.GetModifierName();
                     entity.Entity.UpdateTime = DateTime.Now;
