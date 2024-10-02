@@ -32,14 +32,24 @@ namespace DotBoil.Localization
 
         public async Task<string> LocalizeText(string name)
         {
-            return await LocalizeText(string.Empty, name);
+            return await LocalizeTextWithLanguage(_currentLanguage.Language, string.Empty, name);
         }
 
         public async Task<string> LocalizeText(string group, string name)
         {
+            return await LocalizeTextWithLanguage(_currentLanguage.Language, group, name);
+        }
+
+        public async Task<string> LocalizeTextWithLanguage(string language, string name)
+        {
+            return await LocalizeTextWithLanguage(language, string.Empty, name);
+        }
+
+        public async Task<string> LocalizeTextWithLanguage(string language, string group, string name)
+        {
             try
             {
-                var key = string.Concat(_prefix, string.Join(":", _currentLanguage.Language, string.IsNullOrEmpty(group) ? "DotBoil" : group, name));
+                var key = string.Concat(_prefix, string.Join(":", language, string.IsNullOrEmpty(group) ? "DotBoil" : group, name));
 
                 TimeSpan? timeSpan = null;
 
@@ -52,19 +62,19 @@ namespace DotBoil.Localization
                     var localizeDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
 
                     return (await localizeDbContext.Localizations.FirstOrDefaultAsync(l =>
-                        l.Language == _currentLanguage.Language &&
+                        l.Language == language &&
                         l.Group == group &&
                         l.Key == name))?.Value;
                 }, timeSpan);
 
                 if (string.IsNullOrEmpty(localizedText))
-                    throw new LocalizeException(_currentLanguage.Language, group, name);
+                    throw new LocalizeException(language, group, name);
 
                 return localizedText;
             }
             catch (Exception)
             {
-                throw new LocalizeException(_currentLanguage.Language, group, name);
+                throw new LocalizeException(language, group, name);
             }
         }
 

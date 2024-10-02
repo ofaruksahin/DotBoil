@@ -9,7 +9,7 @@ namespace DotBoil.Parameter
         {
             using (var context = new ParameterDbContext())
             {
-                var parameters = context.Parameters.ToList();
+                var parameters = context.Parameters.Where(p => p.TenantId == 0).ToList();
 
                 foreach (var parameter in parameters)
                 {

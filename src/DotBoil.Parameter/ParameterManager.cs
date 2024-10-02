@@ -27,7 +27,22 @@ namespace DotBoil.Parameter
 
         public async Task<T> GetParameterValue<T>(string section, string name)
         {
-            var key = string.Join(':', _prefix, string.IsNullOrEmpty(section) ? "DotBoil" : section, name);
+            return await GetParameterValue<T>(0, section, name);
+        }
+
+        public async Task<T> GetParameterValue<T>(string name)
+        {
+            return await GetParameterValue<T>(0, string.Empty, name);
+        }
+
+        public async Task<T> GetParameterValue<T>(int tenantId, string name)
+        {
+            return await GetParameterValue<T>(tenantId, string.Empty, name);
+        }
+
+        public async Task<T> GetParameterValue<T>(int tenantId, string section, string name)
+        {
+            var key = string.Join(':', _prefix, tenantId, string.IsNullOrEmpty(section) ? "DotBoil" : section, name);
             var timeSpan = default(TimeSpan?);
 
             if (_configuration.Caching.ExpireInHour.HasValue)
@@ -46,11 +61,6 @@ namespace DotBoil.Parameter
             }, timeSpan);
         }
 
-        public async Task<T> GetParameterValue<T>(string name)
-        {
-            return await GetParameterValue<T>(string.Empty, name);
-        }
-
         private async Task Initialize()
         {
             _caching = (await ConnectionMultiplexer.ConnectAsync(_configuration.Caching.ConnectionString))?.GetDatabase(0);
@@ -67,7 +77,7 @@ namespace DotBoil.Parameter
 
             foreach (var param in parameters)
             {
-                var key = string.Join(':', _prefix, param.Section, param.Key);
+                var key = string.Join(':', _prefix, param.TenantId, param.Section, param.Key);
                 await _caching.StringSetAsync(key, param.Value);
             }
         }

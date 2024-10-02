@@ -2,6 +2,7 @@
 using DotBoil.Parameter.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DotBoil.Parameter.Migrations
 {
     [DbContext(typeof(ParameterDbContext))]
-    partial class ParameterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241002190946_ParameterTableTenantIdColumnAdded")]
+    partial class ParameterTableTenantIdColumnAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
