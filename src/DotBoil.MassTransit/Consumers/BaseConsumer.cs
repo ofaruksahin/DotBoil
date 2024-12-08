@@ -34,8 +34,6 @@ namespace DotBoil.MassTransit.Consumers
         private async Task HandleException(ConsumeContext<TEvent> context, Exception ex)
         {
             using var scope = _serviceProvider.CreateScope();
-            var rabbitMqConfiguration = _serviceProvider.GetService<MassTransitRabbitMqConfiguration>();
-            var queueName = context.ReceiveContext.InputAddress.AbsolutePath.Trim('/');
 
             var massTransitDbContext = scope.ServiceProvider.GetService<MassTransitDbContext>();
             await massTransitDbContext.RetryPolicyExceptions.AddAsync(new RetryPolicyException(context.MessageId.Value, ex.Message));
