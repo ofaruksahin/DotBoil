@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DotBoil.Caching\DotBoil.Caching.csproj" />
+      <ProjectReference Include="..\DotBoil.EFCore\DotBoil.EFCore.csproj" />
+      <ProjectReference Include="..\DotBoil.Localization\DotBoil.Localization.csproj" />
+      <ProjectReference Include="..\DotBoil.Logging\DotBoil.Logging.csproj" />
+      <ProjectReference Include="..\DotBoil.Mapper\DotBoil.Mapper.csproj" />
+      <ProjectReference Include="..\DotBoil.MassTransit\DotBoil.MassTransit.csproj" />
+      <ProjectReference Include="..\DotBoil.Parameter\DotBoil.Parameter.csproj" />
+      <ProjectReference Include="..\DotBoil.Validator\DotBoil.Validator.csproj" />
+      <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application\Middlewares\" />
+      <Folder Include="Domain\Enums\" />
+      <Folder Include="Domain\Exceptions\" />
+      <Folder Include="Domain\Interfaces\" />
+    </ItemGroup>
+
+</Project>

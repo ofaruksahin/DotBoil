@@ -17,6 +17,8 @@ namespace DotBoil
             DotBoilApp.Logging = builder.Logging;
             DotBoilApp.Services = builder.Services;
 
+            builder.Services.AddHttpContextAccessor();
+
             await ConfigurationBootstrapper.AddDotBoilConfigurations(assemblies);
             await DependencyBootstrapper.AddDotBoilDependencies(assemblies);
 

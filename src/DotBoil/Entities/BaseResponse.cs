@@ -1,14 +1,19 @@
 ﻿using System.Net;
+using System.Text.Json.Serialization;
 
 namespace DotBoil.Entities
 {
     public class BaseResponse
     {
         public object Data { get; private set; }
-        public bool IsSuccess { get; private set; }
         public IEnumerable<string> Messages { get; private set; }
+        
+        [JsonIgnore]
         public HttpStatusCode StatusCode { get; private set; }
-
+        
+        [JsonIgnore]
+        public bool IsSuccess { get; private set; }
+        
         public BaseResponse()
         {
             Messages = new List<string>();
@@ -57,8 +62,12 @@ namespace DotBoil.Entities
     public class BaseResponse<T> where T : class
     {
         public T Data { get; private set; }
-        public bool IsSuccess { get; private set; }
         public IEnumerable<string> Messages { get; private set; }
+        
+        [JsonIgnore]
         public HttpStatusCode StatusCode { get; private set; }
+        
+        [JsonIgnore]
+        public bool IsSuccess { get; private set; }
     }
 }

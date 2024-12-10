@@ -560,3 +560,5 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,rider,dotnetcore,macos,windows,linux
 .idea/.idea.DotBoil/.idea/projectSettingsUpdater.xml
+.idea/.idea.DotBoil/.idea/vcs.xml
+src/DotBoil.AuthGuard/appsettings.json
