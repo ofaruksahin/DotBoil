@@ -9,8 +9,11 @@ namespace DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 
 public class DotBoilAuthGuardDbContext : EFCoreDbContext
 {
-    public DbSet<User> Users { get; set; }
+    public DbSet<ApiEndpoint> ApiEndpoints { get; set; }
+    public DbSet<AppModule> AppModules { get; set; }
+    public DbSet<Menu> Menus { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<User> Users { get; set; }
     
     public DotBoilAuthGuardDbContext(IServiceProvider serviceProvider) : base(serviceProvider)
     {

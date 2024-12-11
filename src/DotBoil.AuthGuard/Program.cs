@@ -1,7 +1,9 @@
 using System.Reflection;
 using DotBoil;
+using DotBoil.AuthGuard.Application.Infrastructure.Data.ContextOptions;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.AuthGuard.Application.Infrastructure.Services;
+using DotBoil.Configuration;
 using DotBoil.EFCore;
 using DotBoil.Localization;
 
@@ -17,11 +19,10 @@ var dotboilAssemblies = new List<string>
     "DotBoil.Logging",
     "DotBoil.Mapper",
     "DotBoil.Validator",
+    "DotBoil.AuthGuard.Application",
     "DotBoil.EFCore"
 }.Select(assemblyName => Assembly.Load(assemblyName)).ToArray();
 
-builder.Services.AddScoped<ICurrentLanguage, CurrentLanguageService>();
-builder.Services.AddScoped<IAuditUser, CurrentAuditUserService>();
 builder.AddDotBoil(dotboilAssemblies);
 
 var app = builder.Build();
