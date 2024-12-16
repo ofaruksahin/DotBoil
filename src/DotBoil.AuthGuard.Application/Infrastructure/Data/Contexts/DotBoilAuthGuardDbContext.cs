@@ -24,7 +24,7 @@ public class DotBoilAuthGuardDbContext : EFCoreDbContext
         optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
         using var scope = _serviceProvider.CreateScope();
-        var dbContextOptions = scope.ServiceProvider.GetService<DotBoilauthGuardDbContextOptions>();
+        var dbContextOptions = scope.ServiceProvider.GetService<DotBoilAuthGuardDbContextOptions>();
         
         optionsBuilder.UseMySQL(dbContextOptions.ConnectionString);
     }

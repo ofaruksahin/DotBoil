@@ -23,11 +23,11 @@ var dotboilAssemblies = new List<string>
     "DotBoil.EFCore"
 }.Select(assemblyName => Assembly.Load(assemblyName)).ToArray();
 
-builder.AddDotBoil(dotboilAssemblies);
+await builder.AddDotBoil(dotboilAssemblies);
 
 var app = builder.Build();
 
-app.UseDotBoil(dotboilAssemblies);
+await app.UseDotBoil(dotboilAssemblies);
 
 if (!app.Environment.IsDevelopment())
 {

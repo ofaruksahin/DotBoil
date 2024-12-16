@@ -1,3 +1,4 @@
+using DotBoil.AuthGuard.Application.Infrastructure.Data.ContextOptions;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.AuthGuard.Application.Infrastructure.OpenIdDict.Options;
 using DotBoil.AuthGuard.Application.Infrastructure.Services;
@@ -8,6 +9,7 @@ using DotBoil.Localization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 
 namespace DotBoil.AuthGuard.Application;
@@ -90,10 +92,39 @@ public class AuthGuardModule : Module
         return Task.CompletedTask;
     }
 
-    public override Task UseModule()
+    public override async Task UseModule()
     {
         ((WebApplication)DotBoilApp.Host).UseAuthentication();
         ((WebApplication)DotBoilApp.Host).UseAuthorization();
-        return Task.CompletedTask;
+
+        var openIdDictOptions = DotBoilApp.Configuration.GetConfigurations<OpenIdDictConfigurations>();
+        using var scope = DotBoilApp.Host.Services.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        
+        foreach (var applicationOptions in openIdDictOptions.Server.Applications)
+        {
+            var isApplicationExists = await manager.FindByClientIdAsync(applicationOptions.ClientId);
+            if (isApplicationExists != null)
+                continue;
+        
+            var applicationDescriptor = new OpenIddictApplicationDescriptor
+            {
+                ClientId = applicationOptions.ClientId,
+                ClientSecret = applicationOptions.ClientSecret,
+                DisplayName = applicationOptions.DisplayName
+            };
+        
+            if (string.IsNullOrEmpty(applicationOptions.ClientSecret))
+                applicationDescriptor.Requirements.Add(
+                    OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        
+            foreach (var redirectUri in applicationOptions.RedirectUris)
+                applicationDescriptor.RedirectUris.Add(new Uri(redirectUri));
+        
+            foreach (var postLogoutRedirectUris in applicationOptions.PostLogoutRedirectUris)
+                applicationDescriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutRedirectUris));
+        
+            await manager.CreateAsync(applicationDescriptor);
+        }
     }
 }
