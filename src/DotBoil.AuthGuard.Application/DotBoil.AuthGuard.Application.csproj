@@ -25,4 +25,10 @@
       <Folder Include="Domain\Interfaces\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="OpenIddict" Version="5.8.0" />
+      <PackageReference Include="OpenIddict.AspNetCore" Version="5.8.0" />
+      <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="5.8.0" />
+    </ItemGroup>
+
 </Project>
