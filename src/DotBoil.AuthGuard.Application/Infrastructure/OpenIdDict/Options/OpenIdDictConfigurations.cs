@@ -8,6 +8,7 @@ public class OpenIdDictConfigurations : IOptions
     public OpenIdDictCoreConfiguration Core { get; set; }
     public OpenIdDictClientConfiguration Client { get; set; }
     public OpenIdDictServerConfiguration Server { get; set; }
+    public SignInManagerConfiguration[] SignInManagers { get; set; } = Array.Empty<SignInManagerConfiguration>();
 }
 
 public class OpenIdDictCoreConfiguration
@@ -76,4 +77,10 @@ public class OpenIdDictApplicationConfiguration
     public string DisplayName { get; set; }
     public string[] RedirectUris { get; set; } = Array.Empty<string>();
     public string[] PostLogoutRedirectUris { get; set; } = Array.Empty<string>();
+}
+
+public class SignInManagerConfiguration
+{
+    public string ServiceName { get; set; }
+    public string Type { get; set; }
 }

@@ -22,4 +22,14 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Home\Privacy.cshtml" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\site.js" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Views\Shared\" />
+    </ItemGroup>
+
 </Project>

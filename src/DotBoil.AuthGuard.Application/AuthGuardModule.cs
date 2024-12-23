@@ -1,3 +1,4 @@
+using DotBoil.AuthGuard.Application.Domain.Interfaces;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.ContextOptions;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.AuthGuard.Application.Infrastructure.OpenIdDict.Options;
@@ -50,17 +51,36 @@ public class AuthGuardModule : Module
             .AddServer(configure =>
             {
                 if (openIdDictOptions.Server.AuthorizationEndpointUris.Any())
+                {
                     configure.SetAuthorizationEndpointUris(openIdDictOptions.Server.AuthorizationEndpointUris);
+                    configure.UseAspNetCore().EnableAuthorizationEndpointPassthrough();
+                }
                 if (openIdDictOptions.Server.LogoutEndpointUris.Any())
+                {
                     configure.SetLogoutEndpointUris(openIdDictOptions.Server.LogoutEndpointUris);
+                    configure.UseAspNetCore().EnableLogoutEndpointPassthrough();
+                }
                 if (openIdDictOptions.Server.TokenEndpointUris.Any())
+                {
                     configure.SetTokenEndpointUris(openIdDictOptions.Server.TokenEndpointUris);
+                    configure.UseAspNetCore().EnableTokenEndpointPassthrough();
+                }
+
                 if (openIdDictOptions.Server.UserInfoEndpointUris.Any())
+                {
                     configure.SetUserinfoEndpointUris(openIdDictOptions.Server.UserInfoEndpointUris);
+                    configure.UseAspNetCore().EnableUserinfoEndpointPassthrough();
+                }
+
                 if (openIdDictOptions.Server.RevocationEndpointUris.Any())
+                {
                     configure.SetRevocationEndpointUris(openIdDictOptions.Server.RevocationEndpointUris);
+                }
+
                 if (openIdDictOptions.Server.DeviceEndpointUris.Any())
+                {
                     configure.SetDeviceEndpointUris(openIdDictOptions.Server.DeviceEndpointUris);
+                }
 
                 if (openIdDictOptions.Server.EnableAuthorizationCodeFlow)
                     configure.AllowAuthorizationCodeFlow();
@@ -88,6 +108,9 @@ public class AuthGuardModule : Module
             });
 
         DotBoilApp.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+        foreach (var signInManager in openIdDictOptions.SignInManagers)
+            DotBoilApp.Services.AddKeyedScoped(typeof(ISignInManager), signInManager.ServiceName, Type.GetType(signInManager.Type));
         
         return Task.CompletedTask;
     }
