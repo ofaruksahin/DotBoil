@@ -100,6 +100,12 @@ public class AuthGuardModule : Module
                     .SetIdentityTokenLifetime(openIdDictOptions.Server.IdentityTokenLifetime)
                     .SetRefreshTokenLifetime(openIdDictOptions.Server.RefreshTokenLifetime)
                     .SetUserCodeLifetime(openIdDictOptions.Server.UserCodeLifetime);
+
+                configure
+                    .IgnoreEndpointPermissions()
+                    .IgnoreScopePermissions()
+                    .IgnoreGrantTypePermissions()
+                    .IgnoreResponseTypePermissions();
             })
             .AddValidation(configure =>
             {

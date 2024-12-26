@@ -13,6 +13,7 @@ builder.Services.AddControllersWithViews();
 var dotboilAssemblies = new List<string>
 {
     "DotBoil",
+    "DotBoil.Cors",
     "DotBoil.Localization",
     "DotBoil.Parameter",
     "DotBoil.Caching",

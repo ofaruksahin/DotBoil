@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DotBoil.Caching\DotBoil.Caching.csproj" />
+      <ProjectReference Include="..\DotBoil.Cors\DotBoil.Cors.csproj" />
       <ProjectReference Include="..\DotBoil.EFCore\DotBoil.EFCore.csproj" />
       <ProjectReference Include="..\DotBoil.Localization\DotBoil.Localization.csproj" />
       <ProjectReference Include="..\DotBoil.Logging\DotBoil.Logging.csproj" />

@@ -100,7 +100,7 @@ namespace DotBoil.Localization
                 foreach (var localization in group)
                 {
                     var cacheKey = string.Concat(_prefix, string.Join(':', group.Key.Language, group.Key.Group, localization.Key));
-                    await _cache.StringSetAsync(cacheKey, await localization.SerializeAsync(), timeSpan);
+                    await _cache.StringSetAsync(cacheKey, localization.Value, timeSpan);
                 }
             }
         }
