@@ -60,6 +60,12 @@ public class UserEntityTypeConfiguration : EFCoreEntityTypeConfiguration<User>
                 {
                     j.ToTable("UserRoles");
                 });
+
+        builder
+            .HasMany<OtpCode>(p => p.OtpCodes)
+            .WithOne(p => p.User)
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
         
         builder.ToTable("Users");
     }

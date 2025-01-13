@@ -2,7 +2,7 @@ using DotBoil.EFCore;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
 
-public class CurrentAuditUserService : IAuditUser
+internal class CurrentAuditUserService : IAuditUser
 {
     public async Task<string> GetModifierName()
     {

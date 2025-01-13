@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
 
-public class CurrentLanguageService : ICurrentLanguage
+internal class CurrentLanguageService : ICurrentLanguage
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 

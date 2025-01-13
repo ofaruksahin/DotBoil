@@ -12,4 +12,5 @@ public class User : BaseEntity
     public string Password { get; set; }
 
     public virtual ICollection<Role> Roles { get; set; }
+    public virtual ICollection<OtpCode> OtpCodes { get; set; }
 }

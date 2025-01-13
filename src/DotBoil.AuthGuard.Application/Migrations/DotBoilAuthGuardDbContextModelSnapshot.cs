@@ -157,6 +157,54 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.ToTable("Menus", (string)null);
                 });
 
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.OtpCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("varchar(6)");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsExpired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OtpCodes", (string)null);
+                });
+
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -308,6 +356,17 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.OtpCode", b =>
+                {
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.User", "User")
+                        .WithMany("OtpCodes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RoleAppModules", b =>
                 {
                     b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", null)
@@ -351,6 +410,11 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.User", b =>
+                {
+                    b.Navigation("OtpCodes");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,87 @@
+@using DotBoil.AuthGuard.ViewModels
+@using DotBoil.Localization
+@inject IConfiguration configuration
+@inject ICurrentLanguage currentLanguage
+
+@section Styles{
+    <style scoped>
+        .language-selector {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+        }
+
+        .flag-icon {
+            width: 20px;
+            height: 15px;
+        }
+
+        .position-relative {
+            position: relative;
+            padding-top: 10px;
+        }
+    </style>
+}
+
+@{
+    var configurationLanguages = configuration.GetSection("DotBoil:AvailableLanguage").Get<List<LanguageViewModel>>();
+    var selectedLanguage = configurationLanguages.FirstOrDefault(l => l.Shortcut == currentLanguage.Language);
+
+    string GetLanguageUrl(string shortcut)
+    {
+        var queryString = Context.Request.QueryString.ToString();
+        if (Context.Request.Query.ContainsKey("language"))
+        {
+            queryString = string.Empty;
+            var isFirst = true;
+            foreach (var query in Context.Request.Query)
+            {
+                if (query.Key == "language") continue;
+                if (isFirst)
+                {
+                    isFirst = false;
+                    queryString += $"?{query.Key}={query.Value}";
+                }
+                else
+                {
+                    queryString += $"&{query.Key}={query.Value}";
+                }
+            }
+        }
+        
+        queryString += $"&language={shortcut}";
+
+        return $"{Context.Request.Path}{queryString}";
+    }
+}
+
+<div class="position-relative">
+    <div class="language-selector">
+        <div class="dropdown" style="float: inline-end;">
+            <button class="btn btn-light dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                @if (selectedLanguage != null)
+                {
+                    <span class="flag-icon @selectedLanguage.Icon"></span>
+                }
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                @foreach (var item in  configurationLanguages)
+                {
+                    <li>
+                        <a class="dropdown-item" href="@GetLanguageUrl(item.Shortcut)">
+                            <span class="flag-icon @item.Icon"></span> @item.Name
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

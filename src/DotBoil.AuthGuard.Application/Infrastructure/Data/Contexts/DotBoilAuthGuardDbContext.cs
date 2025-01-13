@@ -14,6 +14,7 @@ public class DotBoilAuthGuardDbContext : EFCoreDbContext
     public DbSet<Menu> Menus { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<OtpCode> OtpCodes { get; set; }
     
     public DotBoilAuthGuardDbContext(IServiceProvider serviceProvider) : base(serviceProvider)
     {

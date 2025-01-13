@@ -44,7 +44,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Authorization", "Authorizat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.AuthGuard.Application", "src\DotBoil.AuthGuard.Application\DotBoil.AuthGuard.Application.csproj", "{57560022-FA6A-4576-8ECF-F8A29ED567BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoil.AuthGuard", "src\DotBoil.AuthGuard\DotBoil.AuthGuard.csproj", "{3527D4C7-12D2-4C57-AEC1-FB89085EC798}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotBoilAuthGuardUI", "src\DotBoil.AuthGuard.UI\DotBoilAuthGuardUI.csproj", "{D4854BFC-AFE7-475A-BB08-E196BE49BAFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,10 +116,10 @@ Global
 		{57560022-FA6A-4576-8ECF-F8A29ED567BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57560022-FA6A-4576-8ECF-F8A29ED567BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57560022-FA6A-4576-8ECF-F8A29ED567BF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3527D4C7-12D2-4C57-AEC1-FB89085EC798}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3527D4C7-12D2-4C57-AEC1-FB89085EC798}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3527D4C7-12D2-4C57-AEC1-FB89085EC798}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3527D4C7-12D2-4C57-AEC1-FB89085EC798}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4854BFC-AFE7-475A-BB08-E196BE49BAFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4854BFC-AFE7-475A-BB08-E196BE49BAFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4854BFC-AFE7-475A-BB08-E196BE49BAFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4854BFC-AFE7-475A-BB08-E196BE49BAFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,7 +142,7 @@ Global
 		{F195F132-823A-42A1-A98E-28EFA95B0CFC} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{9F7F9373-92AE-4EA9-BEF6-83B98A570417} = {5B85DBC0-BD98-4677-A3B3-3BEB02D5BDE3}
 		{57560022-FA6A-4576-8ECF-F8A29ED567BF} = {9F7F9373-92AE-4EA9-BEF6-83B98A570417}
-		{3527D4C7-12D2-4C57-AEC1-FB89085EC798} = {9F7F9373-92AE-4EA9-BEF6-83B98A570417}
+		{D4854BFC-AFE7-475A-BB08-E196BE49BAFA} = {9F7F9373-92AE-4EA9-BEF6-83B98A570417}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40415635-D3DD-4116-98C9-30E9D789EF4F}

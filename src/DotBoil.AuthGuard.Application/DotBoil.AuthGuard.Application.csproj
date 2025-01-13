@@ -22,13 +22,11 @@
     <ItemGroup>
       <Folder Include="Application\Middlewares\" />
       <Folder Include="Domain\Enums\" />
-      <Folder Include="Domain\Exceptions\" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="OpenIddict" Version="5.8.0" />
-      <PackageReference Include="OpenIddict.AspNetCore" Version="5.8.0" />
-      <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="5.8.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+      <PackageReference Include="NETCore.Encrypt" Version="2.1.1" />
     </ItemGroup>
 
 </Project>

@@ -562,3 +562,4 @@ FodyWeavers.xsd
 .idea/.idea.DotBoil/.idea/projectSettingsUpdater.xml
 .idea/.idea.DotBoil/.idea/vcs.xml
 src/DotBoil.AuthGuard/appsettings.json
+src/DotBoil.AuthGuard.UI/appsettings.json
