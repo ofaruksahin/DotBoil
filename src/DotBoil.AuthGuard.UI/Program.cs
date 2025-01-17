@@ -16,7 +16,8 @@ var dotboilAssemblies = new List<string>
     "DotBoil.Mapper",
     "DotBoil.Validator",
     "DotBoil.AuthGuard.Application",
-    "DotBoil.EFCore"
+    "DotBoil.EFCore",
+    "DotBoil.MassTransit"
 }.Select(assemblyName => Assembly.Load(assemblyName)).ToArray();
 
 await builder.AddDotBoil(dotboilAssemblies);

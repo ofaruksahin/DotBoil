@@ -67,10 +67,22 @@ public class ExternalSignInManager : IExternalSignInManager
 
         var userInfoResponseMessage = await userInfoResponse.Content.ReadAsStringAsync();
         var jObject =  JsonObject.Parse(userInfoResponseMessage);
-        var emailIdentifier = jObject[externalLoginRequest.EmailIdentifier].ToString() ?? string.Empty;
-        var usernameIdentifier = jObject[externalLoginRequest.UsernameIdentifier].ToString() ?? string.Empty;
-        var nameIdentifier = jObject[externalLoginRequest.NameIdentifier].ToString() ?? string.Empty;
-        var surnameIdentifier = jObject[externalLoginRequest.SurnameIdentifier].ToString() ?? string.Empty;
+        var emailIdentifier = string.Empty;
+        var usernameIdentifier = string.Empty;
+        var nameIdentifier = string.Empty;
+        var surnameIdentifier = string.Empty;
+
+        if (!string.IsNullOrEmpty(externalLoginRequest.EmailIdentifier))
+            emailIdentifier = jObject[externalLoginRequest.EmailIdentifier].ToString();
+        
+        if (!string.IsNullOrEmpty(externalLoginRequest.UsernameIdentifier))
+            usernameIdentifier = jObject[externalLoginRequest.UsernameIdentifier].ToString();
+        
+        if (!string.IsNullOrEmpty(externalLoginRequest.NameIdentifier))
+            nameIdentifier = jObject[externalLoginRequest.NameIdentifier].ToString();
+        
+        if (!string.IsNullOrEmpty(externalLoginRequest.SurnameIdentifier))
+            surnameIdentifier = jObject[externalLoginRequest.SurnameIdentifier].ToString();
 
         var user = await _userRepository
             .Get()
@@ -115,8 +127,8 @@ public class ExternalSignInManager : IExternalSignInManager
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.RefreshTokenExpirationMinutes);
         
-        await _cache.SetAsync(createdAccessToken, claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
-        await _cache.SetAsync(createdRefreshToken, claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
         
         return AuthorizeResult.Success(
             createdAccessToken,

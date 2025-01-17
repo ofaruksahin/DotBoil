@@ -56,8 +56,15 @@
                 }
             }
         }
-        
-        queryString += $"&language={shortcut}";
+
+        if (Context.Request.Query.Where(q => q.Key != "language").Count() > 0)
+        {
+            queryString += $"&language={shortcut}";
+        }
+        else
+        {
+            queryString += $"?language={shortcut}";
+        }
 
         return $"{Context.Request.Path}{queryString}";
     }

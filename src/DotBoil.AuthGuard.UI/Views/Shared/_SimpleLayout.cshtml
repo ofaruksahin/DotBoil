@@ -1,3 +1,8 @@
+@using DotBoil.Localization
+@inject ILocalize localize
+@{
+    var title = await localize.LocalizeText("AuthGuard", "Title");
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +14,7 @@
     <meta name="author" content="pixelstrap">
     <link rel="icon" href="~/assets/images/favicon.png" type="image/x-icon">
     <link rel="shortcut icon" href="~/assets/images/favicon.png" type="image/x-icon">
-    <title>Cuba - Premium Admin Template</title>
+    <title>@title</title>
     <!-- Google font-->
     <link href="https://fonts.googleapis.com/css?family=Rubik:400,400i,500,500i,700,700i&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i,900&amp;display=swap" rel="stylesheet">

@@ -46,7 +46,10 @@ public class UserService : IUserService
         var encryptedPassword = EncryptProvider.Md5(authorizeRequest.Password);
         var user = await _userRepository
             .Get()
-            .FirstOrDefaultAsync(u => u.Email == authorizeRequest.Email && u.Password == encryptedPassword);
+            .FirstOrDefaultAsync(u =>
+                    u.Email == authorizeRequest.Email &&
+                    u.Password == encryptedPassword &&
+                    u.Provider == string.Empty);
 
         if (user is null)
             return AuthorizeResult.Failure(await _localize.LocalizeText("Login", "InvalidEmailOrPassword"));
@@ -66,8 +69,8 @@ public class UserService : IUserService
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.RefreshTokenExpirationMinutes);
         
-        await _cache.SetAsync(createdAccessToken, claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
-        await _cache.SetAsync(createdRefreshToken, claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
         
         return AuthorizeResult.Success(
             createdAccessToken,
@@ -172,5 +175,26 @@ public class UserService : IUserService
         var result = await ForgotPassword(email);
 
         return new ResendOtpResult(result.IsSuccess, result.Message);
+    }
+
+    public async Task<RefreshTokenResult> RefreshToken(string refreshToken)
+    {
+        var refreshTokenExists = await _cache.KeyExistsAsync($"DotBoil:AuthGuard:RefreshTokens:{refreshToken}");
+        
+        if (!refreshTokenExists)
+            return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
+        
+        var claims = await _cache.GetOrSetAsync(refreshToken, async () => { return new List<Claim>();}, TimeSpan.FromSeconds(5));
+        
+        if (!claims.Any())
+            return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
+
+        var createdAccessToken =
+            _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
+        var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
+        
+        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        
+        return RefreshTokenResult.Success(createdAccessToken, createdAccessTokenExpiryTime);
     }
 }

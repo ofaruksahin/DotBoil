@@ -1,19 +1,16 @@
-@using DotBoil.AuthGuard.ViewModels
 @using DotBoil.Localization
 @using DotBoil.Parameter
 @inject ILocalize localize
 @inject IParameterManager parameters
-@inject IConfiguration configuration
 @{
     Layout = "~/Views/Shared/_SimpleLayout.cshtml";
     var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
     var parameterLogo = await parameters.GetParameterValue<string>("AuthGuard", "Logo");
     var parameterLogoDark = await parameters.GetParameterValue<string>("AuthGuard", "LogoDark");
-    var externalSignInManagers = configuration.GetSection("DotBoil:ExternalSignInManagers").Get<List<ExternalSignInManagerViewModel>>() ?? new List<ExternalSignInManagerViewModel>();
-    var registerUrl = $"/Authorize/Register{Context.Request.QueryString}";
+    var loginUrl = $"/connect/authorize{Context.Request.QueryString}";
 }
 
-@model DotBoil.AuthGuard.ViewModels.SignInViewModel
+@model DotBoil.AuthGuard.ViewModels.RegisterViewModel
 
 <div class="row m-0">
     <div class="col-12 p-0">
@@ -23,18 +20,25 @@
                 <div class="login-main">
                     <form class="theme-form" method="post">
                         <partial name="_Language"/>
-                        <h4>@await localize.LocalizeText("Login", "SignInTitle")</h4>
-                        <p>@await localize.LocalizeText("Login", "SignInSubTitle")</p>
-                        
+                        <h4>@await localize.LocalizeText("Login", "RegisterTitle")</h4>
+
                         @if (ViewBag.Message != null)
                         {
                             <p>@ViewBag.Message</p>
                         }
-                        
+
                         @foreach (var query in Context.Request.Query)
                         {
                             <input type="hidden" name="@query.Key" value="@query.Value"/>
                         }
+                        <div class="form-group">
+                            <label class="col-form-label">@await localize.LocalizeText("Login", "Name")</label>
+                            <input class="form-control" type="text" required="" placeholder="@await localize.LocalizeText("Login", "Name")" asp-for="Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">@await localize.LocalizeText("Login", "Surname")</label>
+                            <input class="form-control" type="text" required="" placeholder="@await localize.LocalizeText("Login", "Surname")" asp-for="Surname">
+                        </div>
                         <div class="form-group">
                             <label class="col-form-label">@await localize.LocalizeText("Login", "EmailAddress")</label>
                             <input class="form-control" type="email" required="" placeholder="user@gmail.com" asp-for="Email">
@@ -49,26 +53,11 @@
                         <div class="form-group mb-0">
                             <div class="form-check">
                             </div>
-                            <a class="link" href="forgot-password.html">@await localize.LocalizeText("Login", "ForgotPassword")</a>
+                            <a class="link" href="@loginUrl">@await localize.LocalizeText("Login", "SignIn")</a>
                             <div class="text-end">
-                                <button class="btn btn-primary btn-block w-100 mt-3" type="submit">@await localize.LocalizeText("Login", "SignIn")</button>
+                                <button class="btn btn-primary btn-block w-100 mt-3" type="submit">@await localize.LocalizeText("Login", "CreateAccount")</button>
                             </div>
                         </div>
-                        @if (externalSignInManagers.Any())
-                        {
-                            <h6 class="text-muted mt-4 or">@await localize.LocalizeText("Login", "OrSignInWith")</h6>
-                            <div class="social mt-4">
-                                <div class="btn-showcase">
-                                    @foreach (var externalSignInManager in externalSignInManagers)
-                                    {
-                                        <a class="btn btn-light" href="/connect/@externalSignInManager.ServiceName" target="_self">
-                                            <i class="@externalSignInManager.Logo"></i>
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-                        }
-                        <p class="mt-4 mb-0 text-center">@await localize.LocalizeText("Login", "DontHaveAccount")<a class="ms-2" href="@registerUrl">@await localize.LocalizeText("Login", "CreateAccount")</a></p>
                     </form>
                 </div>
             </div>
@@ -79,30 +68,30 @@
 <script>
     window.addEventListener('DOMContentLoaded', function (){
         var element = document.getElementsByClassName('show-hide')[0];
-        
+
         if (element === undefined)
             return;
-        
+
         element.addEventListener('click', function (){
             var iconElement = document.querySelector('i', element);
             if (iconElement === null || iconElement === undefined)
                 return;
-            
+
             var className = iconElement.className;
             var typeName = 'password';
 
             if (className === 'fa fa-eye'){
                 iconElement.classList.remove('fa-eye');
                 iconElement.classList.add('fa-eye-slash');
-                
+
                 typeName = 'text';
-                
+
             }else{
                 iconElement.classList.remove('fa-eye-slash');
                 iconElement.classList.add('fa-eye');
-            }   
-            
+            }
+
             document.getElementById('Password').type = typeName;
-        })        
+        })
     })
 </script>

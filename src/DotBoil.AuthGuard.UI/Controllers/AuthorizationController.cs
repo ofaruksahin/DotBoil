@@ -86,7 +86,7 @@ public class AuthorizationController : Controller
 
         var externalLoginRequest = new ExternalLoginRequest(
             provider,
-            externalSignInManager.TokenEndpoint,
+            tokenEndpoint,
             externalSignInManager.UserInfoEndpoint,
             externalSignInManager.EmailIdentifier,
             externalSignInManager.UsernameIdentifier,
@@ -104,5 +104,39 @@ public class AuthorizationController : Controller
             $"{redirectUri}?access_token={authorizeResult.AccessToken}&refresh_token={authorizeResult.RefreshToken}&expire_access_token={authorizeResult.ExpireAccessToken.ToString("dd/MM/yyyy-HH:mm")}&expire_refresh_token={authorizeResult.ExpireRefreshToken.ToString("dd/MM/yyyy-HH:mm")}";
         
         return Redirect(redirectUri);
+    }
+
+    [HttpPost("connect/refresh_token")]
+    public async Task<IActionResult> RefreshToken([FromQuery] string refreshToken)
+    {
+        var refreshTokenResult = await _userService.RefreshToken(refreshToken);
+
+        return new ObjectResult(refreshTokenResult)
+        {
+            StatusCode = refreshTokenResult.IsSuccess ? StatusCodes.Status200OK : StatusCodes.Status401Unauthorized,
+        };
+    }
+
+    [HttpGet("authorize/register")]
+    public async Task<IActionResult> Register()
+    {
+        return View();
+    }
+
+    [HttpPost("authorize/register")]
+    public async Task<IActionResult> Register([FromForm] RegisterViewModel viewModel)
+    {
+        var signupRequest = new SignupRequest(viewModel.Email, viewModel.Password)
+        {
+            Name = viewModel.Name,
+            Surname = viewModel.Surname,
+            Username = viewModel.Email
+        };
+
+        var signupResult = await _userService.Signup(signupRequest);
+
+        ViewBag.Message = signupResult.Message;
+        
+        return View(viewModel);
     }
 }
