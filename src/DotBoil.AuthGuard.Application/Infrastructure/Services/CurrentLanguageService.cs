@@ -14,5 +14,5 @@ internal class CurrentLanguageService : ICurrentLanguage
     
     public string Language => _httpContextAccessor.HttpContext.Request.Query.ContainsKey("language") 
         ? _httpContextAccessor.HttpContext.Request.Query["language"]
-        : "EN";
+        : "TR";
 }

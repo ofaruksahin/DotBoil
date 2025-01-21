@@ -1,7 +1,9 @@
+using DotBoil.MassTransit.Attributes;
 using DotBoil.MessageBroker;
 
 namespace DotBoil.AuthGuard.Application.Domain.DomainEvents;
 
+[Queue("forgot-password")]
 public class ForgotPasswordOtpCodeCreatedDomainEvent : IEvent
 {
     private Guid _id = Guid.Empty;

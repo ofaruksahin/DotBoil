@@ -111,7 +111,7 @@ public class UserService : IUserService
     {
         var user = await _userRepository
             .Get()
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => u.Provider == string.Empty && u.Email == email);
         
         if (user is null)
             return ForgotPasswordResult.Fail(await _localize.LocalizeText("Login", "UserNotFound"));
@@ -152,7 +152,7 @@ public class UserService : IUserService
         if (otp is null)
             return ForgotPasswordResult.Fail(await _localize.LocalizeText("OtpCodeInvalid"));
 
-        if (otp.ExpiryDate > DateTime.Now)
+        if (otp.ExpiryDate < DateTime.Now)
         {
             otp.IsExpired = true;
             _otpCodeRepository.Update(otp);

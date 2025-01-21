@@ -139,4 +139,56 @@ public class AuthorizationController : Controller
         
         return View(viewModel);
     }
+
+    [HttpGet("authorize/forgot_password")]
+    public async Task<IActionResult> ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost("authorize/send_otp")]
+    public async Task<IActionResult> SendOtp([FromForm] ForgotPasswordViewModel viewModel)
+    {
+        var result =  await _userService.ForgotPassword(viewModel.Email);
+
+        if (!result.IsSuccess)
+        {
+            ViewBag.Message = result.Message;
+            return View("ForgotPassword");
+        }
+
+        return View("VerifyOtp", new VerifyOtpViewModel(viewModel.Email));
+    }
+
+    [HttpGet("authorize/resend_otp")]
+    public async Task<IActionResult> ResendOtp([FromQuery] string email)
+    {
+        var result = await _userService.ResendOtp(email);
+
+        ViewBag.Message = result.Message;
+        return View("VerifyOtp", new VerifyOtpViewModel(email));
+    }
+
+    [HttpPost("authorize/verify_otp")]
+    public async Task<IActionResult> VerifyOtp([FromForm] VerifyOtpViewModel viewModel)
+    {
+        var result = await _userService.ForgotPassword(viewModel.OtpCode, viewModel.Password);
+
+        if (!result.IsSuccess)
+        {
+            ViewBag.Message = result.Message;
+            return View("VerifyOtp", new VerifyOtpViewModel(viewModel.Email));
+        }
+
+        var redirectUri = string.Empty;
+        var language = "TR";
+        
+        if (HttpContext.Request.Query.ContainsKey("redirect_uri"))
+            redirectUri = HttpContext.Request.Query["redirect_uri"];
+        
+        if (HttpContext.Request.Query.ContainsKey("language"))
+            language = HttpContext.Request.Query["language"];
+        
+        return RedirectToAction("Authorize", new { redirect_uri = redirectUri, language = language });
+    }
 }

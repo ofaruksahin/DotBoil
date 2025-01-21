@@ -4,7 +4,7 @@
 @inject IParameterManager parameters
 @{
     Layout = "~/Views/Shared/_SimpleLayout.cshtml";
-    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var currentUrl = $"/connect/authorize{Context.Request.QueryString}";
     var parameterLogo = await parameters.GetParameterValue<string>("AuthGuard", "Logo");
     var parameterLogoDark = await parameters.GetParameterValue<string>("AuthGuard", "LogoDark");
     var loginUrl = $"/connect/authorize{Context.Request.QueryString}";
