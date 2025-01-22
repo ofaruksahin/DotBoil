@@ -4,6 +4,12 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>DotBoil.AuthGuard</PackageId>
+        <Title>DotBoil.AuthGuard</Title>
+        <Authors>Ömer Faruk Şahin</Authors>
+        <Description>The DotBoil.AuthGuard package is built on the DotBoil project. It simplifies login and user authorization integration.</Description>
+        <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>

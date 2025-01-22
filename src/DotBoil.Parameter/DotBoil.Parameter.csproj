@@ -4,6 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>DotBoil.Parameter</Title>
+    <Authors>Ömer Faruk Şahin</Authors>
+    <Description>The DotBoil.Parameter package is built on the DotBoil project. It simplifies parameter management integration.</Description>
+    <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,6 +4,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>disable</Nullable>
+	  <PackageId>DotBoil.Swagger</PackageId>
+	  <Title>DotBoil.Swagger</Title>
+	  <Authors>Ömer Faruk Şahin</Authors>
+	  <Description>The DotBoil.Swagger package is built on the DotBoil project. It simplifies Swagger integration.</Description>
+	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

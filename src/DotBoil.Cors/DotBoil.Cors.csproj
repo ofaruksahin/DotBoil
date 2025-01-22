@@ -4,6 +4,11 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<Title>DotBoil.Cors</Title>
+		<Authors>Ömer Faruk Şahin</Authors>
+		<Description>The DotBoil.Cors package is built on the DotBoil project. It simplifies API CORS integration.</Description>
+		<PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>

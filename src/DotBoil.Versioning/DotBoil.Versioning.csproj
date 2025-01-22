@@ -4,6 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>disable</Nullable>
+	  <Title>DotBoil.Versioning</Title>
+	  <Authors>Ömer Faruk Şahin</Authors>
+	  <Description>The DotBoil.Versioning package is built on the DotBoil project. It simplifies API versioning management integration.</Description>
+	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
