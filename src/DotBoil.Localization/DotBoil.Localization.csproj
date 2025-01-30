@@ -9,6 +9,8 @@
 	  <Description>The DotBoil.Localization package is built on the DotBoil project. It simplifies multi-language support integration.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+	  <Version>1.0.1</Version>
+	  <PackageIcon>dotboil.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +28,14 @@
 	  <PackageReference Include="MySql.EntityFrameworkCore" Version="8.0.5" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.8" />
 	  <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icons\dotboil.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>dotboil.png</Link>
+    </None>
   </ItemGroup>
 
 </Project>

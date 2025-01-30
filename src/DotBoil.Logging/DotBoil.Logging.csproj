@@ -9,6 +9,8 @@
 	  <Description>The DotBoil.Logging package is built on the DotBoil project. It simplifies Serilog integration.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+	  <Version>1.0.1</Version>
+	  <PackageIcon>dotboil.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +22,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icons\dotboil.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>dotboil.png</Link>
+    </None>
   </ItemGroup>
 
 </Project>

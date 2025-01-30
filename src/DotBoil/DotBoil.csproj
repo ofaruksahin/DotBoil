@@ -10,6 +10,8 @@
 	  <Description>The DotBoil package is the heart of the project. All modules are developed with reference to the DotBoil package. It contains the necessary classes for creating modules, the installers required for loading these packages, and the fundamental DotBoil modules.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+	  <PackageIcon>dotboil.png</PackageIcon>
+	  <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +19,14 @@
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.6.24327.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icons\dotboil.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>dotboil.png</Link>
+    </None>
   </ItemGroup>
 
 </Project>
