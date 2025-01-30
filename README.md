@@ -1,3 +1,5 @@
+📦 [NuGet Package](https://www.nuget.org/packages/DotBoil/)
+
 # DotBoil
 
 DotBoil is a development initiative based on .NET 9 Preview. The name is derived from the words "Dotnet" and "Boilerplate". The purpose of the DotBoil project is to automate the fundamental integrations that a developer typically implements at the start of every project. With DotBoil, I aim to have your project ready for coding in just a matter of minutes.
