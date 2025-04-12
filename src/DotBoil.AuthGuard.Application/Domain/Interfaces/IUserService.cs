@@ -11,4 +11,5 @@ public interface IUserService
     Task<ForgotPasswordResult> ForgotPassword(string otpCode, string password);
     Task<ResendOtpResult> ResendOtp(string email);
     Task<RefreshTokenResult> RefreshToken(string refreshToken);
+    Task<GetUserInfoResponse> GetUserInfo();
 }

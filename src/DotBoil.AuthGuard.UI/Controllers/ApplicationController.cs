@@ -9,13 +9,16 @@ public class ApplicationController : Controller
 {
     private readonly IMenuService _menuService;
     private readonly IPermissionService _permissionService;
+    private readonly IUserService _userService;
 
     public ApplicationController(
         IMenuService menuService,
-        IPermissionService permissionService)
+        IPermissionService permissionService,
+        IUserService userService)
     {
         _menuService = menuService;
         _permissionService = permissionService;
+        _userService = userService;
     }
     
     [HttpPost("app/menu")]
@@ -34,5 +37,15 @@ public class ApplicationController : Controller
             return Forbid();
 
         return Ok();
+    }
+
+    [HttpPost("app/userinfo")]
+    public async Task<IActionResult> GetUserInfo()
+    {
+        var getUserInfo = await _userService.GetUserInfo();
+        if (!getUserInfo.Claims.Any())
+            return Unauthorized();
+        
+        return Ok(getUserInfo.Claims);
     }
 }

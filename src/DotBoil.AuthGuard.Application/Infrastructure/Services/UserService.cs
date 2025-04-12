@@ -9,6 +9,7 @@ using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.Caching;
 using DotBoil.EFCore;
 using DotBoil.Localization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using NETCore.Encrypt;
@@ -24,6 +25,7 @@ public class UserService : IUserService
     private readonly JwtOptions _jwtOptions;
     private readonly ICache _cache;
     private readonly ILocalize _localize;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public UserService(
         IRepository<User, DotBoilAuthGuardDbContext> userRepository,
@@ -31,7 +33,8 @@ public class UserService : IUserService
         IJwtService jwtService,
         JwtOptions jwtOptions,
         ICache cache,
-        ILocalize localize)
+        ILocalize localize,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userRepository = userRepository;
         _otpCodeRepository = otpCodeRepository;
@@ -39,6 +42,7 @@ public class UserService : IUserService
         _jwtOptions = jwtOptions;
         _cache = cache;
         _localize = localize;
+        _httpContextAccessor = httpContextAccessor;
     }
     
     public async Task<AuthorizeResult> SignIn(AuthorizeRequest authorizeRequest)
@@ -63,14 +67,16 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user.Surname),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        var claimsDictionary = claims.ToDictionary(c => c.Type, c => c.Value);
         
         var createdAccessToken = _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshToken = _jwtService.GenerateToken(claims, _jwtOptions.RefreshTokenExpirationMinutes);
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.RefreshTokenExpirationMinutes);
         
-        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
-        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
         
         return AuthorizeResult.Success(
             createdAccessToken,
@@ -184,11 +190,13 @@ public class UserService : IUserService
         if (!refreshTokenExists)
             return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
         
-        var claims = await _cache.GetOrSetAsync(refreshToken, async () => { return new List<Claim>();}, TimeSpan.FromSeconds(5));
+        var claimsDictionary = await _cache.GetOrSetAsync($"DotBoil:AuthGuard:RefreshTokens:{refreshToken}", async () => { return new Dictionary<string,string>();}, TimeSpan.FromSeconds(5));
         
-        if (!claims.Any())
+        if (!claimsDictionary.Any())
             return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
 
+        var claims = claimsDictionary.Select(c => new Claim(c.Key, c.Value)).ToList();
+        
         var createdAccessToken =
             _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
@@ -196,5 +204,17 @@ public class UserService : IUserService
         await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
         
         return RefreshTokenResult.Success(createdAccessToken, createdAccessTokenExpiryTime);
+    }
+
+    public async Task<GetUserInfoResponse> GetUserInfo()
+    {
+        var claims = _httpContextAccessor.HttpContext?.User.Claims;
+
+        if (claims is null || !claims.Any())
+        {
+            return new GetUserInfoResponse(false, string.Empty, new Dictionary<string, string>());
+        }
+        
+        return new GetUserInfoResponse(true, string.Empty, claims.ToDictionary(c => c.Type, c => c.Value));
     }
 }

@@ -15,8 +15,8 @@ public class RefreshTokenResult
     {
         IsSuccess = isSuccess;
         Message = message;
-        AccessToken = AccessToken;
-        ExpireAccessToken = ExpireAccessToken;
+        AccessToken = accessToken;
+        ExpireAccessToken = expireAccessToken;
     }
     
     public static RefreshTokenResult Success(string accessToken, DateTime expireAccessToken)
