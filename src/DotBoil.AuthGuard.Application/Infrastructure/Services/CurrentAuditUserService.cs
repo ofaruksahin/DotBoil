@@ -16,6 +16,6 @@ internal class CurrentAuditUserService : IAuditUser
     
     public async Task<string> GetModifierName()
     {
-        return _httpContextAccessor.HttpContext.User.Claims?.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.PreferredUsername)?.Value;
+        return _httpContextAccessor.HttpContext.User.Claims?.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.PreferredUsername)?.Value ?? string.Empty;
     }
 }
