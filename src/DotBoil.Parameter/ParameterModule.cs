@@ -1,5 +1,6 @@
 ﻿using DotBoil.Dependency;
 using DotBoil.Parameter.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Parameter
@@ -14,11 +15,13 @@ namespace DotBoil.Parameter
             return Task.CompletedTask;
         }
 
-        public override Task UseModule()
+        public override async Task UseModule()
         {
             using var scope = DotBoilApp.Host.Services.CreateScope();
             scope.ServiceProvider.GetService<IParameterManager>();
-            return Task.CompletedTask;
+            
+            var context = scope.ServiceProvider.GetRequiredService<ParameterDbContext>();
+            await context.Database.MigrateAsync();
         }
     }
 }

@@ -5,15 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace DotBoil
 {
     [ApiController]
+    [Route("api/[controller]")]
     public abstract class BaseController : ControllerBase
     {
-        protected readonly IMediator _mediator;
+        public readonly IMediator _mediator;
 
-        protected BaseController(IMediator mediator)
+        public BaseController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+        [NonAction]
         public IActionResult Response(BaseResponse response)
         {
             return StatusCode((int)response.StatusCode, response);

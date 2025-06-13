@@ -7,6 +7,8 @@ using DotBoil.Reflection;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.MassTransit
 {
@@ -67,9 +69,11 @@ namespace DotBoil.MassTransit
             DotBoilApp.Services.TryAddScoped<IBusPublisher, RabbitMqPublisher>();
         }
 
-        public override Task UseModule()
+        public override async Task UseModule()
         {
-            return Task.CompletedTask;
+            var scope = DotBoilApp.Host.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MassTransitDbContext>();
+            await context.Database.MigrateAsync();
         }
 
         private IDictionary<string, List<Type>> GetConsumerMappings()
