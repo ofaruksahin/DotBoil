@@ -27,9 +27,18 @@ namespace DotBoil.Localization
         {
             var scope = DotBoilApp.Host.Services.CreateScope();
             scope.ServiceProvider.GetRequiredService<ILocalize>();
-            
+
             var context = scope.ServiceProvider.GetRequiredService<LocalizationDbContext>();
-            await context.Database.MigrateAsync();
+            
+            try
+            {
+
+                await context.Database.MigrateAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

@@ -3,33 +3,31 @@
 @inject IConfiguration configuration
 @inject ICurrentLanguage currentLanguage
 
-@section Styles{
-    <style scoped>
-        .language-selector {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 1000;
-        }
+<style scoped>
+    .language-selector {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1000;
+    }
 
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-        }
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+    }
 
-        .flag-icon {
-            width: 20px;
-            height: 15px;
-        }
+    .flag-icon {
+        width: 20px;
+        height: 15px;
+    }
 
-        .position-relative {
-            position: relative;
-            padding-top: 10px;
-        }
-    </style>
-}
+    .position-relative {
+        position: relative;
+        padding-top: 10px;
+    }
+</style>
 
 @{
     var configurationLanguages = configuration.GetSection("DotBoil:AvailableLanguage").Get<List<LanguageViewModel>>();

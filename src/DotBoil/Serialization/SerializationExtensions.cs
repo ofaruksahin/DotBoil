@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DotBoil.Serialization
 {
@@ -10,7 +11,9 @@ namespace DotBoil.Serialization
             {
                 return JsonSerializer.Serialize(data, new JsonSerializerOptions
                 {
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                    WriteIndented = true
                 });
             });
         }
@@ -21,7 +24,9 @@ namespace DotBoil.Serialization
             {
                 return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
                 {
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                    WriteIndented = true
                 });
             });
         }

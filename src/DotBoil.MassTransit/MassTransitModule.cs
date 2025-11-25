@@ -42,7 +42,15 @@ namespace DotBoil.MassTransit
                         h.Username(rabbitMqConfiguration.Username);
                         h.Password(rabbitMqConfiguration.Password);
                     });
+                    
+                    cfg.ConfigureJsonSerializerOptions(jsonSerializerOptions =>
+                    {
+                        jsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                        jsonSerializerOptions.WriteIndented = true;
 
+                        return jsonSerializerOptions;
+                    });
+                    
                     foreach (var mapping in queueConsumerMappings)
                     {
                         cfg.ReceiveEndpoint(mapping.Key, ep =>
@@ -73,15 +81,27 @@ namespace DotBoil.MassTransit
         {
             var scope = DotBoilApp.Host.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MassTransitDbContext>();
-            await context.Database.MigrateAsync();
+
+            try
+            {
+                await context.Database.MigrateAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         private IDictionary<string, List<Type>> GetConsumerMappings()
         {
+            var rabbitMqConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitRabbitMqConfiguration>();
             var queueConsumerMappings = new Dictionary<string, List<Type>>();
 
             foreach (var consumerType in AppDomain.CurrentDomain.FindTypesWithInterface(typeof(IConsumer<>)))
             {
+                if (!rabbitMqConfiguration.Consumers.Any(c => c.StartsWith(consumerType.FullName)))
+                    continue;
+                    
                 var consumerAttribute = consumerType.GetCustomAttribute(typeof(ConsumerAttribute), true) as ConsumerAttribute;
 
                 if (consumerAttribute == null)

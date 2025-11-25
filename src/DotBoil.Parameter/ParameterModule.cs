@@ -21,7 +21,15 @@ namespace DotBoil.Parameter
             scope.ServiceProvider.GetService<IParameterManager>();
             
             var context = scope.ServiceProvider.GetRequiredService<ParameterDbContext>();
-            await context.Database.MigrateAsync();
+
+            try
+            {
+                await context.Database.MigrateAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

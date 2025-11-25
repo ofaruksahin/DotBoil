@@ -11,10 +11,12 @@ namespace DotBoil.MassTransit.Configuration
         public string Username { get; set; }
         public string Password { get; set; }
         public List<MassTransitRabbitMqRetryPolicyConfiguration> RetryPolicies { get; set; }
+        public List<string> Consumers { get; set; }
 
         public MassTransitRabbitMqConfiguration()
         {
             RetryPolicies = new List<MassTransitRabbitMqRetryPolicyConfiguration>();
+            Consumers = new List<string>();
         }
 
         public MassTransitRabbitMqRetryPolicyConfiguration GetRetryPolicy(string queueName)
