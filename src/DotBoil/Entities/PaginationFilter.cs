@@ -4,15 +4,13 @@ namespace DotBoil.Entities;
 
 public class PaginationFilter
 {
-    public int PageNumber { get; private set; }
-    public int PageSize { get; private set; }
-    public string SortColumn { get; private set; }
-    public EnumSortDirection SortDirection { get; private set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public string SortColumn { get; set; }
+    public EnumSortDirection SortDirection { get; set; }
 
     public PaginationFilter()
     {
-        PageNumber = 1;
-        PageSize = 10;
     }
 
     public PaginationFilter(int pageNumber, int pageSize)

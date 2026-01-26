@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using DotBoil.Dependency;
 using DotBoil.Reflection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Mapper
 {
@@ -9,16 +9,15 @@ namespace DotBoil.Mapper
     {
         public override Task AddModule()
         {
-            var mapperProfiles = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(Profile));
+            var mapperProfiles = AppDomain.CurrentDomain
+                .FindTypesWithBaseType(typeof(Profile))
+                .Where(t => !t.IsAbstract);
 
-            var mapperConfig = new MapperConfiguration(mc =>
+            DotBoilApp.Services.AddAutoMapper(cfg =>
             {
                 foreach (var profile in mapperProfiles)
-                    mc.AddProfile(profile);
+                    cfg.AddProfile(profile);
             });
-
-            var mapper = mapperConfig.CreateMapper();
-            DotBoilApp.Services.TryAddSingleton(mapper);
 
             return Task.CompletedTask;
         }

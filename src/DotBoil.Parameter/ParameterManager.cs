@@ -90,7 +90,7 @@ namespace DotBoil.Parameter
 
             var result = await action();
 
-            await _caching.StringSetAsync(key, result.ToString(), expire);
+            await _caching.StringSetAsync(key, result.ToString(), expire, When.Always);
 
             return result;
         }

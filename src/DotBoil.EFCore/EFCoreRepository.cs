@@ -36,12 +36,16 @@ namespace DotBoil.EFCore
 
         public void Remove(TEntity entity)
         {
-            _context.Set<TEntity>().Remove(entity);
+            entity.IsDeleted = true;
+            _context.Set<TEntity>().Update(entity);
         }
 
         public void RemoveRange(IEnumerable<TEntity> entities)
         {
-            _context.Set<TEntity>().RemoveRange(entities);
+            foreach (var baseEntity in entities)
+                baseEntity.IsDeleted = true;
+
+            _context.Set<TEntity>().UpdateRange(entities);
         }
 
         public async Task<TEntity> GetByIdAsync(int id)

@@ -11,7 +11,6 @@ namespace DotBoil.Entities
         [JsonIgnore]
         public HttpStatusCode StatusCode { get; private set; }
         
-        [JsonIgnore]
         public bool IsSuccess { get; private set; }
         
         public BaseResponse()

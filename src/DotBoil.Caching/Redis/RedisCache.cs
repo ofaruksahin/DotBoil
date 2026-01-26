@@ -39,7 +39,7 @@ namespace DotBoil.Caching.Redis
         public async Task SetAsync<T>(string key, T value, TimeSpan? expire = default)
         {
             var json = await value.SerializeAsync();
-            await _database.StringSetAsync(key, json, expire);
+            await _database.StringSetAsync(key, json, expire, When.Always);
         }
     }
 }
