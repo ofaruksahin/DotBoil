@@ -1,6 +1,7 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.Dependency;
 using DotBoil.Health.Configuration;
+using DotBoil.Health.Configuration.UI;
 using DotBoil.Reflection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
@@ -11,49 +12,27 @@ namespace DotBoil.Health
 {
     internal class HealthModule : Module
     {
+        private static HealthOptions GetHealthOptions() => 
+            DotBoilApp.Configuration.GetConfigurations<HealthOptions>();
+
+        private static readonly HealthCheckOptions DefaultHealthCheckOptions = new()
+        {
+            Predicate = _ => true,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        };
+
         public override Task AddModule()
         {
-            var healthOptions = DotBoilApp.Configuration.GetConfigurations<HealthOptions>();
+            var healthOptions = GetHealthOptions();
 
-            if (!string.IsNullOrEmpty(healthOptions.Url))
+            if (HasHealthCheckEndpoint(healthOptions))
             {
-                var healthCheckBuilder = DotBoilApp.Services.AddHealthChecks();
-
-                var configureType = AppDomain.CurrentDomain.FindTypeWithBaseType(typeof(ConfigureHealthCheck));
-
-                if (configureType is not null)
-                {
-                    var configureInstance = (ConfigureHealthCheck)Activator.CreateInstance(configureType);
-
-                    configureInstance.Configure(healthCheckBuilder);
-                }
+                AddHealthChecks();
             }
 
             if (healthOptions.UI is not null)
             {
-                var healthCheckUIBuilder = DotBoilApp.Services.AddHealthChecksUI(settings =>
-                {
-                    healthOptions.UI.Services.ForEach(service => settings.AddHealthCheckEndpoint(service.Name, service.Uri));
-                });
-
-                switch (healthOptions.UI.PersistenceType)
-                {
-                    case Configuration.UI.PersistenceType.InMemory:
-                        healthOptions.UI.InMemory.AddPersistence(healthCheckUIBuilder);
-                        break;
-                    case Configuration.UI.PersistenceType.SqlServer:
-                        healthOptions.UI.SqlServer.AddPersistence(healthCheckUIBuilder);
-                        break;
-                    case Configuration.UI.PersistenceType.SqLite:
-                        healthOptions.UI.SqLite.AddPersistence(healthCheckUIBuilder);
-                        break;
-                    case Configuration.UI.PersistenceType.PostgreSQL:
-                        healthOptions.UI.PostgreSQL.AddPersistence(healthCheckUIBuilder);
-                        break;
-                    case Configuration.UI.PersistenceType.MySql:
-                        healthOptions.UI.MySql.AddPersistence(healthCheckUIBuilder);
-                        break;
-                }
+                AddHealthChecksUI(healthOptions.UI);
             }
 
             return Task.CompletedTask;
@@ -61,28 +40,55 @@ namespace DotBoil.Health
 
         public override Task UseModule()
         {
-            var app = DotBoilApp.Host as WebApplication;
-            using var scope = app.Services.CreateScope();
-            var healthOptions = scope.ServiceProvider.GetService<HealthOptions>();
+            if (DotBoilApp.Host is not WebApplication app)
+                return Task.CompletedTask;
 
-            if (!string.IsNullOrEmpty(healthOptions.Url))
+            var healthOptions = GetHealthOptions();
+
+            if (HasHealthCheckEndpoint(healthOptions))
             {
-                app.UseHealthChecks(healthOptions.Url, new HealthCheckOptions
-                {
-                    Predicate = _ => true,
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
+                app.UseHealthChecks(healthOptions.Url, DefaultHealthCheckOptions);
             }
 
             if (healthOptions.UI is not null)
             {
-                app.UseHealthChecksUI(setup =>
-                {
-                    setup.UIPath = healthOptions.UI.Url;
-                });
+                app.UseHealthChecksUI(setup => setup.UIPath = healthOptions.UI.Url);
             }
 
-            return Task.FromResult(app);
+            return Task.CompletedTask;
         }
+
+        private static bool HasHealthCheckEndpoint(HealthOptions options) => 
+            !string.IsNullOrEmpty(options.Url);
+
+        private static void AddHealthChecks()
+        {
+            var healthCheckBuilder = DotBoilApp.Services.AddHealthChecks();
+            var configureType = AppDomain.CurrentDomain.FindTypeWithBaseType(typeof(ConfigureHealthCheck));
+
+            if (configureType is null)
+                return;
+
+            var configureInstance = Activator.CreateInstance(configureType) as ConfigureHealthCheck;
+            configureInstance?.Configure(healthCheckBuilder);
+        }
+
+        private static void AddHealthChecksUI(HealthUIOptions uiOptions)
+        {
+            var healthCheckUIBuilder = DotBoilApp.Services.AddHealthChecksUI(settings =>
+            {
+                foreach (var service in uiOptions.Services)
+                {
+                    settings.AddHealthCheckEndpoint(service.Name, service.Uri);
+                }
+            });
+
+            var persistenceOptions = GetPersistenceOptions(uiOptions);
+            persistenceOptions?.AddPersistence(healthCheckUIBuilder);
+        }
+
+        private static UIPersistenceOptions GetPersistenceOptions(HealthUIOptions uiOptions) =>
+            uiOptions.InMemory as UIPersistenceOptions ?? 
+            uiOptions.MySql as UIPersistenceOptions;
     }
 }
