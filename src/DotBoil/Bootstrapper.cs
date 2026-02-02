@@ -11,7 +11,7 @@ namespace DotBoil
 {
     public static class Bootstrapper
     {
-        public static async Task<WebApplicationBuilder> AddDotBoil(this WebApplicationBuilder builder, params Assembly[] assemblies)
+        public static async Task<WebApplicationBuilder> AddDotBoil(this WebApplicationBuilder builder)
         {
             DotBoilApp.Configuration = builder.Configuration;
             DotBoilApp.Logging = builder.Logging;
@@ -19,29 +19,29 @@ namespace DotBoil
 
             builder.Services.AddHttpContextAccessor();
 
-            await ConfigurationBootstrapper.AddDotBoilConfigurations(assemblies);
-            await DependencyBootstrapper.AddDotBoilDependencies(assemblies);
+            await ConfigurationBootstrapper.AddDotBoilConfigurations();
+            await DependencyBootstrapper.AddDotBoilDependencies();
 
             return builder;
         }
 
-        public static async Task<HostApplicationBuilder> AddDotBoil(this HostApplicationBuilder builder, params Assembly[] assemblies)
+        public static async Task<HostApplicationBuilder> AddDotBoil(this HostApplicationBuilder builder)
         {
             DotBoilApp.Configuration = builder.Configuration;
             DotBoilApp.Logging = builder.Logging;
             DotBoilApp.Services = builder.Services;
 
-            await ConfigurationBootstrapper.AddDotBoilConfigurations(assemblies);
-            await DependencyBootstrapper.AddDotBoilDependencies(assemblies);
+            await ConfigurationBootstrapper.AddDotBoilConfigurations();
+            await DependencyBootstrapper.AddDotBoilDependencies();
 
             return builder;
         }
 
-        public static async Task<IHost> UseDotBoil(this IHost app, params Assembly[] assemblies)
+        public static async Task<IHost> UseDotBoil(this IHost app)
         {
             DotBoilApp.Host = app;
 
-            await DependencyBootstrapper.UseDotBoilDependencies(assemblies);
+            await DependencyBootstrapper.UseDotBoilDependencies();
 
             return app;
         }

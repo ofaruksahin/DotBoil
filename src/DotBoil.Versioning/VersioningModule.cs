@@ -8,6 +8,10 @@ namespace DotBoil.Versioning
 {
     internal class VersioningModule : Module
     {
+        public override string Name => "Versioning";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var versioningOptions = DotBoilApp.Configuration.GetConfigurations<VersioningOptions>();

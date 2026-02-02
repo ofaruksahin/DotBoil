@@ -8,6 +8,10 @@ namespace DotBoil.TemplateEngine
 {
     internal class TemplateEngineModule : Module
     {
+        public override string Name => "TemplateEngine";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var configuration = DotBoilApp.Configuration.GetConfigurations<RazorViewEngineConfiguration>();

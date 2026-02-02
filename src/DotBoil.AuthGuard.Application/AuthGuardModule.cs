@@ -16,6 +16,23 @@ namespace DotBoil.AuthGuard.Application;
 
 public class AuthGuardModule : Module
 {
+    public override string Name => "AuthGuard";
+    public override IEnumerable<string> DependsOn => new List<string>
+    {
+        "Mediator",
+        "Caching",
+        "Cors",
+        "EFCore",
+        "Localization",
+        "Logging",
+        "Mapper",
+        "MassTransit",
+        "Parameter",
+        "Validator"
+    };
+
+    public override int Order { get; } = 2;
+
     public override Task AddModule()
     {
         DotBoilApp.Services.AddScoped<ICurrentLanguage, CurrentLanguageService>();

@@ -8,6 +8,10 @@ namespace DotBoil.Mediator
 {
     internal class MediatorModule : Module
     {
+        public override string Name => "Mediator";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();

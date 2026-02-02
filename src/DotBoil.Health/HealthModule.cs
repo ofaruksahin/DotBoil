@@ -12,6 +12,10 @@ namespace DotBoil.Health
 {
     internal class HealthModule : Module
     {
+        public override string Name => "Health";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         private static HealthOptions GetHealthOptions() => 
             DotBoilApp.Configuration.GetConfigurations<HealthOptions>();
 

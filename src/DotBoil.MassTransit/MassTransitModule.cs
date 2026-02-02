@@ -14,6 +14,10 @@ namespace DotBoil.MassTransit
 {
     internal class MassTransitModule : Dependency.Module
     {
+        public override string Name => "MassTransit";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 999;
+
         public override async Task AddModule()
         {
             var persistenceConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitPersistenceConfiguration>();

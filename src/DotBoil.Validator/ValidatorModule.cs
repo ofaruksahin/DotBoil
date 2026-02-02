@@ -7,6 +7,10 @@ namespace DotBoil.Validator
 {
     internal class ValidatorModule : Module
     {
+        public override string Name => "Validator";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var validators = AppDomain.CurrentDomain.FindTypesWithBaseType(predicate =>

@@ -10,6 +10,10 @@ namespace DotBoil.Swag
 {
     internal class SwagModule : Module
     {
+        public override string Name => "Swagger";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             DotBoilApp.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();

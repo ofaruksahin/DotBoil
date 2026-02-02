@@ -6,16 +6,22 @@ namespace DotBoil.Configuration
 {
     internal static class ConfigurationBootstrapper
     {
-        public static Task AddDotBoilConfigurations(params Assembly[] assemblies)
+        public static Task AddDotBoilConfigurations()
         {
-            AddConfigurationProviders(assemblies);
-            AddConfigurations(assemblies);
+            AddConfigurationProviders();
+            AddConfigurations();
 
             return Task.CompletedTask;
         }
 
-        private static void AddConfigurationProviders(params Assembly[] assemblies)
+        private static void AddConfigurationProviders()
         {
+            var assemblies = AppDomain
+                .CurrentDomain
+                .GetAssemblies()
+                .Where(ass => ass.FullName.Contains("DotBoil"))
+                .ToList();
+            
             foreach (var assembly in assemblies)
             {
                 var configurationProviders = GetConfigurationProviders(assembly);
@@ -36,8 +42,14 @@ namespace DotBoil.Configuration
             }
         }
 
-        private static void AddConfigurations(params Assembly[] assemblies)
+        private static void AddConfigurations()
         {
+            var assemblies = AppDomain
+                .CurrentDomain
+                .GetAssemblies()
+                .Where(ass => ass.FullName.Contains("DotBoil"))
+                .ToList();
+            
             foreach (var assembly in assemblies)
             {
                 var configurationLoaders = GetConfigurationLoaders(assembly);

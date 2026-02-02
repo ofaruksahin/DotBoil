@@ -11,6 +11,10 @@ namespace DotBoil.EFCore
 {
     internal class EFCoreModule : Module
     {
+        public override string Name => "EFCore";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 999;
+
         public override Task AddModule()
         {
             var configuration = DotBoilApp.Configuration.GetConfigurations<EFCoreConfiguration>();

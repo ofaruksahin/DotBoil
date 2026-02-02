@@ -10,6 +10,10 @@ namespace DotBoil.Logging
 {
     internal class LoggingModule : Module
     {
+        public override string Name => "Logging";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override async Task AddModule()
         {
             var loggingOptions = DotBoilApp.Configuration.GetConfigurations<LoggingOptions>();

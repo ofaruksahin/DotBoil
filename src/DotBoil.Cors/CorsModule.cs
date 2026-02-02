@@ -8,6 +8,10 @@ namespace DotBoil.Cors
 {
     internal class CorsModule : Module
     {
+        public override string Name => "Cors";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var options = DotBoilApp.Configuration.GetConfigurations<CorsOptions>();

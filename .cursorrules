@@ -1,0 +1,99 @@
+# DotBoil – Cursor Kuralları
+
+Bu dosya DotBoil projesi ve bu projeyi kullanan uygulamalar için Cursor AI davranış kurallarını tanımlar.
+
+---
+
+## Proje Özeti
+
+DotBoil, .NET tabanlı modüler bir boilerplate framework’tür. Temel paket `DotBoil`; özellik paketleri `DotBoil.{Feature}` (Health, EFCore, MassTransit, Caching, Cors vb.) adıyla ayrı projelerde bulunur. Her özellik bir **Module** ile bootstrap edilir ve konfigürasyon **IOptions** ile yönetilir.
+
+---
+
+## Mimari Kurallar
+
+### Modül yapısı
+- Tüm özellik modülleri `DotBoil.Dependency.Module` sınıfından türetilir.
+- Modül sınıfı **internal** olur ve adı `{Feature}Module` formatındadır (örn: `HealthModule`, `CorsModule`).
+- Her modül şu iki metodu implement eder:
+  - `AddModule()`: Servis kayıtları ve konfigürasyon okuma (DI, `DotBoilApp.Services`, `DotBoilApp.Configuration`).
+  - `UseModule()`: Middleware/pipeline (varsa `WebApplication` üzerinde).
+- `AddModule` ve `UseModule` içinde konfigürasyon için `DotBoilApp.Configuration.GetConfigurations<T>()` kullan; scope açarak `GetService<T>` kullanma (Health modülündeki sadeleştirilmiş yaklaşım tercih edilir).
+
+### Konfigürasyon (IOptions)
+- Konfigürasyon sınıfları `DotBoil.Configuration.IOptions` implement eder ve **internal** olur.
+- `Key` property’si config section anahtarını döndürür (örn: `"DotBoil:Health"`, `"DotBoil:Health:UI"`).
+- Options sınıfları ilgili modül projesinde `Configuration/` (ve gerekiyorsa `Configuration/UI/` vb.) altında bulunur.
+- İsimlendirme: `{Feature}Options`, `{Feature}{Sub}Options` (örn: `HealthOptions`, `HealthUIOptions`, `CorsOptions`).
+
+### DotBoilApp kullanımı
+- Konfigürasyon: `DotBoilApp.Configuration`
+- DI konteyneri: `DotBoilApp.Services`
+- Host (middleware için): `DotBoilApp.Host`
+- Reflection: `AppDomain.CurrentDomain.FindType(...)`, `FindTypeWithBaseType(...)`, `FindTypesWithBaseType(...)` (DotBoil.Reflection).
+
+---
+
+## Kod Stili ve İsimlendirme
+
+- **Modüller**: `internal class {Feature}Module : Module`
+- **Options**: `internal class {Feature}Options : IOptions`
+- **Public API**: Base sınıflar (örn: `BaseController`, `BaseEntity`, `ConfigureHealthCheck`), interface’ler (`IRepository`, `IEvent`) ve entity/response modelleri public kalabilir; implementasyon detayları internal tercih edilir.
+- **Dosya/klasör**: Modül dosyası proje kökünde `{Feature}Module.cs`; konfigürasyon `Configuration/`, hata sınıfları `Exceptions/`, extension’lar `Extensions/` altında.
+
+---
+
+## C# ve .NET Kuralları
+
+- **Task dönüşü**: Değer dönmüyorsa `Task.CompletedTask` kullan; gereksiz yere `Task.FromResult(app)` kullanma (UseModule’de sadece pipeline’ı çalıştır, gerekirse erken çık).
+- **Null ve pattern matching**: Mümkünse `is not WebApplication app` gibi pattern matching ve `?.` kullan; gereksiz cast ve null check’leri azalt.
+- **Reflection**: `Activator.CreateInstance(type)` sonrası `as T` ile atama ve `?.` ile çağrı kullan; null ise erken return veya güvenli devam.
+- **Expression-bodied**: Tek satırlık metotlar ve property’ler için `=>` kullanılabilir (örn: `GetHealthOptions()`, `HasHealthCheckEndpoint()`).
+- **Sabit options**: Tekrarlanan `HealthCheckOptions` gibi nesneler için static readonly alan kullan.
+- **Nullable**: Proje şu an `Nullable` disable; bu ayar korunmalı, kod nullable context’e göre zorunlu değişmiyorsa dokunma.
+
+---
+
+## Özellik Bazlı Kurallar
+
+### Health
+- Sadece **InMemory** ve **MySql** persistence desteklenir (SqlServer, SqLite, PostgreSQL kaldırıldı).
+- Persistence seçimi `GetPersistenceOptions(uiOptions)` gibi tek bir yardımcı metotta toplanır; if-else veya `as` / `??` ile tek noktadan çözülür.
+- Uygulama tarafı health check’ler `ConfigureHealthCheck` abstract sınıfından türetilir; modül `FindTypeWithBaseType(typeof(ConfigureHealthCheck))` ile bulup `Configure(IHealthChecksBuilder)` çağırır.
+
+### EFCore
+- DbContext yükleme `EFCoreDbContextLoader` türevleri ile yapılır; repository `IRepository<TEntity, TContext>` ve `EFCoreRepository` kullanılır.
+- Entity’ler `DotBoil.Entities.BaseEntity` türetir (Id, audit alanları, domain events).
+
+### MassTransit
+- Consumer’lar `BaseConsumer<TEvent>` türetir; `ConsumeEvent(ConsumeContext<TEvent>)` abstract metodu implement edilir.
+- Event’ler `MessageBroker.IEvent` (Guid Id) ile uyumlu olmalı.
+
+### API ve MediatR
+- Controller’lar `DotBoil.BaseController` türetir; `IMediator` kullanır, yanıtlar `BaseResponse` / `BaseResponse.Response(...)` ile döner.
+
+---
+
+## Refactoring Tercihleri
+
+- Modül içinde tekrarlanan konfigürasyon okuma varsa `GetXxxOptions()` gibi private static helper metotlara taşı.
+- Uzun switch-case’ler yerine polymorphism veya tek sorumluluklu yardımcı metotlar (örn: `GetPersistenceOptions`) tercih et.
+- Gereksiz scope ve `GetService<T>` yerine doğrudan `GetConfigurations<T>()` kullan.
+- Modül metotlarını tek sorumluluklu parçalara böl (örn: `AddHealthChecks`, `AddHealthChecksUI`, `HasHealthCheckEndpoint`).
+
+---
+
+## Yeni Modül Eklerken
+
+1. `DotBoil.{Feature}` projesi oluştur; `DotBoil` paketine referans ver.
+2. `internal class {Feature}Module : Module` ekle; `AddModule` ve `UseModule` implement et.
+3. Gerekli options için `Configuration/` altında `IOptions` implement eden internal sınıflar ekle; `Key` ile config section’ı eşle.
+4. Bootstrapper’a yeni assembly’yi ekleyerek modülün yüklenmesini sağla (uygulama tarafında).
+
+---
+
+## Genel
+
+- Linter uyarı ve hatalarını gidermek önceliklidir.
+- Mevcut modül ve konfigürasyon desenlerine uyum göster; özellikle DotBoil core’daki `Module`, `IOptions`, `DotBoilApp` ve Reflection kullanımını bozma.
+- Dokümantasyon veya README yalnızca açıkça istendiğinde eklenir veya güncellenir.

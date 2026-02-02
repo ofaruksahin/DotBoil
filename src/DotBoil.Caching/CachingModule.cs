@@ -9,6 +9,10 @@ namespace DotBoil.Caching
 {
     internal class CachingModule : Module
     {
+        public override string Name => "Caching";
+        public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
+        public override int Order { get; } = 0;
+
         public override Task AddModule()
         {
             var options = DotBoilApp.Configuration.GetConfigurations<RedisConfiguration>();
