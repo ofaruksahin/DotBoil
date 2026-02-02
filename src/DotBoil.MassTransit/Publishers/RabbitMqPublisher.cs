@@ -1,4 +1,5 @@
-﻿using DotBoil.MassTransit.Attributes;
+﻿using DotBoil.Configuration;
+using DotBoil.MassTransit.Attributes;
 using MassTransit;
 
 namespace DotBoil.MassTransit.Publishers
@@ -14,6 +15,8 @@ namespace DotBoil.MassTransit.Publishers
 
         public async Task Publish<T>(T message) where T : MessageBroker.IEvent
         {
+            var applicationConfiguration = DotBoilApp.Configuration.GetConfigurations<ApplicationConfiguration>();
+            
             var messageType = message.GetType();
             var queueAttributes = messageType.GetCustomAttributes(typeof(QueueAttribute), true) as QueueAttribute[];
 
@@ -22,7 +25,8 @@ namespace DotBoil.MassTransit.Publishers
 
             foreach (var queueAttribute in queueAttributes)
             {
-                var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{queueAttribute.Name}"));
+                var queueName = $"{applicationConfiguration.MainApplicationName}_{queueAttribute.Name}";
+                var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{queueName}"));
 
                 await endpoint.Send(message, sendContext =>
                 {

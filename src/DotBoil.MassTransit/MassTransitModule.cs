@@ -100,6 +100,8 @@ namespace DotBoil.MassTransit
         {
             var rabbitMqConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitRabbitMqConfiguration>();
             var queueConsumerMappings = new Dictionary<string, List<Type>>();
+            
+            var applicationConfiguration = DotBoilApp.Configuration.GetConfigurations<ApplicationConfiguration>();
 
             foreach (var consumerType in AppDomain.CurrentDomain.FindTypesWithInterface(typeof(IConsumer<>)))
             {
@@ -111,16 +113,18 @@ namespace DotBoil.MassTransit
                 if (consumerAttribute == null)
                     continue;
 
-                if (queueConsumerMappings.ContainsKey(consumerAttribute.QueueName))
+                var queueName = $"{applicationConfiguration.MainApplicationName}_{consumerAttribute.QueueName}";
+
+                if (queueConsumerMappings.ContainsKey(queueName))
                 {
-                    var consumers = queueConsumerMappings[consumerAttribute.QueueName];
+                    var consumers = queueConsumerMappings[queueName];
 
                     if (!consumers.Any(consumer => consumer == consumerType))
                         consumers.Add(consumerType);
                 }
                 else
                 {
-                    queueConsumerMappings.TryAdd(consumerAttribute.QueueName, new List<Type> { consumerType });
+                    queueConsumerMappings.TryAdd(queueName, new List<Type> { consumerType });
                 }
             }
 

@@ -23,6 +23,18 @@ namespace DotBoil.MassTransit.Consumers
             try
             {
                 await ConsumeEvent(context);
+                
+                using var scope = _serviceProvider.CreateScope();
+                var massTransitDbContext = scope.ServiceProvider.GetService<MassTransitDbContext>();
+                var inbox = new InboxMessage()
+                {
+                    Id = Guid.NewGuid(),
+                    MessageId = context.MessageId ?? Guid.Empty,
+                    ProcessedTime = DateTime.UtcNow,
+                };
+
+                await massTransitDbContext.Inbox.AddAsync(inbox);
+                await massTransitDbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {

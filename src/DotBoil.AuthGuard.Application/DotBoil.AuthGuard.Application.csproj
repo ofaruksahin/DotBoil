@@ -23,6 +23,7 @@
       <ProjectReference Include="..\DotBoil.Logging\DotBoil.Logging.csproj" />
       <ProjectReference Include="..\DotBoil.Mapper\DotBoil.Mapper.csproj" />
       <ProjectReference Include="..\DotBoil.MassTransit\DotBoil.MassTransit.csproj" />
+      <ProjectReference Include="..\DotBoil.Mediator\DotBoil.Mediator.csproj" />
       <ProjectReference Include="..\DotBoil.Parameter\DotBoil.Parameter.csproj" />
       <ProjectReference Include="..\DotBoil.Validator\DotBoil.Validator.csproj" />
       <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
