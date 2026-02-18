@@ -1,6 +1,7 @@
 using System.Net;
 using System.Reflection;
 using DotBoil.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -58,6 +59,7 @@ public class ParameterController : BaseController
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]

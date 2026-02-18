@@ -1,0 +1,257 @@
+@using Microsoft.AspNetCore.Components.Routing
+@using MudBlazor
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    *, *::before, *::after {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    /* ── AppBar ── */
+    .sab-bar.mud-appbar {
+        background: #ffffff !important;
+        border-bottom: 1px solid #eaecf2 !important;
+        box-shadow: 0 1px 0 rgba(0,0,0,.04) !important;
+    }
+    .sab-menu-btn { color: #64748b !important; }
+    .sab-menu-btn:hover { color: #0ea5e9 !important; background: #f0f9ff !important; }
+
+    .sab-logo-mark {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: linear-gradient(145deg, #0ea5e9 0%, #6366f1 100%);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 6px rgba(14,165,233,.35);
+    }
+    .sab-logo-name { font-size:1rem; font-weight:750; color:#0f172a; letter-spacing:-.035em; }
+    .sab-logo-name span { color:#0ea5e9; }
+
+    .sab-search {
+        display:flex; align-items:center; gap:8px;
+        background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
+        padding:6px 12px; cursor:pointer; min-width:200px;
+        transition: all .15s ease;
+    }
+    .sab-search:hover { background:#f0f9ff; border-color:#bae6fd; box-shadow:0 0 0 3px rgba(14,165,233,.08); }
+    .sab-search-text { font-size:.79rem; color:#94a3b8; flex:1; }
+    .sab-search-kbd  { font-size:.64rem; background:#fff; border:1px solid #e2e8f0; border-radius:5px; padding:1px 6px; color:#cbd5e1; }
+
+    .sab-action-btn { color:#64748b !important; border-radius:10px !important; transition:background .15s, color .15s !important; }
+    .sab-action-btn:hover { background:#f0f9ff !important; color:#0ea5e9 !important; }
+
+    .sab-notif-wrap { position:relative; display:inline-flex; }
+    .sab-notif-dot {
+        position:absolute; top:9px; right:9px; width:7px; height:7px;
+        border-radius:50%; background:#f43f5e; border:2px solid #fff;
+        animation: notif-pulse 2.5s ease-in-out infinite;
+    }
+    @@keyframes notif-pulse {
+        0%,100% { box-shadow:0 0 5px rgba(244,63,94,.45); }
+        50%      { box-shadow:0 0 10px rgba(244,63,94,.7); }
+    }
+    .sab-divider { width:1px; height:24px; background:#e2e8f0; margin:0 4px; flex-shrink:0; }
+
+    /* ── Avatar ── */
+    .sum-trigger {
+        display:flex; align-items:center; gap:9px;
+        padding:5px 10px 5px 5px; border-radius:40px;
+        border:1px solid #e8eaf0; background:#fff; cursor:pointer;
+        transition:box-shadow .18s, border-color .18s;
+        box-shadow:0 1px 3px rgba(0,0,0,.05);
+    }
+    .sum-trigger:hover { border-color:#bac0d4; box-shadow:0 2px 8px rgba(14,165,233,.12); }
+    .sum-avatar { width:28px; height:28px; border-radius:50%; overflow:hidden; background:linear-gradient(135deg,#0ea5e9,#6366f1); }
+    .sum-avatar img { width:100%; height:100%; object-fit:cover; }
+    .sum-name    { font-size:.78rem; font-weight:600; color:#1e2340; white-space:nowrap; }
+    .sum-chevron { color:#9da5b8; font-size:1rem !important; }
+    .sum-header  { padding:14px 16px 12px; background:linear-gradient(135deg,#f0f9ff,#f5f3ff); border-bottom:1px solid #e8eaf0; }
+    .sum-header-name  { font-size:.84rem; font-weight:700; color:#0f172a; }
+    .sum-header-email { font-size:.71rem; color:#94a3b8; margin-top:2px; }
+
+    /* ── Drawer ── */
+    .sdr-drawer .mud-drawer-content {
+        background:#ffffff !important;
+        border-right:1px solid #eaecf2 !important;
+        display:flex; flex-direction:column;
+    }
+    .sdr-brand {
+        height:64px; display:flex; align-items:center;
+        padding:0 14px; border-bottom:1px solid #f1f5f9;
+        flex-shrink:0; gap:11px;
+        background:linear-gradient(135deg,#fafcff,#f8faff);
+    }
+    .sdr-icon {
+        width:34px; height:34px; border-radius:10px;
+        background:linear-gradient(145deg,#0ea5e9,#6366f1);
+        display:flex; align-items:center; justify-content:center;
+        flex-shrink:0; box-shadow:0 3px 10px rgba(14,165,233,.3);
+    }
+    .sdr-brand-name { font-size:.85rem; font-weight:750; color:#0f172a; letter-spacing:-.025em; }
+    .sdr-brand-sub  { font-size:.62rem; font-weight:600; color:#94a3b8; letter-spacing:.04em; text-transform:uppercase; margin-top:1px; }
+    .sdr-footer     { border-top:1px solid #f1f5f9; padding:8px; flex-shrink:0; background:#fafbfd; }
+    .sdr-toggle {
+        width:100% !important; border-radius:10px !important;
+        background:transparent !important; color:#94a3b8 !important;
+        font-size:.76rem !important; font-weight:500 !important;
+        padding:7px 10px !important; transition:background .13s, color .13s !important;
+    }
+    .sdr-toggle:hover { background:#f0f9ff !important; color:#0ea5e9 !important; }
+
+    /* ── Nav ── */
+    .snm-section {
+        font-size:.59rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+        color:#94a3b8; padding:20px 16px 5px; display:block;
+    }
+    .sdr-drawer .mud-nav-link {
+        border-radius:10px !important; margin:1px 8px !important;
+        padding:8px 12px !important; color:#475569 !important;
+        font-size:.82rem !important; font-weight:500 !important;
+        transition:background .13s, color .13s !important;
+    }
+    .sdr-drawer .mud-nav-link:hover { background:#f0f9ff !important; color:#0284c7 !important; }
+    .sdr-drawer .mud-nav-link.active {
+        background:linear-gradient(135deg,#e0f2fe,#ede9fe) !important;
+        color:#0369a1 !important; font-weight:650 !important;
+        box-shadow:inset 3px 0 0 #0ea5e9 !important;
+    }
+    .sdr-drawer .mud-nav-group .mud-nav-group-header {
+        border-radius:10px !important; margin:1px 8px !important;
+        padding:8px 12px !important; color:#475569 !important;
+        font-size:.82rem !important; font-weight:500 !important;
+        transition:background .13s, color .13s !important;
+    }
+    .sdr-drawer .mud-nav-group .mud-nav-group-header:hover { background:#f0f9ff !important; color:#0284c7 !important; }
+    .sdr-drawer .mud-nav-group-items { margin-left:12px !important; padding-left:12px !important; border-left:2px solid #e2e8f0 !important; }
+    .sdr-drawer .mud-nav-group-items .mud-nav-link { font-size:.79rem !important; padding:6px 11px !important; border-radius:8px !important; }
+    .mud-drawer-content::-webkit-scrollbar       { width:3px; }
+    .mud-drawer-content::-webkit-scrollbar-thumb  { background:#e2e8f0; border-radius:4px; }
+
+    /* ── Content ── */
+    .mud-main-content { background:#f4f6fb !important; }
+    .sl-content {
+        padding:28px 32px;
+        background:
+            radial-gradient(ellipse at 10% 0%,rgba(14,165,233,.04) 0%,transparent 60%),
+            radial-gradient(ellipse at 90% 100%,rgba(99,102,241,.04) 0%,transparent 60%),
+            #f4f6fb;
+        min-height:100%;
+    }
+</style>
+
+<MudLayout>
+
+    <!-- ═══ APP BAR ═══════════════════════════════════════════════ -->
+    <MudAppBar Class="sab-bar" Elevation="0" Dense="false">
+
+        <MudIconButton Class="sab-menu-btn"
+                       Icon="@(_drawerOpen ? Icons.Material.Rounded.MenuOpen : Icons.Material.Rounded.Menu)"
+                       Size="Size.Medium"
+                       Edge="Edge.Start"
+                       OnClick="@(() => _drawerOpen = !_drawerOpen)" />
+
+        <div class="d-flex align-center gap-2 ml-1">
+            <div class="sab-logo-mark">
+                <MudIcon Icon="@Icons.Material.Rounded.Bolt" Style="color:#fff;font-size:16px;" />
+            </div>
+            <span class="sab-logo-name">dot<span>boil</span></span>
+        </div>
+
+        <MudSpacer />
+
+        <div class="sab-divider mx-2"></div>
+
+        <!-- Avatar + user menu -->
+        <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true">
+            <ActivatorContent>
+                <div class="sum-trigger">
+                    <div class="sum-avatar">
+                        <img src="https://i.pravatar.cc/40?img=12" alt="AY" />
+                    </div>
+                    <span class="sum-name">Ahmet</span>
+                    <MudIcon Icon="@Icons.Material.Rounded.KeyboardArrowDown" Class="sum-chevron" />
+                </div>
+            </ActivatorContent>
+            <ChildContent>
+                <div class="sum-header">
+                    <div class="sum-header-name">Ahmet Yılmaz</div>
+                    <div class="sum-header-email">ahmet@example.com</div>
+                </div>
+                <MudMenuItem Icon="@Icons.Material.Rounded.AccountCircle" Href="/profile">Profilim</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.Tune"           Href="/preferences">Tercihler</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.Keyboard"       Href="/shortcuts">Kısayollar</MudMenuItem>
+                <MudDivider Class="my-1" />
+                <MudMenuItem Icon="@Icons.Material.Rounded.Logout" IconColor="Color.Error"
+                             OnClick="@(() => NavigationManager.NavigateTo("/login", true))">
+                    <MudText Style="color:#ef4444;">Çıkış Yap</MudText>
+                </MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+
+        <div style="width:10px;"></div>
+    </MudAppBar>
+
+    <!-- ═══ DRAWER ════════════════════════════════════════════════ -->
+    <MudDrawer Class="sdr-drawer"
+               @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Mini"
+               MiniWidth="60px"
+               Width="252px"
+               Elevation="0"
+               ClipMode="DrawerClipMode.Always">
+
+        <!-- Nav -->
+        <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:12px;">
+        <MudNavMenu Dense="true" Rounded="true">
+
+            @if (_drawerOpen) { <span class="snm-section">Genel</span> }
+            <MudNavLink Href="/dashboard"  Icon="@Icons.Material.Rounded.GridView"   Match="NavLinkMatch.Prefix">Dashboard</MudNavLink>
+            <MudNavLink Href="/analytics"  Icon="@Icons.Material.Rounded.BarChart"   Match="NavLinkMatch.Prefix">Analitik</MudNavLink>
+
+            @if (_drawerOpen) { <span class="snm-section">İçerik</span> }
+            <MudNavGroup Title="İçerik Tipleri" Icon="@Icons.Material.Rounded.DashboardCustomize" Expanded="false">
+                <MudNavLink Href="/content/posts"      Icon="@Icons.Material.Rounded.Article">Yazılar</MudNavLink>
+                <MudNavLink Href="/content/pages"      Icon="@Icons.Material.Rounded.WebAsset">Sayfalar</MudNavLink>
+                <MudNavLink Href="/content/categories" Icon="@Icons.Material.Rounded.FolderOpen">Kategoriler</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="/page-builder" Icon="@Icons.Material.Rounded.SpaceDashboard" Match="NavLinkMatch.Prefix">Sayfa Builder</MudNavLink>
+            <MudNavLink Href="/media"        Icon="@Icons.Material.Rounded.PermMedia"      Match="NavLinkMatch.Prefix">Medya</MudNavLink>
+
+            @if (_drawerOpen) { <span class="snm-section">Sistem</span> }
+            <MudNavGroup Title="Lokalizasyon" Icon="@Icons.Material.Rounded.Translate" Expanded="false">
+                <MudNavLink Href="/localization/languages" Icon="@Icons.Material.Rounded.Language">Diller</MudNavLink>
+                <MudNavLink Href="/localization/strings"   Icon="@Icons.Material.Rounded.TextFields">Çeviri Stringleri</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="/users"    Icon="@Icons.Material.Rounded.PeopleAlt"       Match="NavLinkMatch.Prefix">Kullanıcılar</MudNavLink>
+            <MudNavLink Href="/settings" Icon="@Icons.Material.Rounded.Settings" Match="NavLinkMatch.Prefix">Ayarlar</MudNavLink>
+
+        </MudNavMenu>
+        </div>
+
+        <!-- Footer -->
+        <div class="sdr-footer">
+            <MudTooltip Text="@(_drawerOpen ? "Küçült" : "Genişlet")" Placement="Placement.Right" Disabled="_drawerOpen">
+                <MudButton Class="sdr-toggle"
+                           StartIcon="@(_drawerOpen ? Icons.Material.Rounded.KeyboardDoubleArrowLeft : Icons.Material.Rounded.KeyboardDoubleArrowRight)"
+                           OnClick="@(() => _drawerOpen = !_drawerOpen)"
+                           Variant="Variant.Text" Size="Size.Small">
+                    @if (_drawerOpen) { <span>Küçült</span> }
+                </MudButton>
+            </MudTooltip>
+        </div>
+
+    </MudDrawer>
+
+    <!-- ═══ CONTENT ══════════════════════════════════════════════ -->
+    <MudMainContent>
+        <div class="sl-content">
+            @Body
+        </div>
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+}

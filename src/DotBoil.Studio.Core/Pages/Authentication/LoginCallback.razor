@@ -1,0 +1,30 @@
+@page "/auth/callback"
+
+@inject JwtAuthService AuthService
+@inject NavigationManager Nav
+
+@code
+{
+    private bool _isSetToken; 
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_isSetToken)
+        {
+            _isSetToken = true;
+            
+            var uri = Nav.ToAbsoluteUri(Nav.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var token = query["access_token"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                await AuthService.SetTokenAsync(token);
+            }
+
+            StateHasChanged();
+            
+            Nav.NavigateTo("/");
+        }
+    }
+}

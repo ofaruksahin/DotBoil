@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyModel;
 
 namespace DotBoil.Dependency
 {
@@ -28,25 +29,23 @@ namespace DotBoil.Dependency
 
         private static List<Module> DiscoverModules()
         {
-            return AppDomain.CurrentDomain
-                .GetAssemblies()
-                .Where(a => !a.IsDynamic)
-                .SelectMany(a =>
-                {
-                    try { return a.GetTypes(); }
-                    catch { return Array.Empty<Type>(); }
-                })
-                .Where(t =>
-                    typeof(Module).IsAssignableFrom(t) &&
-                    !t.IsAbstract &&
-                    !t.IsInterface)
-                .Select(t => (Module)Activator.CreateInstance(t)!)
+            var assemblies = DependencyContext.Default
+                .GetDefaultAssemblyNames()
+                .Select(Assembly.Load);
+
+            var modules = assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => typeof(Module).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
+                .Select(t => (Module)Activator.CreateInstance(t))
                 .ToList();
+
+            return modules;
         }
         
         private static List<Module> SortModules(List<Module> modules)
         {
-            var moduleMap = modules.ToDictionary(
+            var moduleMap = modules
+                .DistinctBy(m => m.Name).ToDictionary(
                 m => m.Name,
                 StringComparer.OrdinalIgnoreCase);
 

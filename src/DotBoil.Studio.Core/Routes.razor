@@ -1,0 +1,118 @@
+@using DotBoil.Configuration
+@using DotBoil.Studio.Core.Configurations
+@using Microsoft.Extensions.Configuration
+<MudThemeProvider Theme="_theme"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData"
+                   DefaultLayout="@typeof(StudioLayout)"/>
+    </Found>
+
+    <NotFound>
+        <LayoutView Layout="@typeof(StudioLayout)">
+            <p>Page not found</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#0ea5e9",
+            PrimaryDarken = "#0284c7",
+            PrimaryLighten = "#7dd3fc",
+            Secondary = "#6366f1",
+            Tertiary = "#f43f5e",
+            AppbarBackground = "#ffffff",
+            AppbarText = "#0f172a",
+            Background = "#f4f6fb",
+            BackgroundGray = "#f1f5f9",
+            Surface = "#ffffff",
+            DrawerBackground = "#ffffff",
+            DrawerText = "#475569",
+            TextPrimary = "#0f172a",
+            TextSecondary = "#64748b",
+            Divider = "#eaecf2",
+            ActionDefault = "#64748b",
+            LinesDefault = "#eaecf2",
+            TableLines = "#f1f5f9",
+            Error = "#ef4444",
+            Success = "#10b981",
+            Warning = "#f59e0b",
+            Info = "#0ea5e9",
+            OverlayLight = "rgba(248,250,252,0.8)",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = ["'Plus Jakarta Sans'", "sans-serif"], FontSize = ".875rem" },
+            H1 = new H1Typography { FontWeight = "800", LetterSpacing = "-.05em" },
+            H2 = new H2Typography { FontWeight = "750", LetterSpacing = "-.04em" },
+            H3 = new H3Typography { FontWeight = "700", LetterSpacing = "-.03em" },
+            H4 = new H4Typography { FontWeight = "700" },
+            H5 = new H5Typography { FontWeight = "650" },
+            H6 = new H6Typography { FontWeight = "650" },
+            Button = new ButtonTypography { FontWeight = "650", LetterSpacing = "-.01em", TextTransform = "none" },
+            Caption = new CaptionTypography { FontSize = ".72rem" },
+        },
+    };
+
+    
+    [Inject] private JwtAuthService AuthService
+    {
+        get;
+        set;
+    }
+
+    [Inject]
+    private NavigationManager Nav
+    {
+        get;
+        set;
+    }
+
+    [Inject]
+    private IConfiguration Configuration
+    {
+        get;
+        set;
+    }
+    
+    private bool _checkedToken;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var currentPath = Nav.ToBaseRelativePath(Nav.Uri);
+
+        var authServerConfiguration = Configuration.GetConfigurations<AuthServerConfiguration>();
+        
+        if (currentPath.StartsWith(authServerConfiguration.CallbackUrl.TrimStart('/'), StringComparison.OrdinalIgnoreCase))
+            return;
+        
+        if (firstRender && !_checkedToken)
+        {
+            _checkedToken = true;
+            
+            var isTokenValid = await AuthService.IsTokenValidAsync();
+
+            if (!isTokenValid)
+            {
+                var redirectUri = Uri.EscapeDataString(Nav.Uri);
+                var authServerUrl = string.Format("{0}{1}?redirect_uri={2}{3}",
+                    authServerConfiguration.Url,
+                    authServerConfiguration.AuthorizeEndpoint, redirectUri,
+                    authServerConfiguration.CallbackUrl.TrimStart('/'));
+                
+                Nav.NavigateTo(authServerUrl, forceLoad: true);
+            }
+            
+            StateHasChanged();
+        }
+    }
+}
