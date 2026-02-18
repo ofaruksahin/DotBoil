@@ -23,10 +23,11 @@ namespace DotBoil.MassTransit.Consumers
             try
             {
                 await ConsumeEvent(context);
-                
+
                 using var scope = _serviceProvider.CreateScope();
-                var massTransitDbContext = scope.ServiceProvider.GetService<MassTransitDbContext>();
-                var inbox = new InboxMessage()
+                var massTransitDbContext = scope.ServiceProvider.GetRequiredService<MassTransitDbContext>();
+
+                var inbox = new InboxMessage
                 {
                     Id = Guid.NewGuid(),
                     MessageId = context.MessageId ?? Guid.Empty,
@@ -47,8 +48,11 @@ namespace DotBoil.MassTransit.Consumers
         {
             using var scope = _serviceProvider.CreateScope();
 
-            var massTransitDbContext = scope.ServiceProvider.GetService<MassTransitDbContext>();
-            await massTransitDbContext.RetryPolicyExceptions.AddAsync(new RetryPolicyException(context.MessageId.Value, ex.Message));
+            var massTransitDbContext = scope.ServiceProvider.GetRequiredService<MassTransitDbContext>();
+            var messageId = context.MessageId ?? Guid.Empty;
+
+            await massTransitDbContext.RetryPolicyExceptions.AddAsync(
+                new RetryPolicyException(messageId, ex.Message));
             await massTransitDbContext.SaveChangesAsync();
         }
     }

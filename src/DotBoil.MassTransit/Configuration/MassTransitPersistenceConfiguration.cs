@@ -6,8 +6,6 @@ namespace DotBoil.MassTransit.Configuration
     {
         public string Key => "DotBoil:MessageBroker:MassTransit:Persistence";
 
-        public MassTransitPersistenceType PersistenceType { get; set; }
-
-        public MassTransitMySqlPersistenceConfiguration MySql { get; set; }
+        public string ConnectionString { get; set; }
     }
 }

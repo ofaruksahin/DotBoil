@@ -53,6 +53,22 @@ public class RoleEntityTypeConfiguration : EFCoreEntityTypeConfiguration<Role>
                         .OnDelete(DeleteBehavior.Restrict),
                 j => j.ToTable("RoleAppModules"));
 
+        builder
+            .HasMany(p => p.ApiEndpoints)
+            .WithMany(p => p.Roles)
+            .UsingEntity<Dictionary<string, object>>("RoleApiEndpoints",
+                j =>
+                    j.HasOne<ApiEndpoint>()
+                        .WithMany()
+                        .HasForeignKey("ApiEndpointId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                j =>
+                    j.HasOne<Role>()
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                j => j.ToTable("RoleApiEndpoints"));
+
         builder.ToTable("Roles");
     }
 }

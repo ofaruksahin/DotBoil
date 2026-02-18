@@ -44,7 +44,11 @@ namespace DotBoil.Parameter.Persistence
                 .Property(p => p.Value)
                 .IsRequired();
 
-
+            modelBuilder
+                .Entity<Models.Parameter>()
+                .Property(p => p.IsPublic)
+                .IsRequired();
+            
             modelBuilder
                 .Entity<Models.Parameter>()
                 .ToTable("Parameters");

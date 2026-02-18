@@ -39,12 +39,14 @@ public class PermissionService : IPermissionService
         {
             return _userRepository
                 .Get()
-                .Include(u => u.Roles.Where(r => !r.IsDeleted))
-                .ThenInclude(u => u.AppModules.Where(am => !am.IsDeleted))
-                .ThenInclude(u => u.ApiEndpoints.Where(ae => !ae.IsDeleted))
-                .SelectMany(u => u.Roles)
-                .SelectMany(u => u.AppModules)
-                .SelectMany(u => u.ApiEndpoints)
+                .Where(u => u.Id == userId)
+                .SelectMany(u => u.Roles.Where(r => !r.IsDeleted))
+                .SelectMany(r =>
+                    r.AppModules
+                        .Where(am => !am.IsDeleted)
+                        .SelectMany(am => am.ApiEndpoints.Where(ae => !ae.IsDeleted))
+                    .Concat(
+                        r.ApiEndpoints.Where(ae => !ae.IsDeleted)))
                 .ToList();
         }, TimeSpan.FromDays(1));
         

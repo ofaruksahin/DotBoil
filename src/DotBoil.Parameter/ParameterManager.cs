@@ -25,24 +25,24 @@ namespace DotBoil.Parameter
                 .GetResult();
         }
 
-        public async Task<T> GetParameterValue<T>(string section, string name)
+        public async Task<T> GetParameterValue<T>(string section, string name, bool isPublic = false)
         {
-            return await GetParameterValue<T>(0, section, name);
+            return await GetParameterValue<T>(0, section, name, isPublic);
         }
 
-        public async Task<T> GetParameterValue<T>(string name)
+        public async Task<T> GetParameterValue<T>(string name, bool isPublic = false)
         {
-            return await GetParameterValue<T>(0, string.Empty, name);
+            return await GetParameterValue<T>(0, string.Empty, name, isPublic);
         }
 
-        public async Task<T> GetParameterValue<T>(int tenantId, string name)
+        public async Task<T> GetParameterValue<T>(int tenantId, string name, bool isPublic = false)
         {
-            return await GetParameterValue<T>(tenantId, string.Empty, name);
+            return await GetParameterValue<T>(tenantId, string.Empty, name, isPublic);
         }
 
-        public async Task<T> GetParameterValue<T>(int tenantId, string section, string name)
+        public async Task<T> GetParameterValue<T>(int tenantId, string section, string name, bool isPublic = false)
         {
-            var key = string.Join(':', _prefix, tenantId, string.IsNullOrEmpty(section) ? "DotBoil" : section, name);
+            var key = string.Join(':', _prefix, tenantId, string.IsNullOrEmpty(section) ? "DotBoil" : section, name, isPublic);
             var timeSpan = default(TimeSpan?);
 
             if (_configuration.Caching.ExpireInHour.HasValue)
@@ -53,7 +53,11 @@ namespace DotBoil.Parameter
                 using var scope = _serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetService<ParameterDbContext>();
 
-                var parameter = await dbContext.Parameters.FirstOrDefaultAsync(p => p.Section == section && p.Key == name);
+                var parameter = await dbContext.Parameters.FirstOrDefaultAsync(p =>
+                        p.TenantId == tenantId &&
+                        p.Section == section && 
+                        p.Key == name &&
+                        p.IsPublic == isPublic);
                 if (parameter is null)
                     return default(T);
 
@@ -77,7 +81,7 @@ namespace DotBoil.Parameter
 
             foreach (var param in parameters)
             {
-                var key = string.Join(':', _prefix, param.TenantId, param.Section, param.Key);
+                var key = string.Join(':', _prefix, param.TenantId, param.Section, param.Key, param.IsPublic);
                 await _caching.StringSetAsync(key, param.Value);
             }
         }

@@ -18,7 +18,10 @@ namespace DotBoil.MassTransit.Publishers
             var applicationConfiguration = DotBoilApp.Configuration.GetConfigurations<ApplicationConfiguration>();
             
             var messageType = message.GetType();
-            var queueAttributes = messageType.GetCustomAttributes(typeof(QueueAttribute), true) as QueueAttribute[];
+            var queueAttributes = messageType
+                .GetCustomAttributes(typeof(QueueAttribute), true)
+                .OfType<QueueAttribute>()
+                .ToArray();
 
             if (!queueAttributes.Any())
                 return;

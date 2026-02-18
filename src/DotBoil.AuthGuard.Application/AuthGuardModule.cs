@@ -2,6 +2,7 @@ using System.Text;
 using DotBoil.AuthGuard.Application.Domain.Interfaces;
 using DotBoil.AuthGuard.Application.Infrastructure.Authorization;
 using DotBoil.AuthGuard.Application.Infrastructure.Authorization.Options;
+using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.AuthGuard.Application.Infrastructure.Services;
 using DotBoil.Configuration;
 using DotBoil.Dependency;
@@ -9,6 +10,7 @@ using DotBoil.EFCore;
 using DotBoil.Localization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -37,7 +39,7 @@ public class AuthGuardModule : Module
     {
         DotBoilApp.Services.AddScoped<ICurrentLanguage, CurrentLanguageService>();
         DotBoilApp.Services.AddScoped<IAuditUser, CurrentAuditUserService>();
-        DotBoilApp.Services.AddScoped<IUserService, UserService>();
+        DotBoilApp.Services.AddKeyedScoped<IUserService, EmailPasswordBasedLogin>("EmailPasswordBasedLogin");
         DotBoilApp.Services.AddScoped<IExternalSignInManager, ExternalSignInManager>()
             .AddHttpClient();
         DotBoilApp.Services.AddScoped<IJwtService, JwtService>();
@@ -78,5 +80,8 @@ public class AuthGuardModule : Module
     {
         ((WebApplication)DotBoilApp.Host).UseAuthentication();
         ((WebApplication)DotBoilApp.Host).UseAuthorization();
+
+        var dbContext = DotBoilApp.Host.Services.GetService<DotBoilAuthGuardDbContext>();
+        await dbContext.Database.MigrateAsync();
     }
 }

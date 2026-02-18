@@ -15,7 +15,7 @@ namespace DotBoil.EFCore
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
         public override int Order { get; } = 999;
 
-        public override Task AddModule()
+        public override async Task AddModule()
         {
             var configuration = DotBoilApp.Configuration.GetConfigurations<EFCoreConfiguration>();
 
@@ -41,7 +41,7 @@ namespace DotBoil.EFCore
                 if (loaderInstance == null)
                     throw new EFCoreDbContextLoaderException();
 
-                loaderInstance.LoadDbContext(DotBoilApp.Configuration, DotBoilApp.Services);
+                await loaderInstance.LoadDbContext(DotBoilApp.Configuration, DotBoilApp.Services);
             }
 
             var entityTypeConfigurations = AppDomain.CurrentDomain.FindTypesWithInterface(typeof(IEntityTypeConfiguration<>));
@@ -50,8 +50,6 @@ namespace DotBoil.EFCore
                 DotBoilApp.Services.TryAddSingleton(entityTypeConfiguration);
 
             DotBoilApp.Services.AddScoped(typeof(IRepository<,>), typeof(EFCoreRepository<,>));
-
-            return Task.CompletedTask;
         }
 
         public override Task UseModule()

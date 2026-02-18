@@ -41,10 +41,8 @@ public class MenuService : IMenuService
             var menuList = await _userRepository
                 .Get()
                 .Where(u => u.Id == userId)
-                .Include(u => u.Roles.Where(r => !r.IsDeleted))
-                .ThenInclude(r => r.Menus.Where(m => !m.IsDeleted))
-                .SelectMany(u => u.Roles)
-                .SelectMany(u => u.Menus)
+                .SelectMany(u => u.Roles.Where(r => !r.IsDeleted))
+                .SelectMany(r => r.Menus.Where(m => !m.IsDeleted))
                 .ToListAsync();
 
             menuList = menuList

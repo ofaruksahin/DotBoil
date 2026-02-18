@@ -11,13 +11,11 @@ using DotBoil.EFCore;
 using DotBoil.Localization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using NETCore.Encrypt;
-using ZstdSharp.Unsafe;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
 
-public class UserService : IUserService
+public class EmailPasswordBasedLogin : IUserService
 {
     private readonly IRepository<User, DotBoilAuthGuardDbContext> _userRepository;
     private readonly IRepository<OtpCode, DotBoilAuthGuardDbContext> _otpCodeRepository;
@@ -27,7 +25,7 @@ public class UserService : IUserService
     private readonly ILocalize _localize;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserService(
+    public EmailPasswordBasedLogin(
         IRepository<User, DotBoilAuthGuardDbContext> userRepository,
         IRepository<OtpCode, DotBoilAuthGuardDbContext> otpCodeRepository,
         IJwtService jwtService,
@@ -45,15 +43,18 @@ public class UserService : IUserService
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public async Task<AuthorizeResult> SignIn(AuthorizeRequest authorizeRequest)
+    public async Task<AuthorizeResult> SignIn(Dictionary<string, string> parameters)
     {
-        var encryptedPassword = EncryptProvider.Md5(authorizeRequest.Password);
+        var email = parameters.GetValueOrDefault("Email") ?? string.Empty;
+        var password = parameters.GetValueOrDefault("Password") ?? string.Empty;
+
+        var encryptedPassword = EncryptProvider.Md5(password);
         var user = await _userRepository
             .Get()
             .FirstOrDefaultAsync(u =>
-                    u.Email == authorizeRequest.Email &&
-                    u.Password == encryptedPassword &&
-                    u.Provider == string.Empty);
+                u.Email == email &&
+                u.Password == encryptedPassword &&
+                u.Provider == string.Empty);
 
         if (user is null)
             return AuthorizeResult.Failure(await _localize.LocalizeText("Login", "InvalidEmailOrPassword"));
@@ -85,11 +86,17 @@ public class UserService : IUserService
             createdRefreshTokenExpiryTime);
     }
 
-    public async Task<SignupResult> Signup(SignupRequest signupRequest)
+    public async Task<SignupResult> Signup(Dictionary<string, string> parameters)
     {
+        var email = parameters.GetValueOrDefault("Email") ?? string.Empty;
+        var password = parameters.GetValueOrDefault("Password") ?? string.Empty;
+        var name = parameters.GetValueOrDefault("Name") ?? string.Empty;
+        var surname = parameters.GetValueOrDefault("Surname") ?? string.Empty;
+        var username = parameters.GetValueOrDefault("Username") ?? email;
+
         var user = await _userRepository
             .Get()
-            .FirstOrDefaultAsync(u => u.Email == signupRequest.Email);
+            .FirstOrDefaultAsync(u => u.Email == email);
 
         if (user != null)
             return SignupResult.Failure(await _localize.LocalizeText("Login", "UserAlreadyExists"));
@@ -97,11 +104,11 @@ public class UserService : IUserService
         user = new User
         {
             Provider = string.Empty,
-            Name = signupRequest.Name,
-            Surname = signupRequest.Surname,
-            Username = signupRequest.Username,
-            Email = signupRequest.Email,
-            Password = EncryptProvider.Md5(signupRequest.Password)
+            Name = name,
+            Surname = surname,
+            Username = username,
+            Email = email,
+            Password = EncryptProvider.Md5(password)
         };
 
         var userCreatedEvent = new UserCreatedDomainEvent(user.Email, user.Name, user.Surname, user.Username);
@@ -113,8 +120,11 @@ public class UserService : IUserService
         
         return SignupResult.Success(await _localize.LocalizeText("Success"));
     }
-    public async Task<ForgotPasswordResult> ForgotPassword(string email)
+
+    public async Task<ForgotPasswordResult> SendForgotPasswordCode(Dictionary<string, string> parameters)
     {
+        var email = parameters.GetValueOrDefault("Email") ?? string.Empty;
+
         var user = await _userRepository
             .Get()
             .FirstOrDefaultAsync(u => u.Provider == string.Empty && u.Email == email);
@@ -129,7 +139,7 @@ public class UserService : IUserService
 
         await _otpCodeRepository.SaveChangesAsync();
 
-        var otpCode = new OtpCode()
+        var otpCode = new OtpCode
         {
             UserId = user.Id,
             ExpiryDate = DateTime.Now.AddMinutes(10)
@@ -148,8 +158,11 @@ public class UserService : IUserService
         return ForgotPasswordResult.Success(await _localize.LocalizeText("Success"));
     }
 
-    public async Task<ForgotPasswordResult> ForgotPassword(string otpCode, string password)
+    public async Task<ForgotPasswordResult> ForgotPassword(Dictionary<string, string> parameters)
     {
+        var otpCode = parameters.GetValueOrDefault("OtpCode") ?? string.Empty;
+        var password = parameters.GetValueOrDefault("Password") ?? string.Empty;
+
         var otp = await _otpCodeRepository
             .Get()
             .Include(oc => oc.User)
@@ -176,9 +189,9 @@ public class UserService : IUserService
         return ForgotPasswordResult.Success(await _localize.LocalizeText("Success"));
     }
 
-    public async Task<ResendOtpResult> ResendOtp(string email)
+    public async Task<ResendOtpResult> ResendOtp(Dictionary<string, string> parameters)
     {
-        var result = await ForgotPassword(email);
+        var result = await SendForgotPasswordCode(parameters);
 
         return new ResendOtpResult(result.IsSuccess, result.Message);
     }
@@ -190,7 +203,10 @@ public class UserService : IUserService
         if (!refreshTokenExists)
             return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
         
-        var claimsDictionary = await _cache.GetOrSetAsync($"DotBoil:AuthGuard:RefreshTokens:{refreshToken}", async () => { return new Dictionary<string,string>();}, TimeSpan.FromSeconds(5));
+        var claimsDictionary = await _cache.GetOrSetAsync(
+            $"DotBoil:AuthGuard:RefreshTokens:{refreshToken}",
+            async () => new Dictionary<string,string>(),
+            TimeSpan.FromSeconds(5));
         
         if (!claimsDictionary.Any())
             return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
@@ -201,7 +217,10 @@ public class UserService : IUserService
             _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         
-        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _cache.SetAsync(
+            $"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}",
+            claimsDictionary,
+            TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
         
         return RefreshTokenResult.Success(createdAccessToken, createdAccessTokenExpiryTime);
     }
@@ -218,3 +237,4 @@ public class UserService : IUserService
         return new GetUserInfoResponse(true, string.Empty, claims.ToDictionary(c => c.Type, c => c.Value));
     }
 }
+

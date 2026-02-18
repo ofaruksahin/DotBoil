@@ -3,6 +3,7 @@ using System;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DotBoil.AuthGuard.Application.Migrations
 {
     [DbContext(typeof(DotBoilAuthGuardDbContext))]
-    partial class DotBoilAuthGuardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212143224_snapshot")]
+    partial class snapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

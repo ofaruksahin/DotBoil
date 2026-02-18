@@ -3,6 +3,7 @@ using DotBoil.AuthGuard.Application.Domain.Interfaces;
 using DotBoil.AuthGuard.Application.Domain.ValueObjects;
 using DotBoil.AuthGuard.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.AuthGuard.Controllers;
 
@@ -14,7 +15,7 @@ public class AuthorizationController : Controller
 
     public AuthorizationController(
         IConfiguration configuration,
-        IUserService userService,
+        [FromKeyedServices("EmailPasswordBasedLogin")] IUserService userService,
         IExternalSignInManager externalSignInManager)
     {
         _configuration = configuration;
@@ -41,7 +42,13 @@ public class AuthorizationController : Controller
         if (string.IsNullOrEmpty(redirectUri))
             throw new InvalidRedirectUriException();
         
-        var authorizeResult = await _userService.SignIn(new AuthorizeRequest(viewModel.Email, viewModel.Password));
+        var authorizeParameters = new Dictionary<string, string>
+        {
+            { "Email", viewModel.Email },
+            { "Password", viewModel.Password }
+        };
+
+        var authorizeResult = await _userService.SignIn(authorizeParameters);
 
         if (authorizeResult.IsSuccess)
         {
@@ -126,14 +133,16 @@ public class AuthorizationController : Controller
     [HttpPost("authorize/register")]
     public async Task<IActionResult> Register([FromForm] RegisterViewModel viewModel)
     {
-        var signupRequest = new SignupRequest(viewModel.Email, viewModel.Password)
+        var signupParameters = new Dictionary<string, string>
         {
-            Name = viewModel.Name,
-            Surname = viewModel.Surname,
-            Username = viewModel.Email
+            { "Email", viewModel.Email },
+            { "Password", viewModel.Password },
+            { "Name", viewModel.Name },
+            { "Surname", viewModel.Surname },
+            { "Username", viewModel.Email }
         };
 
-        var signupResult = await _userService.Signup(signupRequest);
+        var signupResult = await _userService.Signup(signupParameters);
 
         ViewBag.Message = signupResult.Message;
         
@@ -149,7 +158,12 @@ public class AuthorizationController : Controller
     [HttpPost("authorize/send_otp")]
     public async Task<IActionResult> SendOtp([FromForm] ForgotPasswordViewModel viewModel)
     {
-        var result =  await _userService.ForgotPassword(viewModel.Email);
+        var parameters = new Dictionary<string, string>
+        {
+            { "Email", viewModel.Email }
+        };
+
+        var result =  await _userService.SendForgotPasswordCode(parameters);
 
         if (!result.IsSuccess)
         {
@@ -163,7 +177,12 @@ public class AuthorizationController : Controller
     [HttpGet("authorize/resend_otp")]
     public async Task<IActionResult> ResendOtp([FromQuery] string email)
     {
-        var result = await _userService.ResendOtp(email);
+        var parameters = new Dictionary<string, string>
+        {
+            { "Email", email }
+        };
+
+        var result = await _userService.ResendOtp(parameters);
 
         ViewBag.Message = result.Message;
         return View("VerifyOtp", new VerifyOtpViewModel(email));
@@ -172,7 +191,14 @@ public class AuthorizationController : Controller
     [HttpPost("authorize/verify_otp")]
     public async Task<IActionResult> VerifyOtp([FromForm] VerifyOtpViewModel viewModel)
     {
-        var result = await _userService.ForgotPassword(viewModel.OtpCode, viewModel.Password);
+        var parameters = new Dictionary<string, string>
+        {
+            { "Email", viewModel.Email },
+            { "OtpCode", viewModel.OtpCode },
+            { "Password", viewModel.Password }
+        };
+
+        var result = await _userService.ForgotPassword(parameters);
 
         if (!result.IsSuccess)
         {

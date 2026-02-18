@@ -1,6 +1,7 @@
 using DotBoil.AuthGuard.Application.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.AuthGuard.Controllers;
 
@@ -14,7 +15,7 @@ public class ApplicationController : Controller
     public ApplicationController(
         IMenuService menuService,
         IPermissionService permissionService,
-        IUserService userService)
+        [FromKeyedServices("EmailPasswordBasedLogin")] IUserService userService)
     {
         _menuService = menuService;
         _permissionService = permissionService;

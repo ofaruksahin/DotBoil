@@ -18,19 +18,15 @@ namespace DotBoil.MassTransit
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
         public override int Order { get; } = 999;
 
-        public override async Task AddModule()
+        public override Task AddModule()
         {
             var persistenceConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitPersistenceConfiguration>();
             var rabbitMqConfiguration = DotBoilApp.Configuration.GetConfigurations<MassTransitRabbitMqConfiguration>();
 
-            switch (persistenceConfiguration.PersistenceType)
+            DotBoilApp.Services.AddDbContext<MassTransitDbContext>(options =>
             {
-                case MassTransitPersistenceType.MySql:
-                    await persistenceConfiguration.MySql.ConfigurePersistence();
-                    break;
-                default:
-                    throw new Exception("Not supported persistence type");
-            }
+                options.UseMySQL(persistenceConfiguration.ConnectionString);
+            });
 
             DotBoilApp.Services.AddMassTransit(x =>
             {
@@ -79,11 +75,13 @@ namespace DotBoil.MassTransit
             DotBoilApp.Services.TryAddScoped<MassTransitDbContextSaveChangesInterceptor>();
 
             DotBoilApp.Services.TryAddScoped<IBusPublisher, RabbitMqPublisher>();
+
+            return Task.CompletedTask;
         }
 
         public override async Task UseModule()
         {
-            var scope = DotBoilApp.Host.Services.CreateScope();
+            using var scope = DotBoilApp.Host.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MassTransitDbContext>();
 
             try

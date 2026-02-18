@@ -10,4 +10,5 @@ public class Role : BaseEntity
     public virtual ICollection<User> Users { get; set; }
     public virtual ICollection<Menu> Menus { get; set; }
     public virtual ICollection<AppModule> AppModules { get; set; }
+    public virtual ICollection<ApiEndpoint> ApiEndpoints { get; set; }
 }
