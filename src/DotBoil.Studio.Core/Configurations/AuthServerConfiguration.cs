@@ -2,7 +2,7 @@ using DotBoil.Configuration;
 
 namespace DotBoil.Studio.Core.Configurations;
 
-public class AuthServerConfiguration : IOptions
+internal class AuthServerConfiguration : IOptions
 {
     public string Key => "DotBoil:Studio:AuthServer";
 

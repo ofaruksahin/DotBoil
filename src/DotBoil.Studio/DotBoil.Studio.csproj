@@ -21,6 +21,8 @@
       <_ContentIncludedByDefault Remove="Components\Pages\Home.razor" />
       <_ContentIncludedByDefault Remove="Components\Pages\NotFound.razor" />
       <_ContentIncludedByDefault Remove="Components\Pages\Weather.razor" />
+      <_ContentIncludedByDefault Remove="Components\App.razor" />
+      <_ContentIncludedByDefault Remove="Components\Routes.razor" />
       <_ContentIncludedByDefault Remove="Components\_Imports.razor" />
     </ItemGroup>
 

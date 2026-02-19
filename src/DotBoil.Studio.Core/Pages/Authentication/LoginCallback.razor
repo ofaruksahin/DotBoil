@@ -1,10 +1,15 @@
 @page "/auth/callback"
-
 @inject JwtAuthService AuthService
 @inject NavigationManager Nav
 
 @code
 {
+    [Inject] public IConfiguration Configuration
+    {
+        get;
+        set;
+    }
+    
     private bool _isSetToken; 
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -12,15 +17,19 @@
         if (firstRender && !_isSetToken)
         {
             _isSetToken = true;
+
+            var authServerConfiguration = Configuration.GetConfigurations<AuthServerConfiguration>();
             
             var uri = Nav.ToAbsoluteUri(Nav.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-            var token = query["access_token"];
+            var accessToken = query[authServerConfiguration.TokenKey];
+            var refreshToken = query[authServerConfiguration.RefreshTokenKey];
+            
+            if (!string.IsNullOrEmpty(accessToken))
+                await AuthService.SetTokenAsync(accessToken);
 
-            if (!string.IsNullOrEmpty(token))
-            {
-                await AuthService.SetTokenAsync(token);
-            }
+            if (!string.IsNullOrEmpty(refreshToken))
+                await AuthService.SetRefreshTokenAsync(refreshToken);
 
             StateHasChanged();
             

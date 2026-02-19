@@ -8,11 +8,6 @@ var app = builder.Build();
 
 await app.UseDotBoil();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-}
-
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();

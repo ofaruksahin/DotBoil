@@ -4,10 +4,11 @@ using Microsoft.JSInterop;
 
 namespace DotBoil.Studio.Core.Services;
 
-public class JwtAuthService
+internal class JwtAuthService
 {
     private readonly IJSRuntime _js;
     private string _token;
+    private string _refreshToken;
 
     public JwtAuthService(IJSRuntime js)
     {
@@ -17,7 +18,13 @@ public class JwtAuthService
     public async Task SetTokenAsync(string token)
     {
         _token = token;
-        await _js.InvokeVoidAsync("localStorage.setItem", "jwt_token", token);
+        await _js.InvokeVoidAsync("localStorage.setItem", "access_token", token);
+    }
+
+    public async Task SetRefreshTokenAsync(string refreshToken)
+    {
+        _refreshToken = refreshToken;
+        await _js.InvokeVoidAsync("localStorage.setItem", "refresh_token", refreshToken);
     }
 
     public async Task<string> GetTokenAsync()
@@ -25,8 +32,17 @@ public class JwtAuthService
         if (!string.IsNullOrEmpty(_token))
             return _token;
 
-        _token = await _js.InvokeAsync<string>("localStorage.getItem", "jwt_token");
+        _token = await _js.InvokeAsync<string>("localStorage.getItem", "access_token");
         return _token;
+    }
+
+    public async Task<string> GetRefreshTokenAsync()
+    {
+        if (!string.IsNullOrEmpty(_refreshToken))
+            return _refreshToken;
+        
+        _refreshToken = await _js.InvokeAsync<string>("localStorage.getItem", "refresh_token");
+        return _refreshToken;
     }
 
     public async Task<bool> IsTokenValidAsync()
@@ -59,7 +75,9 @@ public class JwtAuthService
     public async Task ClearTokenAsync()
     {
         _token = null;
-        await _js.InvokeVoidAsync("localStorage.removeItem", "jwt_token");
+        _refreshToken = null;
+        await _js.InvokeVoidAsync("localStorage.removeItem", "access_token");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "refresh_token");
     }
 
     private string Base64UrlDecode(string input)
