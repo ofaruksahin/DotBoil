@@ -1,0 +1,10 @@
+<MudTextField T="string"
+              bind-Value="FormField.Value"
+              Label="@FormField.Label"
+              HelperText="@FormField.HelperText"
+              Variant="Variant.Text"></MudTextField>
+
+@code
+{
+    [Parameter] public TextField FormField { get; set; }
+}

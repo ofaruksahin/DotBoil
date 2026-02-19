@@ -6,7 +6,7 @@ using MudBlazor.Services;
 
 namespace DotBoil.Studio.Core;
 
-public class StudioModule : Module
+internal class StudioModule : Module
 {
     public override string Name => "Studio";
     public override IEnumerable<string> DependsOn => Enumerable.Empty<string>();

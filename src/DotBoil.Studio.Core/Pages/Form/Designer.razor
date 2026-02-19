@@ -1,0 +1,64 @@
+@page "/Designer"
+@using DotBoil.Studio.Core.Components.Form
+@inject IDialogService DialogService;
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
+
+    <MudGrid GutterSize="3">
+
+        <!-- Sol 8-column alan -->
+        <MudItem xs="12" md="8" lg="8" xl="8" xxl="10">
+            <MudItem xs="12">
+                <MudPaper Class="pa-4" Style="min-height:400px; position: relative;">
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Style="position: absolute; top: 8px; right: 8px;"
+                                   OnClick="OpenAddNewFieldDialog"/>
+                    <MudText Typo="Typo.h6">Form</MudText>
+
+                    <MudItem xs="12" Class="pt-3">
+                        <FormRenderer FormFields="FormFieldsToRender" DesignerMode="true" OnFieldSelected="(field) => 
+                            SelectedFormField = field"></FormRenderer>
+                    </MudItem>
+                </MudPaper>
+            </MudItem>
+
+        </MudItem>
+
+        <!-- Sağ 4-column alan -->
+        <MudItem xs="12" md="4" lg="4" xl="4" xxl="2">
+            <MudPaper Class="pa-4" Style="min-height:400px;">
+                <MudText Typo="Typo.h6">Element Settings</MudText>
+                <MudItem xs="12" Class="pt-3">
+                    <FormFieldProperties SelectedFormField="SelectedFormField"></FormFieldProperties>
+                </MudItem>
+            </MudPaper>
+        </MudItem>
+
+    </MudGrid>
+
+</MudContainer>
+
+@code {
+    private List<BaseFormField> FormFieldsToRender = new List<BaseFormField>();
+
+    private BaseFormField? SelectedFormField = null;
+
+    private async Task OpenAddNewFieldDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.ShowAsync<AddNewFieldDialog>(AddNewFieldDialog.DialogTitle, options);
+        var dialogReference = await dialog;
+        var result = await dialogReference.Result;
+
+        if (!result.Canceled)
+        {
+            var selectedField = (BaseFormField)result.Data;
+            FormFieldsToRender.Add(selectedField);
+        }
+    }
+
+}

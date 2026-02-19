@@ -8,11 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\DotBoil.Studio.Core\DotBoil.Studio.Core.csproj" />
-      <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <_ContentIncludedByDefault Remove="Components\Layout\MainLayout.razor" />
       <_ContentIncludedByDefault Remove="Components\Layout\NavMenu.razor" />
       <_ContentIncludedByDefault Remove="Components\Layout\ReconnectModal.razor" />
@@ -21,9 +16,11 @@
       <_ContentIncludedByDefault Remove="Components\Pages\Home.razor" />
       <_ContentIncludedByDefault Remove="Components\Pages\NotFound.razor" />
       <_ContentIncludedByDefault Remove="Components\Pages\Weather.razor" />
-      <_ContentIncludedByDefault Remove="Components\App.razor" />
-      <_ContentIncludedByDefault Remove="Components\Routes.razor" />
-      <_ContentIncludedByDefault Remove="Components\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DotBoil.Studio.Core\DotBoil.Studio.Core.csproj" />
+      <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
     </ItemGroup>
 
 </Project>

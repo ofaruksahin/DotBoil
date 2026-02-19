@@ -1,0 +1,73 @@
+@using System.Reflection
+@using DotBoil.Studio.Core.Attributes
+@if (SelectedFormField != null)
+{
+    @if (SelectedFormField != null)
+    {
+        <MudExpansionPanels Dense="true">
+
+            @foreach (var attr in Attributes)
+            {
+                <MudExpansionPanel>
+                    <TitleContent>
+                            <MudText>@attr.Value.Name</MudText>
+                            <MudText Typo="Typo.caption">@attr.Value.Description</MudText>
+                    </TitleContent>
+                    <ChildContent>
+                        @if (attr.Value.RendererType is null)
+                        {
+                            var propInfo = SelectedFormField!.GetType().GetProperty(attr.Key);
+                            var currentValue = propInfo?.GetValue(SelectedFormField)?.ToString();
+
+                            <MudTextField T="string"
+                                          Label="@attr.Value.Name"
+                                          Value="@currentValue"
+                                          class="mb-4"
+                                          ValueChanged="@(v =>
+                                          {
+                                              if (propInfo != null && propInfo.CanWrite)
+                                              {
+                                                  propInfo.SetValue(SelectedFormField, v);
+                                              }
+                                          })" />
+                        }
+                        else
+                        {
+                            
+                        }
+                    </ChildContent>
+                </MudExpansionPanel>
+            }
+
+        </MudExpansionPanels>
+    }
+}
+
+@code
+{
+    [Parameter] public BaseFormField? SelectedFormField { get; set; }
+
+    private Dictionary<string, FieldPropertyAttribute> Attributes = new();
+    
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (SelectedFormField != null)
+        {
+            Attributes.Clear();
+            
+            var props = SelectedFormField.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetCustomAttribute<FieldPropertyAttribute>() != null)
+                .OrderBy(prop => prop.GetCustomAttribute<FieldPropertyAttribute>().Order)
+                .ToList();
+
+            foreach (var prop in props)
+            {
+                var attr = prop.GetCustomAttribute<FieldPropertyAttribute>()!;
+                Attributes.Add(prop.Name, attr);
+            }
+        }
+    }
+}

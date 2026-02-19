@@ -1,0 +1,49 @@
+@using DotBoil.Studio.Core.Contracts
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            @foreach (var group in AvailableFields.GroupBy(f => f.Category))
+            {
+                <MudExpansionPanels>
+                    <MudExpansionPanel Text="@group.Key">
+                        <MudStack Spacing="1">
+                            @foreach (var field in group)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Default"
+                                           OnClick="() => AddNewField(field)">
+                                    @field.Title
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    public static string DialogTitle => "Add New Field Dialog";
+    
+    private List<BaseFormField> AvailableFields => new List<BaseFormField>
+    {
+        new TextField(),
+        new AutoCompleteField(),
+        new CheckBoxField()
+    };
+    
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    
+    private void AddNewField(BaseFormField field)
+    {
+        MudDialog.Close(DialogResult.Ok(field));
+    }
+
+    private void Close() => MudDialog.Cancel();
+}

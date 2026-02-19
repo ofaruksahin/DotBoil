@@ -25,4 +25,18 @@
       <Folder Include="wwwroot\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <UpToDateCheckInput Remove="Components\Form\Designer.razor" />
+      <UpToDateCheckInput Remove="Components\Form\DynamicForm.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Components\Form\TextField.cs">
+        <DependentUpon>TextFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\AutoCompleteField.cs">
+        <DependentUpon>AutoCompleteFieldRenderer.razor</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
