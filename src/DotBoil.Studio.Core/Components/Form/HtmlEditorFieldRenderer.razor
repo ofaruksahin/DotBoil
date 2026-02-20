@@ -1,0 +1,9 @@
+@using Tizzani.MudBlazor.HtmlEditor
+
+<MudHtmlEditor bind-Html="@Current.Value">
+</MudHtmlEditor>
+
+@code{
+    [Parameter] public HtmlEditorField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+}

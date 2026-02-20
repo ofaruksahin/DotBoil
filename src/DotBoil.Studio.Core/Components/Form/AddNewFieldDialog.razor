@@ -1,4 +1,4 @@
-@using DotBoil.Studio.Core.Contracts
+@using DotBoil.Reflection
 
 <MudDialog>
     <DialogContent>
@@ -11,7 +11,7 @@
                             @foreach (var field in group)
                             {
                                 <MudButton Variant="Variant.Outlined"
-                                           Color="Color.Default"
+                                           Color="@Color.Default"
                                            OnClick="() => AddNewField(field)">
                                     @field.Title
                                 </MudButton>
@@ -29,18 +29,15 @@
 
 @code {
     public static string DialogTitle => "Add New Field Dialog";
-    
-    private List<BaseFormField> AvailableFields => new List<BaseFormField>
-    {
-        new TextField(),
-        new AutoCompleteField(),
-        new CheckBoxField()
-    };
+
+    private List<BaseComponent> AvailableFields => AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(BaseComponent))
+        .Select(baseComponent => (BaseComponent)Activator.CreateInstance(baseComponent))
+        .ToList();
     
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
     
-    private void AddNewField(BaseFormField field)
+    private void AddNewField(BaseComponent field)
     {
         MudDialog.Close(DialogResult.Ok(field));
     }

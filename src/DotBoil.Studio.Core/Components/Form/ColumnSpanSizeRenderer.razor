@@ -1,5 +1,44 @@
-<h3>ColumnSpanSizeRenderer</h3>
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
+            <MudNumericField
+                @bind-Value="Current.ColumnSpanXs"
+                Label="Extra Small"
+                Min="0"
+                Max="12"></MudNumericField>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
+            <MudNumericField
+                @bind-Value="Current.ColumnSpanSm"
+                Label="Small"
+                Min="0"
+                Max="12"></MudNumericField>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
+            <MudNumericField
+                @bind-Value="Current.ColumnSpanMd"
+                Label="Medium"
+                Min="0"
+                Max="12"></MudNumericField>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
+            <MudNumericField
+                @bind-Value="Current.ColumnSpanLg"
+                Label="Large"
+                Min="0"
+                Max="12"></MudNumericField>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
+            <MudNumericField
+                @bind-Value="Current.ColumnSpanXl"
+                Label="Extra Large"
+                Min="0"
+                Max="12"></MudNumericField>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
-    
+    [Parameter] public ColumnSpanSize Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
 }

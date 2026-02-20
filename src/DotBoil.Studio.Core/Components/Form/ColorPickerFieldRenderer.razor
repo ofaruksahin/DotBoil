@@ -1,0 +1,24 @@
+@using MudBlazor.Utilities
+
+<MudColorPicker bind-Value="Current.Value"
+                Label="@Current.Label"
+                HelperText="@Current.HelperText"
+                Variant="Variant.Outlined"
+                PickerVariant="PickerVariant.Inline"
+                ValueChanged="val => ColorChanged(val)"/>
+
+@code
+{
+    [Parameter] public ColorPickerField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+    [Parameter] public EventCallback<ColorPickerField> ColorPicked { get; set; }
+    
+    
+    private async Task ColorChanged(MudColor color)
+    {
+        Current.Value = color;
+        
+        if (ColorPicked.HasDelegate)
+            await ColorPicked.InvokeAsync(Current);
+    }
+}

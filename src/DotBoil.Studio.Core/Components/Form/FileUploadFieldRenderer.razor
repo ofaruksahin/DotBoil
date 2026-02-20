@@ -1,0 +1,75 @@
+@if (Current != null)
+{
+    if (Context.DesignerMode)
+    {
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Current.UploadIcon.Value"
+                   OnClick="HandleClick">
+            @Current.Text
+        </MudButton>
+    }
+    else
+    {
+        if (Current.Multiple)
+        {
+            <MudFileUpload 
+                T="IReadOnlyList<IBrowserFile>" 
+                FilesChanged="UploadFileMultiple" 
+                MaximumFileCount="Current.MaximumFileCount"
+                MaxFileSize="Current.MaximumFileSize">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Current.UploadIcon.Value">
+                        @Current.Text
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        }
+        else
+        {
+            <MudFileUpload 
+                T="IBrowserFile" 
+                FilesChanged="UploadFileSingle"
+                MaximumFileCount="Current.MaximumFileCount"
+                MaxFileSize="Current.MaximumFileSize">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Current.UploadIcon.Value">
+                        @Current.Text
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        }   
+    }
+}
+
+@code{
+    [Parameter] public FileUploadField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+
+    private void UploadFileMultiple(IReadOnlyList<IBrowserFile> files)
+    {
+        Current.Value.Clear();
+
+        foreach (var file in files)
+            Current.Value.Add(file);
+    }
+
+    private void UploadFileSingle(IBrowserFile file)
+    {
+        Current.Value.Clear();
+        Current.Value.Add(file);
+    }
+
+    private async Task HandleClick()
+    {
+        if (Context is null)
+            return;
+        
+        if (Context.OnFieldSelected.HasDelegate)
+            await Context.OnFieldSelected.InvokeAsync(Current);
+    }
+}

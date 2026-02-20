@@ -1,10 +1,11 @@
 <MudTextField T="string"
-              bind-Value="FormField.Value"
-              Label="@FormField.Label"
-              HelperText="@FormField.HelperText"
-              Variant="Variant.Text"></MudTextField>
+              bind-Value="Current.Value"
+              Label="@Current.Label"
+              HelperText="@Current.HelperText"
+              Variant="Variant.Outlined"></MudTextField>
 
 @code
 {
-    [Parameter] public TextField FormField { get; set; }
+    [Parameter] public TextField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
 }

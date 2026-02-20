@@ -15,6 +15,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0"/>
         <PackageReference Include="MudBlazor" Version="8.15.0" />
+        <PackageReference Include="Tizzani.MudBlazor.HtmlEditor" Version="2.3.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,6 +38,54 @@
       <Compile Update="Components\Form\AutoCompleteField.cs">
         <DependentUpon>AutoCompleteFieldRenderer.razor</DependentUpon>
       </Compile>
+      <Compile Update="Components\Form\CheckBoxField.cs">
+        <DependentUpon>CheckBoxFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\ColorPickerField.cs">
+        <DependentUpon>ColorPickerFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\DatePickerField.cs">
+        <DependentUpon>DatePickerFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\EmailField.cs">
+        <DependentUpon>EmailFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\FileUploadField.cs">
+        <DependentUpon>FileUploadFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\NumericField.cs">
+        <DependentUpon>NumericFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\PasswordField.cs">
+        <DependentUpon>PasswordFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\RadioButtonField.cs">
+        <DependentUpon>RadioButtonFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\IconSelectionField.cs">
+        <DependentUpon>IconSelectionFieldRenderer.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Components\Form\HtmlEditorField.cs">
+        <DependentUpon>HtmlEditorFieldRenderer.razor</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="Components\Form\IconSelectionSettingsRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
+      <Content Update="Components\Form\ColumnSpanSizeRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
+      <Content Update="Components\Form\IconSelectionDialog.razor">
+        <DependentUpon>IconSelectionFieldRenderer.razor</DependentUpon>
+      </Content>
+      <Content Update="Components\Form\AddNewFieldDialog.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
+      <Content Update="Components\Form\ColorPickerSettingsRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
     </ItemGroup>
 
 </Project>

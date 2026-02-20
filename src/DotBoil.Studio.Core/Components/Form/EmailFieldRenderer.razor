@@ -1,0 +1,13 @@
+<MudTextField T="string"
+              Label="@Current.Label"
+              HelperText="@Current.HelperText"
+              @bind-Value="@Current.Value"
+              InputType="InputType.Email"
+              Variant="Variant.Outlined"
+              Adornment="Adornment.End"
+              AdornmentIcon="@Current.Icon.Value" />
+
+@code {
+    [Parameter] public EmailField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+}

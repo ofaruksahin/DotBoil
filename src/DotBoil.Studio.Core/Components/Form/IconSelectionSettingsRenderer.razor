@@ -1,0 +1,36 @@
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" Style="display:flex; justify-content:center;">
+            <IconSelectionFieldRenderer Current="IconSelectionField" Context="Context" IconSelected="IconSelected"></IconSelectionFieldRenderer>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public Icon Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private IconSelectionField IconSelectionField;
+    private ComponentContext Context;
+
+    protected override void OnInitialized()
+    {
+        IconSelectionField = new IconSelectionField();
+
+        if (Current != null)
+            IconSelectionField.Value = Current.Value;
+        
+        Context = new ComponentContext
+        {
+            DesignerMode = true
+        };
+        
+        base.OnInitialized();
+    }
+
+    private void IconSelected(IconSelectionField field)
+    {
+        Current.Value = field.Value;
+        StateHasChanged();
+    }
+}

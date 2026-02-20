@@ -1,0 +1,56 @@
+<MudGrid GutterSize="3">
+    @foreach (var field in FormFields)
+    {
+        <MudHidden Breakpoint="@field.ColumnSpanSize.BreakPoint">
+            <MudItem
+                xs="@field.ColumnSpanSize.ColumnSpanXs"
+                sm="@field.ColumnSpanSize.ColumnSpanSm"
+                md="@field.ColumnSpanSize.ColumnSpanMd"
+                lg="@field.ColumnSpanSize.ColumnSpanLg"
+                xl="@field.ColumnSpanSize.ColumnSpanXl"
+                @onclick="() => OnFieldClicked(field)">
+                <DynamicComponent Type="field.RendererType" Parameters="GetParameters(field)"/>
+            </MudItem>
+        </MudHidden>
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public List<BaseComponent> FormFields { get; set; }
+
+    [Parameter] public bool DesignerMode { get; set; }
+
+    [Parameter] public EventCallback<BaseComponent> OnFieldSelected { get; set; }
+
+    internal BaseComponent? SelectedField { get; set; }
+
+    private async Task OnFieldClicked(BaseComponent field)
+    {
+        SelectedField = field;
+        if (OnFieldSelected.HasDelegate)
+            await OnFieldSelected.InvokeAsync(field);
+    }
+
+    private Dictionary<string, object> GetParameters(BaseComponent baseComponent)
+    {
+        var componentContext = new ComponentContext
+        {
+            DesignerMode = DesignerMode,
+            Components = FormFields,
+            OnFieldSelected = OnFieldSelected
+        };
+
+        return new Dictionary<string, object>
+        {
+            { "Current", baseComponent },
+            { "Context", componentContext }
+        };
+    }
+
+    protected override void OnInitialized()
+    {
+        this.DesignerMode = false;
+        base.OnInitialized();
+    }
+
+}

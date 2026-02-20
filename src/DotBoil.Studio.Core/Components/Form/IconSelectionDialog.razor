@@ -1,0 +1,178 @@
+@using System.Reflection
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabPanel Text="Material - Filled">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in MaterialFilledIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Material - OutLined">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in MaterialOutlinedIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Material - Rounded">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in MaterialRoundedIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Material - Sharp">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in MaterialSharpIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Material - TwoTone">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in MaterialTwoToneIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Custom - Brands">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in CustomBrandIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Custom - File Formats">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in CustomFileFormatIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Custom - Uncategorized">
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <MudGrid>
+                            @foreach (var icon in CustomUncategorizedIcons)
+                            {
+                                <MudItem xs="2" sm="1">
+                                    <MudIconButton Icon="@icon"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => SelectIcon(icon))" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </div>
+                </MudTabPanel>
+            </MudTabs>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code{
+
+    public static string DialogTitle => "Icon Selection Dialog";
+    
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public List<string> MaterialFilledIcons { get; set; } = new();
+    [Parameter] public List<string> MaterialOutlinedIcons { get; set; } = new();
+    [Parameter] public List<string> MaterialRoundedIcons { get; set; } = new();
+    [Parameter] public List<string> MaterialSharpIcons { get; set; } = new();
+    [Parameter] public List<string> MaterialTwoToneIcons { get; set; } = new();
+
+    [Parameter] public List<string> CustomBrandIcons { get; set; } = new();
+    [Parameter] public List<string> CustomFileFormatIcons { get; set; } = new();
+    [Parameter] public List<string> CustomUncategorizedIcons { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        FillIcon(typeof(Icons.Material.Filled), MaterialFilledIcons);
+        FillIcon(typeof(Icons.Material.Outlined), MaterialOutlinedIcons);
+        FillIcon(typeof(Icons.Material.Rounded), MaterialRoundedIcons);
+        FillIcon(typeof(Icons.Material.Sharp), MaterialSharpIcons);
+        FillIcon(typeof(Icons.Material.TwoTone), MaterialTwoToneIcons);
+        FillIcon(typeof(Icons.Custom.Brands), CustomBrandIcons);
+        FillIcon(typeof(Icons.Custom.FileFormats), CustomFileFormatIcons);
+        FillIcon(typeof(Icons.Custom.Uncategorized), CustomUncategorizedIcons);
+        
+        base.OnInitialized();
+    }
+
+    private void SelectIcon(string icon)
+    {
+        MudDialog.Close(DialogResult.Ok(icon));
+    }
+
+    private void Close() => MudDialog.Cancel();
+
+    private void FillIcon(Type type, List<string> list)
+    {
+        var fields = type.GetFields(
+            BindingFlags.Public | BindingFlags.Static
+        );
+
+        foreach (var field in fields)
+        {
+            var value = field.GetValue(null)?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(value))
+                list.Add(value);
+        }
+    }
+}

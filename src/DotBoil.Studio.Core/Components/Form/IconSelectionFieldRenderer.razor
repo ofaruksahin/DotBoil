@@ -1,0 +1,33 @@
+@inject IDialogService DialogService;
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenIconDialog" class="mb-3">
+    <MudIcon Icon="@Current.Value" Size="Size.Large"></MudIcon>
+</MudButton>
+
+@code {
+    [Parameter] public IconSelectionField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+    [Parameter] public EventCallback<IconSelectionField> IconSelected { get; set; }
+
+    private async Task OpenIconDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.ShowAsync<IconSelectionDialog>(IconSelectionDialog.DialogTitle, options);
+        var dialogReference = await dialog;
+        var result = await dialogReference.Result;
+
+        if (!result.Canceled)
+        {
+            var icon = (string)result.Data;
+            Current.Value = icon;
+
+            if (IconSelected.HasDelegate)
+                await IconSelected.InvokeAsync(Current);
+        }
+    }
+}

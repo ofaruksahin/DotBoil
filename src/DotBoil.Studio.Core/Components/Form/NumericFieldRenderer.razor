@@ -1,0 +1,14 @@
+<MudNumericField T="decimal?"
+                 Value="Current.Value"
+                 Label="@Current.Label"
+                 HelperText="@Current.HelperText"
+                 Variant="Variant.Outlined"
+                 Min="Current.Min"
+                 Max="Current.Max"
+                 Step="Current.Step" />
+
+@code
+{
+    [Parameter] public NumericField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+}

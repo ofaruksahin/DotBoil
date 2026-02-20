@@ -1,47 +1,55 @@
 @page "/Designer"
 @using DotBoil.Studio.Core.Components.Form
 @inject IDialogService DialogService;
+@inject ISnackbar Snackbar;
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
 
     <MudGrid GutterSize="3">
 
         <!-- Sol 8-column alan -->
-        <MudItem xs="12" md="8" lg="8" xl="8" xxl="10">
+        <MudItem xs="@(DesignerMode ? 12 : 8)" md="@(DesignerMode ? 8 : 12)" lg="@(DesignerMode ? 8 : 12)" xl="@(DesignerMode ? 8 : 12)" xxl="@(DesignerMode ? 10 : 12)">
             <MudItem xs="12">
                 <MudPaper Class="pa-4" Style="min-height:400px; position: relative;">
                     <MudIconButton Icon="@Icons.Material.Filled.Add" Style="position: absolute; top: 8px; right: 8px;"
-                                   OnClick="OpenAddNewFieldDialog"/>
+                                   OnClick="OpenAddNewFieldDialog" Disabled="!DesignerMode"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Style="position: absolute; top: 8px; right: 88px;" OnClick="() => StateHasChanged()" Disabled="!DesignerMode"></MudIconButton>
+                    <MudIconButton Icon="@(DesignerMode ? Icons.Material.Filled.Preview : Icons.Material.Filled.StopCircle)" Style="position: absolute; top: 8px; right: 48px;" OnClick="ChangeDesignerMode"></MudIconButton>
                     <MudText Typo="Typo.h6">Form</MudText>
 
                     <MudItem xs="12" Class="pt-3">
-                        <FormRenderer FormFields="FormFieldsToRender" DesignerMode="true" OnFieldSelected="(field) => 
-                            SelectedFormField = field"></FormRenderer>
+                        <ComponentRenderer FormFields="FormFieldsToRender" DesignerMode="DesignerMode" OnFieldSelected="OnFieldSelected"></ComponentRenderer>
                     </MudItem>
                 </MudPaper>
             </MudItem>
 
         </MudItem>
 
-        <!-- Sağ 4-column alan -->
-        <MudItem xs="12" md="4" lg="4" xl="4" xxl="2">
-            <MudPaper Class="pa-4" Style="min-height:400px;">
-                <MudText Typo="Typo.h6">Element Settings</MudText>
-                <MudItem xs="12" Class="pt-3">
-                    <FormFieldProperties SelectedFormField="SelectedFormField"></FormFieldProperties>
-                </MudItem>
-            </MudPaper>
-        </MudItem>
-
+        @if (DesignerMode)
+        {
+            <!-- Sağ 4-column alan -->
+            <MudItem xs="12" md="4" lg="4" xl="4" xxl="2">
+                <MudPaper Class="pa-4" Style="min-height:400px; max-height:80vh; overflow-y:auto;">
+                    <MudText Typo="Typo.h6">Element Settings</MudText>
+                    <MudItem xs="12" Class="pt-3">
+                        <FormFieldProperties SelectedFormField="SelectedFormField" OnDelete="FormFieldOnDelete"></FormFieldProperties>
+                    </MudItem>
+                </MudPaper>
+            </MudItem>
+        }
     </MudGrid>
-
 </MudContainer>
 
 @code {
-    private List<BaseFormField> FormFieldsToRender = new List<BaseFormField>();
+    private List<BaseComponent> FormFieldsToRender = new();
+    private BaseComponent? SelectedFormField = null;
+    private bool DesignerMode = true;
 
-    private BaseFormField? SelectedFormField = null;
-
+    private async Task OnFieldSelected(BaseComponent component)
+    {
+        SelectedFormField = component;
+    }
+    
     private async Task OpenAddNewFieldDialog()
     {
         var options = new DialogOptions
@@ -56,9 +64,38 @@
 
         if (!result.Canceled)
         {
-            var selectedField = (BaseFormField)result.Data;
+            var selectedField = (BaseComponent)Activator.CreateInstance(result.Data.GetType());
+            selectedField.Id = Guid.NewGuid().ToString().Replace("-", "").Substring(8);
             FormFieldsToRender.Add(selectedField);
         }
     }
 
+    private void ChangeDesignerMode()
+    {
+        if (DesignerMode)
+        {
+            if (!FormFieldsToRender.Any())
+            {
+                Snackbar.Add("Görüntüleme yapman için henüz ortada bir form yok", Severity.Warning);
+                return;
+            }
+        }
+
+        DesignerMode = !DesignerMode;
+    }
+
+    private void FormFieldOnDelete(BaseComponent component)
+    {
+        var deleteItem = FormFieldsToRender.FirstOrDefault(ff => ff.Id == component.Id);
+        if (deleteItem is null)
+        {
+            Snackbar.Add("Silinecek alanın Id değeri boş olamaz.", Severity.Error);
+            return;
+        }
+
+        if (SelectedFormField.Id == component.Id)
+            SelectedFormField = null;
+
+        FormFieldsToRender.Remove(deleteItem);
+    }
 }

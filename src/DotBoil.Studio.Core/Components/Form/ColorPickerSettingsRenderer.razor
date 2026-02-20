@@ -1,0 +1,35 @@
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" Style="display:flex; justify-content:center;" class="mb-3">
+            <ColorPickerFieldRenderer Current="ColorPickerField" Context="Context" ColorPicked="ColorPicked"></ColorPickerFieldRenderer>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public ColorSettings Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private ColorPickerField ColorPickerField;
+    private ComponentContext Context;
+
+    protected override void OnInitialized()
+    {
+        ColorPickerField = new ColorPickerField();
+
+        if (Current != null)
+            ColorPickerField.Value = Current.Value;
+
+        Context = new ComponentContext()
+        {
+            DesignerMode = true
+        };
+        
+        base.OnInitialized();
+    }
+
+    private void ColorPicked(ColorPickerField field)
+    {
+        Current.Value = field.Value;
+    }
+}
