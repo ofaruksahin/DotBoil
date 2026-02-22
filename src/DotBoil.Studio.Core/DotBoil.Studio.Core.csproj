@@ -86,6 +86,9 @@
       <Content Update="Components\Form\ColorPickerSettingsRenderer.razor">
         <DependentUpon>FormFieldProperties.razor</DependentUpon>
       </Content>
+      <Content Update="Components\Form\DataSourceSettingsRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
     </ItemGroup>
 
 </Project>

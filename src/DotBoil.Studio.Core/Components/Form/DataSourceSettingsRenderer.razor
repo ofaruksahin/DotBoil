@@ -1,0 +1,108 @@
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+            <MudSelect T="DataSourceType" Label="Source Type"
+                       Variant="Variant.Outlined" ValueChanged="DataSourceTypeChanged">
+                @foreach (var item in DataSourceTypes)
+                {
+                    <MudSelectItem Value="item">@item.ToString()</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        @if (SelectedDataSourceType == DataSourceType.Static)
+        {
+            if (StaticDataSource != null)
+            {
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudTextField T="string" Label="Text" HelperText="Text" @bind-Value="@StaticDataSource.Text"
+                                  Variant="Variant.Outlined"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudTextField T="string" Label="Value" HelperText="Value" @bind-Value="@StaticDataSource.Value"
+                                  Variant="Variant.Outlined"></MudTextField>
+                </MudItem>
+            }
+        }
+        else if (SelectedDataSourceType == DataSourceType.Api)
+        {
+            <h1>Api</h1>
+        }
+
+    </MudGrid>
+</MudContainer>
+
+
+@code {
+    [Parameter] public DataSource Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private List<DataSourceType> DataSourceTypes { get; set; } = new();
+    private DataSourceType SelectedDataSourceType = DataSourceType.Static;
+
+    private StaticDataSource StaticDataSource;
+    private ApiDataSource ApiDataSource;
+
+    protected override void OnInitialized()
+    {
+        DataSourceTypes.Clear();
+        DataSourceTypes = Enum.GetValues(typeof(DataSourceType))
+            .Cast<DataSourceType>()
+            .ToList();
+
+        var componentProperties = CurrentComponent.GetType().GetProperties();
+
+        foreach (var prop in componentProperties)
+        {
+            if (prop.PropertyType.BaseType != null && prop.PropertyType.BaseType == typeof(DataSource))
+            {
+                var propVal = prop.GetValue(CurrentComponent);
+
+                if (propVal is null)
+                    continue;
+
+                SelectedDataSourceType = propVal is StaticDataSource ? DataSourceType.Static : DataSourceType.Api;
+
+                switch (SelectedDataSourceType)
+                {
+                    case DataSourceType.Static:
+                        StaticDataSource = (StaticDataSource)propVal;
+                        break;
+                    case DataSourceType.Api:
+                        ApiDataSource = (ApiDataSource)propVal;
+                        break;
+                }
+            }
+        }
+
+        if (SelectedDataSourceType == DataSourceType.Static && StaticDataSource is null)
+            StaticDataSource = new();
+
+        base.OnInitialized();
+    }
+
+    private void DataSourceTypeChanged(DataSourceType type)
+    {
+        SelectedDataSourceType = type;
+        var componentProperties = CurrentComponent.GetType().GetProperties();
+        DataSource dataSource = type == DataSourceType.Static ? new StaticDataSource() : new ApiDataSource();
+
+        foreach (var prop in componentProperties)
+        {
+            if (prop.PropertyType == typeof(DataSource))
+                prop.SetValue(CurrentComponent, dataSource);
+        }
+
+        switch (type)
+        {
+            case DataSourceType.Static:
+                StaticDataSource = (StaticDataSource)dataSource;
+                break;
+            case DataSourceType.Api:
+                ApiDataSource = (ApiDataSource)dataSource;
+                break;
+        }
+
+        StateHasChanged();
+    }
+}
