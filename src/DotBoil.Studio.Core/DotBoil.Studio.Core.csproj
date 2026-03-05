@@ -13,8 +13,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0"/>
-        <PackageReference Include="MudBlazor" Version="8.15.0" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="9.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.3" />
+        <PackageReference Include="MudBlazor" Version="9.0.0" />
         <PackageReference Include="Tizzani.MudBlazor.HtmlEditor" Version="2.3.0" />
     </ItemGroup>
 
@@ -35,8 +36,8 @@
       <Compile Update="Components\Form\TextField.cs">
         <DependentUpon>TextFieldRenderer.razor</DependentUpon>
       </Compile>
-      <Compile Update="Components\Form\AutoCompleteField.cs">
-        <DependentUpon>AutoCompleteFieldRenderer.razor</DependentUpon>
+      <Compile Update="Components\Form\SelectField.cs">
+        <DependentUpon>SelectFieldRenderer.razor</DependentUpon>
       </Compile>
       <Compile Update="Components\Form\CheckBoxField.cs">
         <DependentUpon>CheckBoxFieldRenderer.razor</DependentUpon>

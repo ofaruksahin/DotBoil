@@ -29,10 +29,21 @@
 
 @code {
     public static string DialogTitle => "Add New Field Dialog";
-
-    private List<BaseComponent> AvailableFields => AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(BaseComponent))
+    
+    private List<BaseComponent> BaseComponents = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(BaseComponent))
+        .Where(type => !type.IsAbstract)
         .Select(baseComponent => (BaseComponent)Activator.CreateInstance(baseComponent))
         .ToList();
+    
+    private List<BaseComponent> DataSourceComponents = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(DataSourceComponent))
+        .Where(type => !type.IsAbstract)
+        .Select(baseComponent => (BaseComponent)Activator.CreateInstance(baseComponent))
+        .ToList();
+
+    private List<BaseComponent> AvailableFields =>
+        BaseComponents
+            .Concat(DataSourceComponents)
+            .ToList();
     
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }

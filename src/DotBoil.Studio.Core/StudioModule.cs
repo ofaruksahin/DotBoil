@@ -3,6 +3,7 @@ using DotBoil.Studio.Core.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
+using MudExtensions.Services;
 
 namespace DotBoil.Studio.Core;
 
@@ -13,11 +14,27 @@ internal class StudioModule : Module
     public override int Order { get; } = 2;
     public override Task AddModule()
     {
-        DotBoilApp.Services.AddRazorComponents()
+        DotBoilApp
+            .Services
+            .AddRazorComponents()
             .AddInteractiveServerComponents();
-        DotBoilApp.Services.AddMudServices();
+        
+        DotBoilApp
+            .Services
+            .AddMudServices();
+        
+        DotBoilApp
+            .Services
+            .AddMudExtensions();
 
-        DotBoilApp.Services.AddScoped<JwtAuthService>();
+        DotBoilApp
+            .Services
+            .AddScoped<JwtAuthService>()
+            .AddHttpClient();
+
+        DotBoilApp
+            .Services
+            .AddHttpClient("DotBoilStudioClient");
 
         return Task.CompletedTask;
     }

@@ -1,0 +1,154 @@
+@using System.Text.Json
+@implements IDisposable
+<MudComboBox
+    T="string"
+    SelectedValues="@SelectedValues"
+    SelectedValuesChanged="item => SelectedValuesChanged(item)"
+    ValueChanged="item => SelectedValuesChanged(item)"
+    Variant="Variant.Outlined"
+    Label="@Current.Label"
+    HelperText="@Current.HelperText"
+    Placeholder="@Current.PlaceHolder"
+    MultiSelection="@Current.MultiSelection"
+    SelectAll="@Current.SelectAll"
+    SelectAllText="@Current.SelectAllText"
+    Editable="@Current.AutoCompleteMode"
+    OnOpen="OnOpen"
+    ToStringFunc="@(item => Items.FirstOrDefault(i => i.Value == item)?.Text ?? string.Empty)">
+    @foreach (var item in Items)
+    {
+        <MudComboBoxItem T="string" Value="@item.Value">@item.Text</MudComboBoxItem>
+    }
+</MudComboBox>
+
+@code
+{
+    [Parameter] public SelectField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+    [Inject] private IServiceProvider ServiceProvider { get; set; }
+    [Inject] private JwtAuthService JwtAuthService { get; set; }
+
+    private List<SelectItem> Items = new();
+
+    private IEnumerable<string> SelectedValues;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JwtAuthService.InitializeAsync();
+            await InitializeData();
+
+            if (Context.DesignerMode)
+                Current.DataSourceChangeHandler += DataSourceChanged;
+
+            base.OnAfterRenderAsync(firstRender);
+        }
+    }
+
+    private async Task InitializeData()
+    {
+        Items.Clear();
+
+        if (Context.DesignerMode)
+            SelectedValuesChanged(new List<string>());
+
+        if (Current.DataSource == null)
+            return;
+
+        if (Current.DataSource is StaticDataSource staticDataSource)
+        {
+            var staticDataSourceItems = await staticDataSource.GetItemsAsync(ServiceProvider);
+
+            foreach (var item in staticDataSourceItems.Items)
+            {
+                if (item is SelectItem selectItem)
+                    Items.Add(selectItem);
+            }
+
+            Current.TextField = nameof(SelectItem.Text);
+            Current.ValueField = nameof(SelectItem.Value);
+
+            var defaultItems = Items
+                .Where(i => i.IsSelected)
+                .ToList();
+
+            SelectedValues = defaultItems.Select(di => di.Value).ToList();
+            Current.Value = defaultItems.Select(di => di.Value).ToList();
+        }
+        else if (Current.DataSource is ApiDataSource apiDataSource)
+        {
+            if (string.IsNullOrEmpty(Current.TextField) || string.IsNullOrEmpty(Current.ValueField))
+                return;
+
+            apiDataSource.OverrideApiUrl(Context, JwtAuthService);
+
+            var apiDataSourceItems = await apiDataSource.GetItemsAsync(ServiceProvider);
+
+            foreach (var item in apiDataSourceItems.Items)
+            {
+                if (item is Dictionary<string, JsonElement> dict)
+                {
+                    if (!dict.ContainsKey(Current.TextField))
+                        continue;
+                    
+                    if (!dict.ContainsKey(Current.ValueField))
+                        continue;
+                    
+                    var selectItem = new SelectItem(
+                        dict[Current.TextField].GetRealValue().ToString(),
+                            dict[Current.ValueField].GetRealValue().ToString(),
+                        false);
+
+                    Items.Add(selectItem);
+
+                    var defaultItems = Items
+                        .Where(i => i.IsSelected)
+                        .ToList();
+
+                    SelectedValues = defaultItems.Select(di => di.Value).ToList();
+                    Current.Value = defaultItems.Select(di => di.Value).ToList();
+                }
+                
+                continue;
+            }
+        }
+    }
+
+    private async Task OnOpen()
+    {
+        if (Context.DesignerMode)
+            await Context.OnFieldSelected.InvokeAsync(Current);
+    }
+
+    private async Task DataSourceChanged(object s, EventArgs e)
+    {
+        await InitializeData();
+    }
+
+    private void SelectedValuesChanged(IEnumerable<string?> values)
+    {
+        SelectedValues = values;
+        Current.Value = values.ToList();
+    }
+
+    private void SelectedValuesChanged(string item)
+    {
+        if (Current.MultiSelection)
+            return;
+
+        var items = new List<string>();
+        items.Add(item);
+
+        SelectedValuesChanged(items);
+    }
+
+    public void Dispose()
+    {
+        if (Context.DesignerMode)
+        {
+            if (Current.DataSource != null)
+                Current.DataSourceChangeHandler -= DataSourceChanged;
+        }
+    }
+}

@@ -95,18 +95,32 @@
         if (firstRender && !_checkedToken)
         {
             _checkedToken = true;
-            
+
+            await AuthService.InitializeAsync();
             var isTokenValid = await AuthService.IsTokenValidAsync();
 
             if (!isTokenValid)
             {
+                if (!string.IsNullOrEmpty(AuthService.Token))
+                {
+                    var isRefreshed = await AuthService.GetNewTokenWithRefreshTokenAsync();
+
+                    if (isRefreshed)
+                    {
+                        await AuthService.SetTokenAsync(AuthService.Token);
+                        return;
+                    }
+                    
+                    await AuthService.ClearTokenAsync();
+                }
+                
                 var redirectUri = Uri.EscapeDataString(Nav.Uri);
                 var authServerUrl = string.Format("{0}{1}?redirect_uri={2}{3}",
                     authServerConfiguration.Url,
                     authServerConfiguration.AuthorizeEndpoint, redirectUri,
                     authServerConfiguration.CallbackUrl.TrimStart('/'));
                 
-                // Nav.NavigateTo(authServerUrl, forceLoad: true);
+                Nav.NavigateTo(authServerUrl, forceLoad: true);
             }
             
             StateHasChanged();

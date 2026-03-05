@@ -1,7 +1,7 @@
 <MudContainer>
     <MudGrid>
         <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
-            <MudSelect T="DataSourceType" Label="Source Type"
+            <MudSelect T="DataSourceType" Value="SelectedDataSourceType" Label="Source Type"
                        Variant="Variant.Outlined" ValueChanged="DataSourceTypeChanged">
                 @foreach (var item in DataSourceTypes)
                 {
@@ -14,20 +14,96 @@
         {
             if (StaticDataSource != null)
             {
-                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-1">
                     <MudTextField T="string" Label="Text" HelperText="Text" @bind-Value="@StaticDataSource.Text"
                                   Variant="Variant.Outlined"></MudTextField>
                 </MudItem>
-                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-1">
                     <MudTextField T="string" Label="Value" HelperText="Value" @bind-Value="@StaticDataSource.Value"
                                   Variant="Variant.Outlined"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudCheckBox T="bool" @bind-Value="StaticDataSource.IsSelected" Label="Is Selected"></MudCheckBox>
+                </MudItem>
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudButton Variant="Variant.Outlined" OnClick="AddItem">Add Item</MudButton>
+                </MudItem>
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudTable T="object" Items="StaticDataSource.Items" Hover="true">
+                        <HeaderContent>
+                            <MudTh>Text</MudTh>
+                            <MudTh>Value</MudTh>
+                            <MudTh>Is Selected</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Text">@((context as SelectItem).Text)</MudTd>
+                            <MudTd DataLabel="Value">@((context as SelectItem).Value)</MudTd>
+                            <MudTd DataLabel="Is Selected">
+                                @{
+                                    var isSelected = (context as SelectItem).IsSelected;
+
+                                    if (isSelected)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="() => (context as SelectItem).IsSelected = false"></MudIconButton>
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Block" OnClick="() => (context as SelectItem).IsSelected = true"></MudIconButton>
+                                    }
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveItem(context)"></MudIconButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
                 </MudItem>
             }
         }
         else if (SelectedDataSourceType == DataSourceType.Api)
         {
-            <h1>Api</h1>
+            if (ApiDataSource != null)
+            {
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudSelect
+                        T="string"
+                        Label="Api Data Sources"
+                        bind-Value="ApiDataSource.BaseUrl"
+                        Variant="Variant.Outlined"
+                        ValueChanged="source => ApiBaseUrlChanged(source)">
+                        @foreach (var item in ApiDataSources.Sources)
+                        {
+                            <MudSelectItem Value="@item.BaseUrl">@item.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudTextField T="string" Value="@ApiDataSource.ApiUrl" Label="Api Url" ValueChanged="ApiUrlChanged" Variant="Variant.Outlined"></MudTextField>
+                </MudItem>
+                
+                <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+                    <MudSelect 
+                        T="HttpMethod" 
+                        Label="Http Method" 
+                        bind-Value="ApiDataSource.HttpMethod"
+                        Variant="Variant.Outlined" 
+                        ValueChanged="source => HttpMethodChanged(source)">
+                        <MudSelectItem Value="@HttpMethod.Get">GET</MudSelectItem>
+                        <MudSelectItem Value="@HttpMethod.Post">POST</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            }
         }
+        
+        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
+            <MudButton
+                Variant="Variant.Outlined" 
+                EndIcon="@Icons.Material.Filled.Sync" 
+                ButtonType="ButtonType.Button"
+                OnClick="SyncDataSource">Sync Data Source</MudButton>
+        </MudItem>
 
     </MudGrid>
 </MudContainer>
@@ -36,15 +112,21 @@
 @code {
     [Parameter] public DataSource Current { get; set; }
     [Parameter] public BaseComponent CurrentComponent { get; set; }
-
+    [Inject] IConfiguration Configuration { get; set; }
+    [Inject] IHttpClientFactory HttpClientFactory { get; set; }
+    
     private List<DataSourceType> DataSourceTypes { get; set; } = new();
     private DataSourceType SelectedDataSourceType = DataSourceType.Static;
 
     private StaticDataSource StaticDataSource;
     private ApiDataSource ApiDataSource;
 
+    private ApiDataSourceConfiguration ApiDataSources;
+
     protected override void OnInitialized()
     {
+        ApiDataSources = Configuration.GetConfigurations<ApiDataSourceConfiguration>();
+        
         DataSourceTypes.Clear();
         DataSourceTypes = Enum.GetValues(typeof(DataSourceType))
             .Cast<DataSourceType>()
@@ -54,7 +136,7 @@
 
         foreach (var prop in componentProperties)
         {
-            if (prop.PropertyType.BaseType != null && prop.PropertyType.BaseType == typeof(DataSource))
+            if (prop.PropertyType == typeof(DataSource))
             {
                 var propVal = prop.GetValue(CurrentComponent);
 
@@ -76,16 +158,16 @@
         }
 
         if (SelectedDataSourceType == DataSourceType.Static && StaticDataSource is null)
-            StaticDataSource = new();
+            DataSourceTypeChanged(DataSourceType.Static);
 
         base.OnInitialized();
     }
 
-    private void DataSourceTypeChanged(DataSourceType type)
+    private async Task DataSourceTypeChanged(DataSourceType type)
     {
         SelectedDataSourceType = type;
         var componentProperties = CurrentComponent.GetType().GetProperties();
-        DataSource dataSource = type == DataSourceType.Static ? new StaticDataSource() : new ApiDataSource();
+        DataSource dataSource = type == DataSourceType.Static ? new StaticDataSource() : new ApiDataSource(HttpClientFactory);
 
         foreach (var prop in componentProperties)
         {
@@ -102,7 +184,58 @@
                 ApiDataSource = (ApiDataSource)dataSource;
                 break;
         }
+        
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
 
-        StateHasChanged();
+    private async Task AddItem()
+    {
+        StaticDataSource.Items.Add(new SelectItem(StaticDataSource.Text, StaticDataSource.Value, StaticDataSource.IsSelected));
+
+        StaticDataSource.Text = string.Empty;
+        StaticDataSource.Value = string.Empty;
+        StaticDataSource.IsSelected = false;
+
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
+
+    private async Task RemoveItem(object selectItem)
+    {
+        StaticDataSource.Items.Remove(selectItem);
+        
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
+
+    private async Task ApiBaseUrlChanged(string baseUrl)
+    {
+        ApiDataSource.BaseUrl = baseUrl;
+
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
+
+    private async Task ApiUrlChanged(string apiUrl)
+    {
+        ApiDataSource.ApiUrl = apiUrl;
+
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
+
+    private async Task HttpMethodChanged(HttpMethod httpMethod)
+    {
+        ApiDataSource.HttpMethod = httpMethod;
+
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
+    }
+
+    private async Task SyncDataSource(MouseEventArgs args)
+    {
+        if (CurrentComponent is DataSourceComponent dataSourceComponent)
+            await dataSourceComponent.DataSourceChanged();
     }
 }

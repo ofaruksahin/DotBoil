@@ -1,59 +1,83 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
+using DotBoil.Configuration;
+using DotBoil.Studio.Core.Configurations;
+using DotBoil.Studio.Core.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 
 namespace DotBoil.Studio.Core.Services;
 
-internal class JwtAuthService
+public class JwtAuthService
 {
     private readonly IJSRuntime _js;
-    private string _token;
-    private string _refreshToken;
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
+    
+    public string Token;
+    public string RefreshToken;
 
-    public JwtAuthService(IJSRuntime js)
+    public JwtAuthService(
+        IJSRuntime js,
+        HttpClient httpClient,
+        IConfiguration configuration)
     {
         _js = js;
+        _httpClient = httpClient;
+        _configuration = configuration;
+    }
+
+    public async Task InitializeAsync()
+    {
+        Token = await _js.InvokeAsync<string>("localStorage.getItem", "access_token");
+        RefreshToken = await _js.InvokeAsync<string>("localStorage.getItem", "refresh_token");
     }
 
     public async Task SetTokenAsync(string token)
     {
-        _token = token;
+        Token = token;
         await _js.InvokeVoidAsync("localStorage.setItem", "access_token", token);
     }
 
     public async Task SetRefreshTokenAsync(string refreshToken)
     {
-        _refreshToken = refreshToken;
+        RefreshToken = refreshToken;
         await _js.InvokeVoidAsync("localStorage.setItem", "refresh_token", refreshToken);
     }
 
-    public async Task<string> GetTokenAsync()
+    public async Task<bool> GetNewTokenWithRefreshTokenAsync()
     {
-        if (!string.IsNullOrEmpty(_token))
-            return _token;
-
-        _token = await _js.InvokeAsync<string>("localStorage.getItem", "access_token");
-        return _token;
-    }
-
-    public async Task<string> GetRefreshTokenAsync()
-    {
-        if (!string.IsNullOrEmpty(_refreshToken))
-            return _refreshToken;
+        var authServerConfiguration = _configuration.GetConfigurations<AuthServerConfiguration>();
         
-        _refreshToken = await _js.InvokeAsync<string>("localStorage.getItem", "refresh_token");
-        return _refreshToken;
+        var url = authServerConfiguration.Url.Trim('/');
+        var refreshTokenEndpoint = authServerConfiguration.RefreshTokenEndpoint.Trim('/');
+        var baseUrl = new Uri(string.Format("{0}/{1}?refreshToken={2}", url, refreshTokenEndpoint, RefreshToken));
+        
+        var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
+        var response = await this._httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        var refreshTokenResult = await response.Content.ReadFromJsonAsync<RefreshTokenResult>();
+
+        if (refreshTokenResult == null || !refreshTokenResult.IsSuccess)
+            return false;
+        
+        Token = refreshTokenResult.AccessToken;
+        
+        return true;
     }
 
     public async Task<bool> IsTokenValidAsync()
     {
-        var token = await GetTokenAsync();
-        if (string.IsNullOrEmpty(token))
+        if (string.IsNullOrEmpty(Token))
             return false;
 
         try
         {
-            var payload = token.Split('.')[1];
+            var payload = Token.Split('.')[1];
             var json = Base64UrlDecode(payload);
             using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("exp", out var expElement))
@@ -74,8 +98,8 @@ internal class JwtAuthService
 
     public async Task ClearTokenAsync()
     {
-        _token = null;
-        _refreshToken = null;
+        Token = null;
+        RefreshToken = null;
         await _js.InvokeVoidAsync("localStorage.removeItem", "access_token");
         await _js.InvokeVoidAsync("localStorage.removeItem", "refresh_token");
     }

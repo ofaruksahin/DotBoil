@@ -4,4 +4,9 @@ public class DataSourceResult
 {
     public IEnumerable<object> Items { get; set; }
     public int? TotalCount { get; set; }
+
+    public DataSourceResult()
+    {
+        Items = new List<object>();
+    }
 }
