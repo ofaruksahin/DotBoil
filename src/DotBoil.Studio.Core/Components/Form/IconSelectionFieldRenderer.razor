@@ -28,6 +28,8 @@
 
             if (IconSelected.HasDelegate)
                 await IconSelected.InvokeAsync(Current);
+
+            await Context.OnDepends(Current);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 using MudBlazor;
@@ -23,5 +24,6 @@ public class EmailField : BaseComponent
     };
 
     [FieldOutputProperty]
+    [JsonIgnore]
     public string Value { get; set; }
 }

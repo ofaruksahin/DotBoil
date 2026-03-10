@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 using MudBlazor;
@@ -10,5 +11,7 @@ public class IconSelectionField : BaseComponent
     public override string Title => "Icon Selection";
     public override Type RendererType => typeof(IconSelectionFieldRenderer);
 
-    [FieldOutputProperty] public string Value { get; set; } = Icons.Material.Filled.Search;
+    [FieldOutputProperty] 
+    [JsonIgnore]
+    public string Value { get; set; } = Icons.Material.Filled.Search;
 }

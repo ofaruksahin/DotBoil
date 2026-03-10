@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 using MudBlazor;
@@ -28,5 +29,7 @@ public class CheckBoxField : BaseComponent
         Value = Icons.Material.Filled.CheckBoxOutlineBlank
     };
 
-    [FieldOutputProperty] public bool Value { get; set; }
+    [FieldOutputProperty]
+    [JsonIgnore]
+    public bool Value { get; set; }
 }

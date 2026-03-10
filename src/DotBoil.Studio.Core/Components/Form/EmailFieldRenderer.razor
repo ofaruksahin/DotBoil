@@ -1,13 +1,20 @@
 <MudTextField T="string"
               Label="@Current.Label"
               HelperText="@Current.HelperText"
-              @bind-Value="@Current.Value"
+              bind-Value="Current.Value"
               InputType="InputType.Email"
               Variant="Variant.Outlined"
               Adornment="Adornment.End"
-              AdornmentIcon="@Current.Icon.Value" />
+              AdornmentIcon="@Current.Icon.Value"
+              ValueChanged="email => EmailChanged(email)"/>
 
 @code {
     [Parameter] public EmailField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
+
+    private async Task EmailChanged(string email)
+    {
+        Current.Value = email;
+        await Context.OnDepends(Current);
+    }
 }

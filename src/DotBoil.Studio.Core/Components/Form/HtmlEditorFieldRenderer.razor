@@ -1,9 +1,15 @@
 @using Tizzani.MudBlazor.HtmlEditor
 
-<MudHtmlEditor bind-Html="@Current.Value">
+<MudHtmlEditor bind-Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
 </MudHtmlEditor>
 
 @code{
     [Parameter] public HtmlEditorField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
+
+    private async Task HtmlChanged(string html)
+    {
+        Current.Value = html;
+        await Context.OnDepends(Current);
+    }
 }

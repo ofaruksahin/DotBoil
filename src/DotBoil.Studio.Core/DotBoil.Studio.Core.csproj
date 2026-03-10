@@ -90,6 +90,9 @@
       <Content Update="Components\Form\DataSourceSettingsRenderer.razor">
         <DependentUpon>FormFieldProperties.razor</DependentUpon>
       </Content>
+      <Content Update="Components\Form\DependsOnRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
     </ItemGroup>
 
 </Project>

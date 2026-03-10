@@ -19,4 +19,6 @@ public abstract class BaseComponent
 
     [FieldProperty(Int32.MaxValue, "Depends On", "List of field Ids that affect the visibility or behavior of this field.", typeof(DependsOnRenderer))]
     public List<string> DependsOn { get; set; } = new();
+    
+    public Func<BaseComponent, EventArgs, Task> DependsOnHandler { get; set; }
 }

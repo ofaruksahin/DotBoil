@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 
@@ -20,6 +21,7 @@ public class SelectField : DataSourceComponent
     
     [FieldProperty(4, "Text Field", "Specifies the property name of the data source item to be displayed as text in the select list.")]
     public string TextField { get; set; }
+    
     [FieldProperty(5, "Value Field", "Specifies the property name of the data source item to be used as the selected value.")]
     public string ValueField { get; set; }
 
@@ -36,5 +38,6 @@ public class SelectField : DataSourceComponent
     public bool AutoCompleteMode { get; set; }
 
     [FieldOutputProperty]
+    [JsonIgnore]
     public List<string> Value { get; set; }
 }

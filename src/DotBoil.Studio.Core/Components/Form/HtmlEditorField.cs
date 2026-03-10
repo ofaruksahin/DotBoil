@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Contracts;
 using DotBoil.Studio.Core.Attributes;
 
@@ -10,5 +11,6 @@ public class HtmlEditorField : BaseComponent
     public override Type RendererType => typeof(HtmlEditorFieldRenderer);
 
     [FieldOutputProperty]
+    [JsonIgnore]
     public string Value { get; set; }
 }

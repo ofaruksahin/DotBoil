@@ -126,13 +126,15 @@
         await InitializeData();
     }
 
-    private void SelectedValuesChanged(IEnumerable<string?> values)
+    private async Task SelectedValuesChanged(IEnumerable<string?> values)
     {
         SelectedValues = values;
         Current.Value = values.ToList();
+
+        await Context.OnDepends(Current);
     }
 
-    private void SelectedValuesChanged(string item)
+    private async Task SelectedValuesChanged(string item)
     {
         if (Current.MultiSelection)
             return;
@@ -140,7 +142,7 @@
         var items = new List<string>();
         items.Add(item);
 
-        SelectedValuesChanged(items);
+        await SelectedValuesChanged(items);
     }
 
     public void Dispose()

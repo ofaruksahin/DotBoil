@@ -5,10 +5,18 @@
                  Variant="Variant.Outlined"
                  Min="Current.Min"
                  Max="Current.Max"
-                 Step="Current.Step" />
+                 Step="Current.Step" 
+                 ValueChanged="value => ValueChanged(value)"/>
 
 @code
 {
     [Parameter] public NumericField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
+
+    private async Task ValueChanged(decimal? value)
+    {
+        Current.Value = value;
+
+        await Context.OnDepends(Current);
+    }
 }

@@ -20,5 +20,7 @@
         
         if (ColorPicked.HasDelegate)
             await ColorPicked.InvokeAsync(Current);
+
+        await Context.OnDepends(Current);
     }
 }

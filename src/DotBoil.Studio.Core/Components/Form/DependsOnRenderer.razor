@@ -1,6 +1,28 @@
-<h3>DependsOnRenderer</h3>
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12">
+            <MudTextField 
+                T="string"
+                @bind-Value="Value" 
+                Label="Element Id" 
+                Placeholder="Enter the Element Id" 
+                Adornment="Adornment.End" 
+                AdornmentIcon="@Icons.Material.Filled.Add"
+                OnAdornmentClick="AddDependsOn"
+                Variant="Variant.Outlined"></MudTextField>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
     [Parameter] public List<string> Current { get; set; }
     [Parameter] public BaseComponent CurrentComponent { get; set; }
+    
+    private string Value { get; set; }
+
+    private async Task AddDependsOn()
+    {
+        if (string.IsNullOrEmpty(Value))
+            return;
+    }
 }

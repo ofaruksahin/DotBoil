@@ -50,18 +50,22 @@
     [Parameter] public FileUploadField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
-    private void UploadFileMultiple(IReadOnlyList<IBrowserFile> files)
+    private async Task UploadFileMultiple(IReadOnlyList<IBrowserFile> files)
     {
         Current.Value.Clear();
 
         foreach (var file in files)
             Current.Value.Add(file);
+
+        await SelectedFileChanged();
     }
 
-    private void UploadFileSingle(IBrowserFile file)
+    private async Task UploadFileSingle(IBrowserFile file)
     {
         Current.Value.Clear();
         Current.Value.Add(file);
+
+        await SelectedFileChanged();
     }
 
     private async Task HandleClick()
@@ -71,5 +75,10 @@
         
         if (Context.OnFieldSelected.HasDelegate)
             await Context.OnFieldSelected.InvokeAsync(Current);
+    }
+
+    private async Task SelectedFileChanged()
+    {
+        await Context.OnDepends(Current);
     }
 }
