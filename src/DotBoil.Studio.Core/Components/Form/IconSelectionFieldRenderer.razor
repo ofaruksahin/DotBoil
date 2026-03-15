@@ -1,4 +1,5 @@
 @inject IDialogService DialogService;
+@implements IDisposable;
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenIconDialog" class="mb-3">
     <MudIcon Icon="@Current.Value" Size="Size.Large"></MudIcon>
@@ -8,6 +9,17 @@
     [Parameter] public IconSelectionField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
     [Parameter] public EventCallback<IconSelectionField> IconSelected { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler += OnDepends;
+
+        base.OnAfterRender(firstRender);
+    }
 
     private async Task OpenIconDialog()
     {
@@ -31,5 +43,15 @@
 
             await Context.OnDepends(Current);
         }
+    }
+
+    private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
+    {
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepends;
     }
 }

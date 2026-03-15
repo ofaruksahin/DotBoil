@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using DotBoil.Entities;
 using DotBoil.Studio.Core.Services;
 
@@ -16,16 +17,80 @@ public class ApiDataSource : DataSource
     [JsonIgnore]
     private readonly IHttpClientFactory _httpClientFactory;
     
+    [JsonIgnore]
     private JwtAuthService _jwtAuthService { get; set; }
+
+    [JsonIgnore]
+    private string NormalizedUrl { get; set; }
 
     public ApiDataSource(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
     
-    public void OverrideApiUrl(ComponentContext context, JwtAuthService jwtAuthService)
+    public bool OverrideApiUrl(ComponentContext context, JwtAuthService jwtAuthService)
     {
         _jwtAuthService = jwtAuthService;
+
+        if (string.IsNullOrEmpty(BaseUrl))
+            return false;
+
+        if (string.IsNullOrEmpty(ApiUrl))
+            return false;
+
+        var normalizedUrl = string.Format("{0}/{1}",
+            BaseUrl.Trim('/'),
+            ApiUrl.Trim('/'));
+        
+        NormalizedUrl = normalizedUrl;
+
+        if (!normalizedUrl.Contains("{") || !normalizedUrl.Contains("}"))
+            return true;
+        
+        var matches = Regex.Matches(normalizedUrl, "{(.*?)}");
+        
+        var parameters = matches
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+
+        foreach (var parameter in parameters)
+        {
+            var component = context.Components.FirstOrDefault(c => c.Id == parameter);
+
+            if (component is null)
+                return false;
+
+            var property = component.GetType()
+                .GetProperties()
+                .FirstOrDefault(p => p.GetCustomAttributes(true)
+                    .Any(a => a.GetType().Name == "FieldOutputPropertyAttribute"));
+
+            if (property == null)
+                return false;
+
+            var value = property.GetValue(component);
+
+            string valueString;
+
+            if (value is System.Collections.IEnumerable enumerable && value is not string)
+            {
+                var first = enumerable.Cast<object>().FirstOrDefault();
+                valueString = first?.ToString() ?? string.Empty;
+            }
+            else
+            {
+                valueString = value?.ToString() ?? string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(valueString))
+                return false;
+
+            normalizedUrl = normalizedUrl.Replace($"{{{parameter}}}", valueString);
+        }
+        
+        NormalizedUrl = normalizedUrl;
+
+        return true;
     }
     
     public override async Task<DataSourceResult> GetItemsAsync(IServiceProvider serviceProvider)
@@ -47,10 +112,9 @@ public class ApiDataSource : DataSource
         if (!BaseUrl.EndsWith('/'))
             BaseUrl += '/';
         
-        client.BaseAddress = new Uri(BaseUrl);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtAuthService.Token);
         
-        var request = new HttpRequestMessage(HttpMethod, ApiUrl.TrimStart('/'));
+        var request = new HttpRequestMessage(HttpMethod, NormalizedUrl.Trim('/'));
         var response = await client.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)

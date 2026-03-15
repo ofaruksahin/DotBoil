@@ -10,6 +10,14 @@ public class ComponentContext
 
     public async Task OnDepends(BaseComponent component)
     {
-        
+        var refs = Components.Where(c =>
+            c.DependsOn != null &&
+            c.DependsOn.Contains(component.Id));
+
+        foreach (var item in refs)
+        {
+            if (item.DependsOnHandler != null)
+                item.DependsOnHandler.Invoke(component, EventArgs.Empty);
+        }
     }
 }

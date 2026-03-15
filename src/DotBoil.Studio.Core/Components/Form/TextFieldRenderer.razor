@@ -1,3 +1,4 @@
+@implements IDisposable
 <MudTextField T="string"
               bind-Value="Current.Value"
               Label="@Current.Label"
@@ -10,10 +11,31 @@
     [Parameter] public TextField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler == null)
+            Current.DependsOnHandler += OnDepend;
+        
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task OnDepend(BaseComponent component, EventArgs args)
+    {
+    }
+
     private async Task ValueChanged(string text)
     {
         Current.Value = text;
 
         await Context.OnDepends(Current);
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepend;
     }
 }

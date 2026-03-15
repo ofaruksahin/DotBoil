@@ -1,9 +1,22 @@
+@implements IDisposable
+
 <MudCheckBox T="bool" bind-Value="Current.Value" Label="@Current.Label" CheckedIcon="@Current.CheckedIcon.Value" UncheckedIcon="@Current.UncheckedIcon.Value" ValueChanged="ValueChanged">
 </MudCheckBox>   
 
 @code {
     [Parameter] public CheckBoxField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler == null)
+            Current.DependsOnHandler += OnDepends;
+        
+        base.OnAfterRender(firstRender);
+    }
 
     private async Task ValueChanged(bool val)
     {
@@ -17,4 +30,15 @@
 
         await Context.OnDepends(Current);
     }
+
+    private async Task OnDepends(BaseComponent component, EventArgs args)
+    {
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepends;
+    }
+
 }

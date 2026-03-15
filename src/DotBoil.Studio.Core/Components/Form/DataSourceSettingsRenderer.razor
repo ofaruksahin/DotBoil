@@ -45,16 +45,19 @@
 
                                     if (isSelected)
                                     {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="() => (context as SelectItem).IsSelected = false"></MudIconButton>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                                       OnClick="() => (context as SelectItem).IsSelected = false"></MudIconButton>
                                     }
                                     else
                                     {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Block" OnClick="() => (context as SelectItem).IsSelected = true"></MudIconButton>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Block"
+                                                       OnClick="() => (context as SelectItem).IsSelected = true"></MudIconButton>
                                     }
                                 }
                             </MudTd>
                             <MudTd DataLabel="Actions">
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveItem(context)"></MudIconButton>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               OnClick="() => RemoveItem(context)"></MudIconButton>
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
@@ -69,7 +72,7 @@
                     <MudSelect
                         T="string"
                         Label="Api Data Sources"
-                        bind-Value="ApiDataSource.BaseUrl"
+                        SelectedValues="@SelectedBaseUrl"
                         Variant="Variant.Outlined"
                         ValueChanged="source => ApiBaseUrlChanged(source)">
                         @foreach (var item in ApiDataSources.Sources)
@@ -78,17 +81,18 @@
                         }
                     </MudSelect>
                 </MudItem>
-                
+
                 <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
-                    <MudTextField T="string" Value="@ApiDataSource.ApiUrl" Label="Api Url" ValueChanged="ApiUrlChanged" Variant="Variant.Outlined"></MudTextField>
+                    <MudTextField T="string" Value="@ApiDataSource.ApiUrl" Label="Api Url" ValueChanged="ApiUrlChanged"
+                                  Variant="Variant.Outlined"></MudTextField>
                 </MudItem>
-                
+
                 <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
-                    <MudSelect 
-                        T="HttpMethod" 
-                        Label="Http Method" 
-                        bind-Value="ApiDataSource.HttpMethod"
-                        Variant="Variant.Outlined" 
+                    <MudSelect
+                        T="HttpMethod"
+                        Label="Http Method"
+                        SelectedValues="@SelectedHttpMethod"
+                        Variant="Variant.Outlined"
                         ValueChanged="source => HttpMethodChanged(source)">
                         <MudSelectItem Value="@HttpMethod.Get">GET</MudSelectItem>
                         <MudSelectItem Value="@HttpMethod.Post">POST</MudSelectItem>
@@ -96,13 +100,14 @@
                 </MudItem>
             }
         }
-        
+
         <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12" class="mb-1">
             <MudButton
-                Variant="Variant.Outlined" 
-                EndIcon="@Icons.Material.Filled.Sync" 
+                Variant="Variant.Outlined"
+                EndIcon="@Icons.Material.Filled.Sync"
                 ButtonType="ButtonType.Button"
-                OnClick="SyncDataSource">Sync Data Source</MudButton>
+                OnClick="SyncDataSource">Sync Data Source
+            </MudButton>
         </MudItem>
 
     </MudGrid>
@@ -114,19 +119,22 @@
     [Parameter] public BaseComponent CurrentComponent { get; set; }
     [Inject] IConfiguration Configuration { get; set; }
     [Inject] IHttpClientFactory HttpClientFactory { get; set; }
-    
+
     private List<DataSourceType> DataSourceTypes { get; set; } = new();
     private DataSourceType SelectedDataSourceType = DataSourceType.Static;
+    private List<string> SelectedBaseUrl { get; set; } = new();
+    private List<HttpMethod> SelectedHttpMethod { get; set; } = new();
 
     private StaticDataSource StaticDataSource;
     private ApiDataSource ApiDataSource;
 
     private ApiDataSourceConfiguration ApiDataSources;
 
+
     protected override void OnInitialized()
     {
         ApiDataSources = Configuration.GetConfigurations<ApiDataSourceConfiguration>();
-        
+
         DataSourceTypes.Clear();
         DataSourceTypes = Enum.GetValues(typeof(DataSourceType))
             .Cast<DataSourceType>()
@@ -160,6 +168,18 @@
         if (SelectedDataSourceType == DataSourceType.Static && StaticDataSource is null)
             DataSourceTypeChanged(DataSourceType.Static);
 
+        if (SelectedDataSourceType == DataSourceType.Api)
+        {
+            SelectedBaseUrl.Clear();
+            SelectedHttpMethod.Clear();
+
+            if (!string.IsNullOrEmpty(ApiDataSource.BaseUrl))
+                SelectedBaseUrl.Add(ApiDataSource.BaseUrl);
+
+            if (ApiDataSource.HttpMethod != null)
+                SelectedHttpMethod.Add(ApiDataSource.HttpMethod);
+        }
+
         base.OnInitialized();
     }
 
@@ -184,7 +204,7 @@
                 ApiDataSource = (ApiDataSource)dataSource;
                 break;
         }
-        
+
         if (CurrentComponent is DataSourceComponent dataSourceComponent)
             await dataSourceComponent.DataSourceChanged();
     }
@@ -204,7 +224,7 @@
     private async Task RemoveItem(object selectItem)
     {
         StaticDataSource.Items.Remove(selectItem);
-        
+
         if (CurrentComponent is DataSourceComponent dataSourceComponent)
             await dataSourceComponent.DataSourceChanged();
     }
@@ -212,6 +232,9 @@
     private async Task ApiBaseUrlChanged(string baseUrl)
     {
         ApiDataSource.BaseUrl = baseUrl;
+
+        SelectedBaseUrl.Clear();
+        SelectedBaseUrl.Add(baseUrl);
 
         if (CurrentComponent is DataSourceComponent dataSourceComponent)
             await dataSourceComponent.DataSourceChanged();
@@ -229,6 +252,9 @@
     {
         ApiDataSource.HttpMethod = httpMethod;
 
+        SelectedHttpMethod.Clear();
+        SelectedHttpMethod.Add(httpMethod);
+
         if (CurrentComponent is DataSourceComponent dataSourceComponent)
             await dataSourceComponent.DataSourceChanged();
     }
@@ -238,4 +264,5 @@
         if (CurrentComponent is DataSourceComponent dataSourceComponent)
             await dataSourceComponent.DataSourceChanged();
     }
+
 }

@@ -11,6 +11,23 @@
                 OnAdornmentClick="AddDependsOn"
                 Variant="Variant.Outlined"></MudTextField>
         </MudItem>
+        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12">
+            <MudTable T="string" Items="Current" Hover="true">
+                <RowTemplate>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Actions</MudTh>
+                </RowTemplate>
+                <RowTemplate>
+                    @foreach (var item in Current)
+                    {
+                        <MudTd DataLabel="Name">@item</MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveDependsOn(item)"></MudIconButton>
+                        </MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
@@ -24,5 +41,16 @@
     {
         if (string.IsNullOrEmpty(Value))
             return;
+        
+        Current.Add(Value);
+        CurrentComponent.DependsOn = Current;
+
+        Value = string.Empty;
     }
+
+    private async Task RemoveDependsOn(string item)
+    {
+        Current.RemoveAll(curr => curr == item);
+        CurrentComponent.DependsOn = Current;
+    } 
 }

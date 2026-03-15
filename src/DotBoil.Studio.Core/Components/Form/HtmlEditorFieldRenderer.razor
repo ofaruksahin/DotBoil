@@ -1,4 +1,5 @@
 @using Tizzani.MudBlazor.HtmlEditor
+@implements IDisposable;
 
 <MudHtmlEditor bind-Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
 </MudHtmlEditor>
@@ -7,9 +8,30 @@
     [Parameter] public HtmlEditorField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler == null)
+            Current.DependsOnHandler += OnDepends;
+        
+        base.OnAfterRender(firstRender);
+    }
+
     private async Task HtmlChanged(string html)
     {
         Current.Value = html;
         await Context.OnDepends(Current);
+    }
+
+    private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
+    {
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepends;
     }
 }

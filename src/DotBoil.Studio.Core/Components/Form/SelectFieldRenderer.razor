@@ -42,6 +42,9 @@
             if (Context.DesignerMode)
                 Current.DataSourceChangeHandler += DataSourceChanged;
 
+            if (Current.DependsOnHandler == null)
+                Current.DependsOnHandler += OnDepend;
+
             base.OnAfterRenderAsync(firstRender);
         }
     }
@@ -81,7 +84,14 @@
             if (string.IsNullOrEmpty(Current.TextField) || string.IsNullOrEmpty(Current.ValueField))
                 return;
 
-            apiDataSource.OverrideApiUrl(Context, JwtAuthService);
+            var overrided = apiDataSource.OverrideApiUrl(Context, JwtAuthService);
+
+            if (!overrided)
+            {
+                SelectedValues = new List<string>();
+                Current.Value = new List<string>();
+                return;
+            }
 
             var apiDataSourceItems = await apiDataSource.GetItemsAsync(ServiceProvider);
 
@@ -109,8 +119,6 @@
                     SelectedValues = defaultItems.Select(di => di.Value).ToList();
                     Current.Value = defaultItems.Select(di => di.Value).ToList();
                 }
-                
-                continue;
             }
         }
     }
@@ -145,6 +153,10 @@
         await SelectedValuesChanged(items);
     }
 
+    private async Task OnDepend(BaseComponent component, EventArgs args)
+    {
+    }
+
     public void Dispose()
     {
         if (Context.DesignerMode)
@@ -152,5 +164,8 @@
             if (Current.DataSource != null)
                 Current.DataSourceChangeHandler -= DataSourceChanged;
         }
+
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepend;
     }
 }

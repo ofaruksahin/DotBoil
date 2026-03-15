@@ -1,3 +1,4 @@
+@implements IDisposable
 <MudNumericField T="decimal?"
                  Value="Current.Value"
                  Label="@Current.Label"
@@ -13,10 +14,31 @@
     [Parameter] public NumericField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler == null)
+            Current.DependsOnHandler += OnDepend;
+        
+        base.OnAfterRender(firstRender);
+    }
+
     private async Task ValueChanged(decimal? value)
     {
         Current.Value = value;
 
         await Context.OnDepends(Current);
+    }
+
+    private async Task OnDepend(BaseComponent baseComponent, EventArgs args)
+    {
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepend;
     }
 }
