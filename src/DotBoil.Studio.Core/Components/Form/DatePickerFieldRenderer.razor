@@ -1,5 +1,159 @@
-<h3>DatePickerFieldRenderer</h3>
+@implements IDisposable
+
+@if (Current.IsVisible)
+{
+    @if (Current.Format == DatePickerFormatType.Date)
+    {
+        <MudDatePicker Date="SelectedDate"
+                       DateChanged="OnDateChanged"
+                       Label="@Current.Label"
+                       HelperText="@Current.HelperText"
+                       Variant="Variant.Outlined"
+                       DateFormat="@GetDateFormat()"
+                       MinDate="@Current.Minimum"
+                       MaxDate="@Current.Maximum"
+                       Disabled="@(!Current.IsEnabled)" />
+    }
+    else if (Current.Format == DatePickerFormatType.Time)
+    {
+        <MudTimePicker Time="SelectedTime"
+                       TimeChanged="OnTimeChanged"
+                       Label="@Current.Label"
+                       Variant="Variant.Outlined"
+                       AmPm="@UseAmPm()"
+                       Disabled="@(!Current.IsEnabled)" />
+    }
+    else
+    {
+        <MudDatePicker Date="SelectedDate"
+                       DateChanged="OnDateTimeDateChanged"
+                       Label="@Current.Label"
+                       HelperText="@Current.HelperText"
+                       Variant="Variant.Outlined"
+                       DateFormat="@GetDateFormat()"
+                       MinDate="@Current.Minimum"
+                       MaxDate="@Current.Maximum"
+                       Disabled="@(!Current.IsEnabled)" />
+
+        <MudTimePicker Time="SelectedTime"
+                       TimeChanged="OnDateTimeTimeChanged"
+                       Label="Time"
+                       Variant="Variant.Outlined"
+                       AmPm="@UseAmPm()"
+                       Disabled="@(!Current.IsEnabled)" />
+    }
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code {
-    
+    [Parameter] public DatePickerField Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+
+    private DateTime? SelectedDate { get; set; }
+    private TimeSpan? SelectedTime { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        SelectedDate = Current.Value;
+        SelectedTime = Current.Value?.TimeOfDay;
+        base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (Current.DependsOnHandler == null)
+            Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
+
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task OnDateChanged(DateTime? value)
+    {
+        Current.Value = value;
+        await Context.OnDepends(Current);
+    }
+
+    private async Task OnTimeChanged(TimeSpan? value)
+    {
+        SelectedTime = value;
+        if (value is null)
+        {
+            Current.Value = null;
+            await Context.OnDepends(Current);
+            return;
+        }
+
+        var baseDate = DateTime.Today;
+        Current.Value = baseDate.Add(value.Value);
+        await Context.OnDepends(Current);
+    }
+
+    private async Task OnDateTimeDateChanged(DateTime? value)
+    {
+        SelectedDate = value;
+
+        if (value is null)
+        {
+            Current.Value = null;
+            await Context.OnDepends(Current);
+            return;
+        }
+
+        var time = SelectedTime ?? TimeSpan.Zero;
+        Current.Value = value.Value.Date.Add(time);
+        await Context.OnDepends(Current);
+    }
+
+    private async Task OnDateTimeTimeChanged(TimeSpan? value)
+    {
+        SelectedTime = value;
+
+        if (SelectedDate is null || value is null)
+        {
+            Current.Value = null;
+            await Context.OnDepends(Current);
+            return;
+        }
+
+        Current.Value = SelectedDate.Value.Date.Add(value.Value);
+        await Context.OnDepends(Current);
+    }
+
+    private async Task OnDepends(BaseComponent component, EventArgs args)
+    {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetDateFormat()
+    {
+        if (!string.IsNullOrWhiteSpace(Current.FormatString))
+            return Current.FormatString;
+
+        return Current.Format == DatePickerFormatType.Date ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm";
+    }
+
+    private bool UseAmPm()
+    {
+        return Current.HourFormat == DatePickerHourFormatType.Hour12;
+    }
+
+    public void Dispose()
+    {
+        if (Current.DependsOnHandler != null)
+            Current.DependsOnHandler -= OnDepends;
+    }
 }

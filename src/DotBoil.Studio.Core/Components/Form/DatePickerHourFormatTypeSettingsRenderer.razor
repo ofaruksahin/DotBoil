@@ -1,0 +1,51 @@
+<MudContainer>
+    <MudGrid>
+        @if (CurrentComponent is DatePickerField field &&
+             (field.Format == DatePickerFormatType.Time || field.Format == DatePickerFormatType.DateTime))
+        {
+            <MudItem xs="12">
+                <MudSelect T="DatePickerHourFormatType"
+                           Label="Hour Format"
+                           Variant="Variant.Outlined"
+                           Value="Current"
+                           ValueChanged="OnHourFormatChanged">
+                    @foreach (var item in HourFormats)
+                    {
+                        <MudSelectItem Value="item">@GetLabel(item)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.caption">Saat formatı yalnızca Saat veya Tarih ve Saat seçiminde kullanılabilir.</MudText>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public DatePickerHourFormatType Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private List<DatePickerHourFormatType> HourFormats { get; } = Enum.GetValues<DatePickerHourFormatType>().ToList();
+
+    private void OnHourFormatChanged(DatePickerHourFormatType value)
+    {
+        Current = value;
+
+        if (CurrentComponent is DatePickerField datePickerField)
+            datePickerField.HourFormat = value;
+    }
+
+    private string GetLabel(DatePickerHourFormatType value)
+    {
+        return value switch
+        {
+            DatePickerHourFormatType.Hour24 => "24H",
+            DatePickerHourFormatType.Hour12 => "12H",
+            _ => value.ToString()
+        };
+    }
+}

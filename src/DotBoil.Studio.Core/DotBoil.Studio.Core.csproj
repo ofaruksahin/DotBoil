@@ -96,6 +96,12 @@
       <Content Update="Components\Form\RuleSettingsRenderer.razor">
         <DependentUpon>FormFieldProperties.razor</DependentUpon>
       </Content>
+      <Content Update="Components\Form\DatePickerFormatTypeSettingsRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
+      <Content Update="Components\Form\DatePickerHourFormatTypeSettingsRenderer.razor">
+        <DependentUpon>FormFieldProperties.razor</DependentUpon>
+      </Content>
     </ItemGroup>
 
 </Project>

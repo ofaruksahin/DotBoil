@@ -1,0 +1,42 @@
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12">
+            <MudSelect T="DatePickerFormatType"
+                       Label="Format"
+                       Variant="Variant.Outlined"
+                       Value="Current"
+                       ValueChanged="OnFormatChanged">
+                @foreach (var item in FormatTypes)
+                {
+                    <MudSelectItem Value="item">@GetLabel(item)</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public DatePickerFormatType Current { get; set; }
+    [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private List<DatePickerFormatType> FormatTypes { get; } = Enum.GetValues<DatePickerFormatType>().ToList();
+
+    private void OnFormatChanged(DatePickerFormatType value)
+    {
+        Current = value;
+
+        if (CurrentComponent is DatePickerField datePickerField)
+            datePickerField.Format = value;
+    }
+
+    private string GetLabel(DatePickerFormatType value)
+    {
+        return value switch
+        {
+            DatePickerFormatType.Date => "Tarih",
+            DatePickerFormatType.Time => "Saat",
+            DatePickerFormatType.DateTime => "Tarih ve Saat",
+            _ => value.ToString()
+        };
+    }
+}
