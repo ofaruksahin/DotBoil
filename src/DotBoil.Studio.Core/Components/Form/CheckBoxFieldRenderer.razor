@@ -1,7 +1,21 @@
 @implements IDisposable
 
-<MudCheckBox T="bool" bind-Value="Current.Value" Label="@Current.Label" CheckedIcon="@Current.CheckedIcon.Value" UncheckedIcon="@Current.UncheckedIcon.Value" ValueChanged="ValueChanged">
-</MudCheckBox>   
+@if (Current.IsVisible)
+{
+    <MudCheckBox T="bool"
+                 bind-Value="Current.Value"
+                 Label="@Current.Label"
+                 CheckedIcon="@Current.CheckedIcon.Value"
+                 UncheckedIcon="@Current.UncheckedIcon.Value"
+                 Disabled="@(!Current.IsEnabled)"
+                 ValueChanged="ValueChanged">
+    </MudCheckBox>
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code {
     [Parameter] public CheckBoxField Current { get; set; }
@@ -14,6 +28,9 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
@@ -33,6 +50,11 @@
 
     private async Task OnDepends(BaseComponent component, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

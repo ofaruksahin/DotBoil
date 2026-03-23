@@ -1,8 +1,25 @@
 @using Tizzani.MudBlazor.HtmlEditor
 @implements IDisposable;
 
-<MudHtmlEditor bind-Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
-</MudHtmlEditor>
+@if (Current.IsVisible)
+{
+    if (Current.IsEnabled)
+    {
+        <MudHtmlEditor bind-Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
+        </MudHtmlEditor>
+    }
+    else
+    {
+        <MudPaper Class="pa-3">
+            @Current.Value
+        </MudPaper>
+    }
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code{
     [Parameter] public HtmlEditorField Current { get; set; }
@@ -15,6 +32,9 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
@@ -23,10 +43,16 @@
     {
         Current.Value = html;
         await Context.OnDepends(Current);
+        await OnDepends(Current, EventArgs.Empty);
     }
 
     private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

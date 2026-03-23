@@ -95,6 +95,9 @@
                                 { "Current", currentValue }
                             };
 
+                            if (attr.Value.RendererType == typeof(RuleSettingsRenderer))
+                                parameters.Add("CurrentPropertyName", attr.Key);
+
                             <DynamicComponent Type="attr.Value.RendererType" Parameters="parameters"></DynamicComponent>
                         }
                     </ChildContent>

@@ -1,13 +1,22 @@
 @implements IDisposable;
-<MudTextField T="string"
-              Label="@Current.Label"
-              HelperText="@Current.HelperText"
-              bind-Value="Current.Value"
-              InputType="InputType.Email"
-              Variant="Variant.Outlined"
-              Adornment="Adornment.End"
-              AdornmentIcon="@Current.Icon.Value"
-              ValueChanged="email => EmailChanged(email)"/>
+@if (Current.IsVisible)
+{
+    <MudTextField T="string"
+                  Label="@Current.Label"
+                  HelperText="@Current.HelperText"
+                  bind-Value="Current.Value"
+                  InputType="InputType.Email"
+                  Variant="Variant.Outlined"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Current.Icon.Value"
+                  Disabled="@(!Current.IsEnabled)"
+                  ValueChanged="email => EmailChanged(email)"/>
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code {
     [Parameter] public EmailField Current { get; set; }
@@ -20,6 +29,9 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
@@ -28,10 +40,16 @@
     {
         Current.Value = email;
         await Context.OnDepends(Current);
+        await OnDepends(Current, EventArgs.Empty);
     }
 
     private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

@@ -34,10 +34,12 @@
             await ColorPicked.InvokeAsync(Current);
 
         await Context.OnDepends(Current);
+        await OnDepends(Current, EventArgs.Empty);
     }
 
     private async Task OnDepends(BaseComponent component, EventArgs args)
     {
+        ComponentRuleEvaluator.Apply(Current, Context);
     }
 
     public void Dispose()

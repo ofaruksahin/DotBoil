@@ -1,9 +1,17 @@
 @inject IDialogService DialogService;
 @implements IDisposable;
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenIconDialog" class="mb-3">
-    <MudIcon Icon="@Current.Value" Size="Size.Large"></MudIcon>
-</MudButton>
+@if (Current.IsVisible)
+{
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenIconDialog" Disabled="@(!Current.IsEnabled)" class="mb-3">
+        <MudIcon Icon="@Current.Value" Size="Size.Large"></MudIcon>
+    </MudButton>
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code {
     [Parameter] public IconSelectionField Current { get; set; }
@@ -15,14 +23,20 @@
         if (!firstRender)
             return;
 
-        if (Current.DependsOnHandler != null)
+        if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
 
         base.OnAfterRender(firstRender);
     }
 
     private async Task OpenIconDialog()
     {
+        if (!Current.IsEnabled)
+            return;
+
         var options = new DialogOptions
         {
             MaxWidth = MaxWidth.ExtraExtraLarge,
@@ -47,6 +61,12 @@
 
     private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
+        await OnDepends(Current, EventArgs.Empty);
     }
 
     public void Dispose()

@@ -6,6 +6,7 @@ public class ComponentContext
 {
     public bool DesignerMode { get; set; }
     public List<BaseComponent> Components { get; set; }
+    public List<string> UserRoles { get; set; } = new();
     public EventCallback<BaseComponent> OnFieldSelected { get; set; }
 
     public async Task OnDepends(BaseComponent component)

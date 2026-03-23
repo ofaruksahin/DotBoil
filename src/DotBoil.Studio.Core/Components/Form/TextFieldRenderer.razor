@@ -1,10 +1,19 @@
 @implements IDisposable
-<MudTextField T="string"
-              bind-Value="Current.Value"
-              Label="@Current.Label"
-              HelperText="@Current.HelperText"
-              Variant="Variant.Outlined"
-              ValueChanged="text => ValueChanged(text)"></MudTextField>
+@if (Current.IsVisible)
+{
+    <MudTextField T="string"
+                  bind-Value="Current.Value"
+                  Label="@Current.Label"
+                  HelperText="@Current.HelperText"
+                  Variant="Variant.Outlined"
+                  Disabled="@(!Current.IsEnabled)"
+                  ValueChanged="text => ValueChanged(text)"></MudTextField>
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code
 {
@@ -18,12 +27,20 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepend;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
 
     private async Task OnDepend(BaseComponent component, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ValueChanged(string text)
@@ -31,6 +48,7 @@
         Current.Value = text;
 
         await Context.OnDepends(Current);
+        await OnDepend(Current, EventArgs.Empty);
     }
 
     public void Dispose()

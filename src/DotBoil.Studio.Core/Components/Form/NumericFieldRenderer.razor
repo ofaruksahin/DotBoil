@@ -1,13 +1,22 @@
 @implements IDisposable
-<MudNumericField T="decimal?"
-                 Value="Current.Value"
-                 Label="@Current.Label"
-                 HelperText="@Current.HelperText"
-                 Variant="Variant.Outlined"
-                 Min="Current.Min"
-                 Max="Current.Max"
-                 Step="Current.Step" 
-                 ValueChanged="value => ValueChanged(value)"/>
+@if (Current.IsVisible)
+{
+    <MudNumericField T="decimal?"
+                     Value="Current.Value"
+                     Label="@Current.Label"
+                     HelperText="@Current.HelperText"
+                     Variant="Variant.Outlined"
+                     Min="Current.Min"
+                     Max="Current.Max"
+                     Step="Current.Step"
+                     Disabled="@(!Current.IsEnabled)"
+                     ValueChanged="value => ValueChanged(value)"/>
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
 
 @code
 {
@@ -21,6 +30,9 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepend;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
@@ -30,10 +42,16 @@
         Current.Value = value;
 
         await Context.OnDepends(Current);
+        await OnDepend(Current, EventArgs.Empty);
     }
 
     private async Task OnDepend(BaseComponent baseComponent, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

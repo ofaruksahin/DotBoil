@@ -1,25 +1,34 @@
 @using System.Text.Json
 @implements IDisposable
-<MudComboBox
-    T="string"
-    SelectedValues="@SelectedValues"
-    SelectedValuesChanged="item => SelectedValuesChanged(item)"
-    ValueChanged="item => SelectedValuesChanged(item)"
-    Variant="Variant.Outlined"
-    Label="@Current.Label"
-    HelperText="@Current.HelperText"
-    Placeholder="@Current.PlaceHolder"
-    MultiSelection="@Current.MultiSelection"
-    SelectAll="@Current.SelectAll"
-    SelectAllText="@Current.SelectAllText"
-    Editable="@Current.AutoCompleteMode"
-    OnOpen="OnOpen"
-    ToStringFunc="@(item => Items.FirstOrDefault(i => i.Value == item)?.Text ?? string.Empty)">
-    @foreach (var item in Items)
+@if (Current.IsVisible)
+{
+    <MudComboBox
+        T="string"
+        SelectedValues="@SelectedValues"
+        SelectedValuesChanged="item => SelectedValuesChanged(item)"
+        ValueChanged="item => SelectedValuesChanged(item)"
+        Variant="Variant.Outlined"
+        Label="@Current.Label"
+        HelperText="@Current.HelperText"
+        Placeholder="@Current.PlaceHolder"
+        MultiSelection="@Current.MultiSelection"
+        SelectAll="@Current.SelectAll"
+        SelectAllText="@Current.SelectAllText"
+        Editable="@Current.AutoCompleteMode"
+        Disabled="@(!Current.IsEnabled)"
+        OnOpen="OnOpen"
+        ToStringFunc="@(item => Items.FirstOrDefault(i => i.Value == item)?.Text ?? string.Empty)">
+        @foreach (var item in Items)
+        {
+            <MudComboBoxItem T="string" Value="@item.Value">@item.Text</MudComboBoxItem>
+        }
+    </MudComboBox>
+
+    if (Current.HasValidationError)
     {
-        <MudComboBoxItem T="string" Value="@item.Value">@item.Text</MudComboBoxItem>
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
     }
-</MudComboBox>
+}
 
 @code
 {
@@ -44,6 +53,9 @@
 
             if (Current.DependsOnHandler == null)
                 Current.DependsOnHandler += OnDepend;
+
+            if (!Context.DesignerMode)
+                ComponentRuleEvaluator.Apply(Current, Context);
 
             base.OnAfterRenderAsync(firstRender);
         }
@@ -140,6 +152,7 @@
         Current.Value = values.ToList();
 
         await Context.OnDepends(Current);
+        await OnDepend(Current, EventArgs.Empty);
     }
 
     private async Task SelectedValuesChanged(string item)
@@ -155,6 +168,11 @@
 
     private async Task OnDepend(BaseComponent component, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

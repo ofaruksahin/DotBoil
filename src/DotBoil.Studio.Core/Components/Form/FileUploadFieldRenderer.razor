@@ -1,11 +1,12 @@
 @implements IDisposable;
-@if (Current != null)
+@if (Current != null && Current.IsVisible)
 {
     if (Context.DesignerMode)
     {
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Current.UploadIcon.Value"
+                   Disabled="@(!Current.IsEnabled)"
                    OnClick="HandleClick">
             @Current.Text
         </MudButton>
@@ -22,7 +23,8 @@
                 <ActivatorContent>
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
-                               StartIcon="@Current.UploadIcon.Value">
+                               StartIcon="@Current.UploadIcon.Value"
+                               Disabled="@(!Current.IsEnabled)">
                         @Current.Text
                     </MudButton>
                 </ActivatorContent>
@@ -38,12 +40,18 @@
                 <ActivatorContent>
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
-                               StartIcon="@Current.UploadIcon.Value">
+                               StartIcon="@Current.UploadIcon.Value"
+                               Disabled="@(!Current.IsEnabled)">
                         @Current.Text
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
         }   
+    }
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
     }
 }
 
@@ -58,12 +66,18 @@
 
         if (Current.DependsOnHandler == null)
             Current.DependsOnHandler += OnDepends;
+
+        if (!Context.DesignerMode)
+            ComponentRuleEvaluator.Apply(Current, Context);
         
         base.OnAfterRender(firstRender);
     }
 
     private async Task UploadFileMultiple(IReadOnlyList<IBrowserFile> files)
     {
+        if (!Current.IsEnabled)
+            return;
+
         Current.Value.Clear();
 
         foreach (var file in files)
@@ -74,6 +88,9 @@
 
     private async Task UploadFileSingle(IBrowserFile file)
     {
+        if (!Current.IsEnabled)
+            return;
+
         Current.Value.Clear();
         Current.Value.Add(file);
 
@@ -92,10 +109,16 @@
     private async Task SelectedFileChanged()
     {
         await Context.OnDepends(Current);
+        await OnDepends(Current, EventArgs.Empty);
     }
 
     private async Task OnDepends(BaseComponent baseComponent, EventArgs args)
     {
+        if (Context.DesignerMode)
+            return;
+
+        ComponentRuleEvaluator.Apply(Current, Context);
+        await InvokeAsync(StateHasChanged);
     }
     
     public void Dispose()

@@ -1,0 +1,178 @@
+@using DotBoil.Studio.Core.Contracts.Rules
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddRule">
+                Add Rule
+            </MudButton>
+        </MudItem>
+
+        @foreach (var rule in Current)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-4">
+                    <MudStack Spacing="2">
+                        <MudTextField T="string"
+                                      Label="Rule Name"
+                                      Variant="Variant.Outlined"
+                                      Value="rule.Name"
+                                      ValueChanged="value => rule.Name = value ?? string.Empty" />
+
+                        <MudSelect T="RuleGroupOperator"
+                                   Label="Condition Group"
+                                   Variant="Variant.Outlined"
+                                   Value="rule.GroupOperator"
+                                   ValueChanged="group => rule.GroupOperator = group">
+                            @foreach (var group in GroupOperators)
+                            {
+                                <MudSelectItem Value="group">@group</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        @if (IsValidationRuleSet)
+                        {
+                            <MudTextField T="string"
+                                          Label="Validation Message"
+                                          Variant="Variant.Outlined"
+                                          Value="rule.ValidationMessage"
+                                          ValueChanged="value => rule.ValidationMessage = value ?? string.Empty" />
+                        }
+
+                        <MudDivider />
+                        <MudText Typo="Typo.subtitle2">Conditions</MudText>
+
+                        @foreach (var condition in rule.Conditions)
+                        {
+                            <MudPaper Class="pa-3">
+                                <MudGrid>
+                                    <MudItem xs="12" md="12">
+                                        <MudSelect T="RuleConditionType"
+                                                   Label="Type"
+                                                   Variant="Variant.Outlined"
+                                                   Value="condition.Type"
+                                                   ValueChanged="type => condition.Type = type">
+                                            @foreach (var conditionType in ConditionTypes)
+                                            {
+                                                <MudSelectItem Value="conditionType">@conditionType</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+
+                                    @if (condition.Type == RuleConditionType.ComponentValue ||
+                                         condition.Type == RuleConditionType.ComponentHasValue ||
+                                         condition.Type == RuleConditionType.ComponentIsEmpty)
+                                    {
+                                        <MudItem xs="12" md="12">
+                                            <MudTextField T="string"
+                                                          Label="Component Id"
+                                                          Variant="Variant.Outlined"
+                                                          Value="condition.ComponentId"
+                                                          ValueChanged="value => condition.ComponentId = value ?? string.Empty" />
+                                        </MudItem>
+                                    }
+
+                                    @if (condition.Type == RuleConditionType.ComponentValue)
+                                    {
+                                        <MudItem xs="12" md="12">
+                                            <MudSelect T="RuleComparisonOperator"
+                                                       Label="Operator"
+                                                       Variant="Variant.Outlined"
+                                                       Value="condition.Operator"
+                                                       ValueChanged="op => condition.Operator = op">
+                                                @foreach (var op in ComparisonOperators)
+                                                {
+                                                    <MudSelectItem Value="op">@op</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="12">
+                                            <MudTextField T="string"
+                                                          Label="Value"
+                                                          Variant="Variant.Outlined"
+                                                          Value="condition.Value"
+                                                          ValueChanged="value => condition.Value = value ?? string.Empty" />
+                                        </MudItem>
+                                    }
+
+                                    @if (condition.Type == RuleConditionType.UserRole)
+                                    {
+                                        <MudItem xs="12" md="12">
+                                            <MudTextField T="string"
+                                                          Label="Role"
+                                                          Variant="Variant.Outlined"
+                                                          Value="condition.Value"
+                                                          ValueChanged="value => condition.Value = value ?? string.Empty" />
+                                        </MudItem>
+                                    }
+
+                                    <MudItem xs="12">
+                                        <MudButton Variant="Variant.Text"
+                                                   Color="Color.Error"
+                                                   StartIcon="@Icons.Material.Filled.Delete"
+                                                   OnClick="() => RemoveCondition(rule, condition)">
+                                            Remove Condition
+                                        </MudButton>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+                        }
+
+                        <MudStack Row="true" Spacing="2">
+                            <MudButton Variant="Variant.Text"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       OnClick="() => AddCondition(rule)">
+                                Add Condition
+                            </MudButton>
+
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Delete"
+                                       OnClick="() => RemoveRule(rule)">
+                                Remove Rule
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public List<ComponentRule> Current { get; set; } = new();
+    [Parameter] public BaseComponent? CurrentComponent { get; set; }
+    [Parameter] public string CurrentPropertyName { get; set; } = string.Empty;
+
+    private List<RuleConditionType> ConditionTypes { get; } = Enum.GetValues<RuleConditionType>().ToList();
+    private List<RuleComparisonOperator> ComparisonOperators { get; } = Enum.GetValues<RuleComparisonOperator>().ToList();
+    private List<RuleGroupOperator> GroupOperators { get; } = Enum.GetValues<RuleGroupOperator>().ToList();
+    private bool IsValidationRuleSet => CurrentPropertyName == nameof(BaseComponent.ValidationRules);
+
+    private void AddRule()
+    {
+        Current.Add(new ComponentRule
+        {
+            Name = $"Rule {Current.Count + 1}",
+            Conditions = new List<RuleCondition>
+            {
+                new()
+            }
+        });
+    }
+
+    private void RemoveRule(ComponentRule rule)
+    {
+        Current.Remove(rule);
+    }
+
+    private void AddCondition(ComponentRule rule)
+    {
+        rule.Conditions.Add(new RuleCondition());
+    }
+
+    private void RemoveCondition(ComponentRule rule, RuleCondition condition)
+    {
+        rule.Conditions.Remove(condition);
+    }
+}
