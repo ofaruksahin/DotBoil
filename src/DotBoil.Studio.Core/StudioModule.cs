@@ -2,6 +2,7 @@ using DotBoil.Dependency;
 using DotBoil.Studio.Core.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
 

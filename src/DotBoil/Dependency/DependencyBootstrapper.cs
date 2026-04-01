@@ -13,7 +13,7 @@ namespace DotBoil.Dependency
             var sortedModules = SortModules(modules);
 
             foreach (var module in sortedModules)
-                module.AddModule();
+                await module.AddModule();
 
             return sortedModules;
         }
@@ -24,7 +24,7 @@ namespace DotBoil.Dependency
             var sortedModules = SortModules(modules);
             
             foreach (var module in sortedModules)
-                module.UseModule();
+                await module.UseModule();
         }
 
         private static List<Module> DiscoverModules()

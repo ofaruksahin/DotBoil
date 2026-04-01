@@ -9,6 +9,5 @@ public interface IUserService
     Task<ForgotPasswordResult> SendForgotPasswordCode(Dictionary<string, string> parameters);
     Task<ForgotPasswordResult> ForgotPassword(Dictionary<string, string> parameters);
     Task<ResendOtpResult> ResendOtp(Dictionary<string, string> parameters);
-    Task<RefreshTokenResult> RefreshToken(string refreshToken);
     Task<GetUserInfoResponse> GetUserInfo();
 }

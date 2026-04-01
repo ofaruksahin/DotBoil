@@ -44,22 +44,9 @@ public class UserEntityTypeConfiguration : EFCoreEntityTypeConfiguration<User>
 
         builder
             .HasMany(p => p.Roles)
-            .WithMany(p => p.Users)
-            .UsingEntity<Dictionary<string, object>>("UserRoles",
-                j =>
-                    j.HasOne<Role>()
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                    j.HasOne<User>()
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                {
-                    j.ToTable("UserRoles");
-                });
+            .WithOne(p => p.User)
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder
             .HasMany<OtpCode>(p => p.OtpCodes)

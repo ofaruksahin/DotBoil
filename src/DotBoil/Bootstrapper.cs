@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace DotBoil
 {
@@ -18,7 +17,7 @@ namespace DotBoil
             DotBoilApp.Services = builder.Services;
 
             builder.Services.AddHttpContextAccessor();
-
+            
             await ConfigurationBootstrapper.AddDotBoilConfigurations();
             await DependencyBootstrapper.AddDotBoilDependencies();
 
@@ -31,6 +30,8 @@ namespace DotBoil
             DotBoilApp.Logging = builder.Logging;
             DotBoilApp.Services = builder.Services;
 
+            builder.Services.AddHttpContextAccessor();
+            
             await ConfigurationBootstrapper.AddDotBoilConfigurations();
             await DependencyBootstrapper.AddDotBoilDependencies();
 

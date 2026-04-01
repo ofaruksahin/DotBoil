@@ -19,8 +19,7 @@
         if (!firstRender)
             return;
 
-        if (Current.DependsOnHandler == null)
-            Current.DependsOnHandler += OnDepends;
+        ComponentRuleRenderHelper.Initialize(Current, Context, OnDepends);
         
         base.OnAfterRender(firstRender);
     }
@@ -39,12 +38,11 @@
 
     private async Task OnDepends(BaseComponent component, EventArgs args)
     {
-        ComponentRuleEvaluator.Apply(Current, Context);
+        ComponentRuleRenderHelper.ApplyOnDepends(Current, Context);
     }
 
     public void Dispose()
     {
-        if (Current.DependsOnHandler != null)
-            Current.DependsOnHandler -= OnDepends;
+        ComponentRuleRenderHelper.Dispose(Current, Context, OnDepends);
     }
 }

@@ -62,7 +62,7 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
-                    Icon = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
+                    Icon = table.Column<string>(type: "longtext", nullable: true),
                     Path = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
                     ParentMenuId = table.Column<int>(type: "int", nullable: true),
                     CreateUser = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false),
@@ -135,14 +135,35 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         name: "FK_AppModuleEndpoints_ApiEndpoints_ApiEndpointId",
                         column: x => x.ApiEndpointId,
                         principalTable: "ApiEndpoints",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_AppModuleEndpoints_AppModules_AppModuleId",
                         column: x => x.AppModuleId,
                         principalTable: "AppModules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "RoleApiEndpoints",
+                columns: table => new
+                {
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    ApiEndpointId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoleApiEndpoints", x => new { x.RoleId, x.ApiEndpointId });
+                    table.ForeignKey(
+                        name: "FK_RoleApiEndpoints_ApiEndpoints_ApiEndpointId",
+                        column: x => x.ApiEndpointId,
+                        principalTable: "ApiEndpoints",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_RoleApiEndpoints_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -150,24 +171,22 @@ namespace DotBoil.AuthGuard.Application.Migrations
                 name: "RoleAppModules",
                 columns: table => new
                 {
-                    AppModuleId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    AppModuleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleAppModules", x => new { x.AppModuleId, x.RoleId });
+                    table.PrimaryKey("PK_RoleAppModules", x => new { x.RoleId, x.AppModuleId });
                     table.ForeignKey(
                         name: "FK_RoleAppModules_AppModules_AppModuleId",
                         column: x => x.AppModuleId,
                         principalTable: "AppModules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_RoleAppModules_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -175,24 +194,58 @@ namespace DotBoil.AuthGuard.Application.Migrations
                 name: "RoleMenus",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    RoleId = table.Column<int>(type: "int", nullable: false),
                     MenuId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
+                    CreateUser = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false),
+                    ModifyUser = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true),
+                    CreateTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdateTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleMenus", x => new { x.MenuId, x.RoleId });
+                    table.PrimaryKey("PK_RoleMenus", x => x.Id);
                     table.ForeignKey(
                         name: "FK_RoleMenus_Menus_MenuId",
                         column: x => x.MenuId,
                         principalTable: "Menus",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_RoleMenus_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "OtpCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Code = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsUsed = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsExpired = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreateUser = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false),
+                    ModifyUser = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true),
+                    CreateTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdateTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OtpCodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OtpCodes_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -210,14 +263,12 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         name: "FK_UserRoles_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_UserRoles_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -227,9 +278,24 @@ namespace DotBoil.AuthGuard.Application.Migrations
                 column: "AppModuleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoleAppModules_RoleId",
+                name: "IX_OtpCodes_UserId",
+                table: "OtpCodes",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleApiEndpoints_ApiEndpointId",
+                table: "RoleApiEndpoints",
+                column: "ApiEndpointId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleAppModules_AppModuleId",
                 table: "RoleAppModules",
-                column: "RoleId");
+                column: "AppModuleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleMenus_MenuId",
+                table: "RoleMenus",
+                column: "MenuId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleMenus_RoleId",
@@ -247,6 +313,12 @@ namespace DotBoil.AuthGuard.Application.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AppModuleEndpoints");
+
+            migrationBuilder.DropTable(
+                name: "OtpCodes");
+
+            migrationBuilder.DropTable(
+                name: "RoleApiEndpoints");
 
             migrationBuilder.DropTable(
                 name: "RoleAppModules");

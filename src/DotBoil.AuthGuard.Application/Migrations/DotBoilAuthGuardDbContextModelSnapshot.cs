@@ -19,21 +19,6 @@ namespace DotBoil.AuthGuard.Application.Migrations
                 .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("AppModuleEndpoints", b =>
-                {
-                    b.Property<int>("ApiEndpointId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AppModuleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ApiEndpointId", "AppModuleId");
-
-                    b.HasIndex("AppModuleId");
-
-                    b.ToTable("AppModuleEndpoints", (string)null);
-                });
-
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", b =>
                 {
                     b.Property<int>("Id")
@@ -112,6 +97,45 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.ToTable("AppModules", (string)null);
                 });
 
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.AppModuleEndpoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("ApiEndpointId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AppModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiEndpointId");
+
+                    b.HasIndex("AppModuleId");
+
+                    b.ToTable("AppModuleEndpoints", (string)null);
+                });
+
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.Menu", b =>
                 {
                     b.Property<int>("Id")
@@ -127,8 +151,7 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("Icon")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
@@ -242,6 +265,123 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleApiEndpoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("ApiEndpointId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiEndpointId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RoleApiEndpoints", (string)null);
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleAppModule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AppModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppModuleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RoleAppModules", (string)null);
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleMenu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RoleMenus", (string)null);
+                });
+
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -296,79 +436,62 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("RoleApiEndpoints", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserRole", b =>
                 {
-                    b.Property<int>("ApiEndpointId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    b.HasKey("ApiEndpointId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("RoleApiEndpoints", (string)null);
-                });
-
-            modelBuilder.Entity("RoleAppModules", b =>
-                {
-                    b.Property<int>("AppModuleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AppModuleId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("RoleAppModules", (string)null);
-                });
-
-            modelBuilder.Entity("RoleMenus", b =>
-                {
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MenuId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("RoleMenus", (string)null);
-                });
-
-            modelBuilder.Entity("UserRoles", b =>
-                {
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("RoleId", "UserId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("AppModuleEndpoints", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.AppModuleEndpoint", b =>
                 {
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", "ApiEndpoint")
+                        .WithMany("AppModules")
                         .HasForeignKey("ApiEndpointId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", "AppModule")
+                        .WithMany("ApiEndpoints")
                         .HasForeignKey("AppModuleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ApiEndpoint");
+
+                    b.Navigation("AppModule");
                 });
 
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.OtpCode", b =>
@@ -382,69 +505,117 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RoleApiEndpoints", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleApiEndpoint", b =>
                 {
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", "ApiEndpoint")
+                        .WithMany("Roles")
                         .HasForeignKey("ApiEndpointId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", "Role")
+                        .WithMany("ApiEndpoints")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("ApiEndpoint");
+
+                    b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("RoleAppModules", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleAppModule", b =>
                 {
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", "AppModule")
+                        .WithMany("Roles")
                         .HasForeignKey("AppModuleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", "Role")
+                        .WithMany("AppModules")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("AppModule");
+
+                    b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("RoleMenus", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.RoleMenu", b =>
                 {
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Menu", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Menu", "Menu")
+                        .WithMany("Roles")
                         .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", "Role")
+                        .WithMany("Menus")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Menu");
+
+                    b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("UserRoles", b =>
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserRole", b =>
                 {
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", "Role")
+                        .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.User", null)
-                        .WithMany()
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.User", "User")
+                        .WithMany("Roles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", b =>
+                {
+                    b.Navigation("AppModules");
+
+                    b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.AppModule", b =>
+                {
+                    b.Navigation("ApiEndpoints");
+
+                    b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.Menu", b =>
+                {
+                    b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.Role", b =>
+                {
+                    b.Navigation("ApiEndpoints");
+
+                    b.Navigation("AppModules");
+
+                    b.Navigation("Menus");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.User", b =>
                 {
                     b.Navigation("OtpCodes");
+
+                    b.Navigation("Roles");
                 });
 #pragma warning restore 612, 618
         }

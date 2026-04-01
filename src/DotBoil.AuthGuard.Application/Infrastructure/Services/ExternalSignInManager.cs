@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 using DotBoil.AuthGuard.Application.Domain.DomainEvents;
@@ -12,7 +13,6 @@ using DotBoil.Caching;
 using DotBoil.EFCore;
 using DotBoil.Localization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json.Linq;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
@@ -122,13 +122,15 @@ public class ExternalSignInManager : IExternalSignInManager
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var createdAccessToken = _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
-        var createdRefreshToken = _jwtService.GenerateToken(claims, _jwtOptions.RefreshTokenExpirationMinutes);
+        var claimsDictionary = claims.ToDictionary(claim => claim.Type, claim => claim.Value);
+
+        var createdAccessToken = await _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
+        var createdRefreshToken = await _jwtService.GenerateToken(claims, _jwtOptions.RefreshTokenExpirationMinutes);
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.RefreshTokenExpirationMinutes);
         
-        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claims, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
-        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claims, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
         
         return AuthorizeResult.Success(
             createdAccessToken,

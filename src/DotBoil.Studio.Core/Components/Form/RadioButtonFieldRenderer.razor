@@ -1,5 +1,146 @@
-<h3>RadioButtonFieldRenderer</h3>
+@using System.Text.Json
+@implements IDisposable
 
-@code {
-    
+@if (Current.IsVisible)
+{
+    @if (!string.IsNullOrWhiteSpace(Current.Label))
+    {
+        <MudText Typo="Typo.subtitle2">@Current.Label</MudText>
+    }
+
+    <MudRadioGroup T="string"
+                   Value="@SelectedValue"
+                   ValueChanged="ValueChanged"
+                   Disabled="@(!Current.IsEnabled)">
+        @foreach (var item in Items)
+        {
+            <MudRadio T="string" Value="@item.Value">@item.Text</MudRadio>
+        }
+    </MudRadioGroup>
+
+    @if (!string.IsNullOrWhiteSpace(Current.HelperText))
+    {
+        <MudText Typo="Typo.caption">@Current.HelperText</MudText>
+    }
+
+    if (Current.HasValidationError)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error">@Current.ValidationMessage</MudText>
+    }
+}
+
+@code
+{
+    [Parameter] public RadioButtonField Current { get; set; } = default!;
+    [Parameter] public ComponentContext Context { get; set; } = default!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private JwtAuthService JwtAuthService { get; set; } = default!;
+
+    private List<SelectItem> Items = new();
+    private string SelectedValue = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await JwtAuthService.InitializeAsync();
+        await InitializeData();
+
+        if (Context.DesignerMode)
+            Current.DataSourceChangeHandler += DataSourceChanged;
+
+        ComponentRuleRenderHelper.Initialize(Current, Context, OnDepend);
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task InitializeData()
+    {
+        Items.Clear();
+        SelectedValue = string.Empty;
+        Current.Value = string.Empty;
+
+        if (Current.DataSource == null)
+            return;
+
+        if (Current.DataSource is StaticDataSource staticDataSource)
+        {
+            var staticDataSourceItems = await staticDataSource.GetItemsAsync(ServiceProvider);
+
+            foreach (var item in staticDataSourceItems.Items)
+            {
+                if (item is SelectItem selectItem)
+                    Items.Add(selectItem);
+            }
+
+            Current.TextField = nameof(SelectItem.Text);
+            Current.ValueField = nameof(SelectItem.Value);
+
+            var defaultItem = Items.FirstOrDefault(i => i.IsSelected);
+            if (defaultItem != null)
+            {
+                SelectedValue = defaultItem.Value;
+                Current.Value = defaultItem.Value;
+            }
+        }
+        else if (Current.DataSource is ApiDataSource apiDataSource)
+        {
+            if (string.IsNullOrEmpty(Current.TextField) || string.IsNullOrEmpty(Current.ValueField))
+                return;
+
+            var overrided = apiDataSource.OverrideApiUrl(Context, JwtAuthService);
+            if (!overrided)
+                return;
+
+            var apiDataSourceItems = await apiDataSource.GetItemsAsync(ServiceProvider);
+
+            foreach (var item in apiDataSourceItems.Items)
+            {
+                if (item is not Dictionary<string, JsonElement> dict)
+                    continue;
+
+                if (!dict.ContainsKey(Current.TextField) || !dict.ContainsKey(Current.ValueField))
+                    continue;
+
+                var text = dict[Current.TextField].GetRealValue()?.ToString() ?? string.Empty;
+                var value = dict[Current.ValueField].GetRealValue()?.ToString() ?? string.Empty;
+
+                Items.Add(new SelectItem(text, value, false));
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DataSourceChanged(object? sender, EventArgs e)
+    {
+        await InitializeData();
+    }
+
+    private async Task ValueChanged(string value)
+    {
+        SelectedValue = value;
+        Current.Value = value;
+
+        await Context.OnDepends(Current);
+        await OnDepend(Current, EventArgs.Empty);
+    }
+
+    private async Task OnDepend(BaseComponent component, EventArgs args)
+    {
+        ComponentRuleRenderHelper.ApplyOnDepends(Current, Context);
+        if (Context.DesignerMode)
+            return;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (Context.DesignerMode && Current.DataSource != null && Current.DataSourceChangeHandler != null)
+            Current.DataSourceChangeHandler = (Current.DataSourceChangeHandler - DataSourceChanged)!;
+
+        ComponentRuleRenderHelper.Dispose(Current, Context, OnDepend);
+    }
 }

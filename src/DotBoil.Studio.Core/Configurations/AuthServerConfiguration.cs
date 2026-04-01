@@ -9,7 +9,8 @@ internal class AuthServerConfiguration : IOptions
     public string Url { get; set; }
     public string AuthorizeEndpoint { get; set; }
     public string RefreshTokenEndpoint { get; set; }
-    public string CallbackUrl { get; set; }
+    public string CallbackEndpoint { get; set; }
+    public string MenuEndpoint { get; set; }
     public string TokenKey { get; set; }
     public string RefreshTokenKey { get; set; }
 }

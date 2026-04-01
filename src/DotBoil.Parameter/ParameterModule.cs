@@ -1,5 +1,7 @@
 ﻿using DotBoil.Dependency;
+using DotBoil.Parameter.Endpoints;
 using DotBoil.Parameter.Persistence;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,6 +35,11 @@ namespace DotBoil.Parameter
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+
+            if (DotBoilApp.Host is WebApplication app)
+            {
+                app.MapParameterEndpoints();
             }
         }
     }

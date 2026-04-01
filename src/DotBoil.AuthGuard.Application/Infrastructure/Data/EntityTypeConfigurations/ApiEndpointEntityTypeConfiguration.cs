@@ -24,19 +24,9 @@ public class ApiEndpointEntityTypeConfiguration : EFCoreEntityTypeConfiguration<
 
         builder
             .HasMany(p => p.AppModules)
-            .WithMany(p => p.ApiEndpoints)
-            .UsingEntity<Dictionary<string, object>>("AppModuleEndpoints",
-                j =>
-                    j.HasOne<AppModule>()
-                        .WithMany()
-                        .HasForeignKey("AppModuleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                    j.HasOne<ApiEndpoint>()
-                        .WithMany()
-                        .HasForeignKey("ApiEndpointId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j => j.ToTable("AppModuleEndpoints"));
+            .WithOne(p => p.ApiEndpoint)
+            .HasForeignKey(p => p.ApiEndpointId)
+            .OnDelete(DeleteBehavior.NoAction);
         
         builder.ToTable("ApiEndpoints");
     }

@@ -1,4 +1,4 @@
-namespace DotBoil.Studio.Core.Contracts;
+namespace DotBoil.Studio.Core.ValueObjects;
 
 public class SelectItem
 {

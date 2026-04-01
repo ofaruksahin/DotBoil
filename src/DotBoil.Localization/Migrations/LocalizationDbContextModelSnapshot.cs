@@ -15,7 +15,7 @@ namespace DotBoil.Localization.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("DotBoil.Localization.Models.Localization", b =>
@@ -25,7 +25,6 @@ namespace DotBoil.Localization.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Group")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 

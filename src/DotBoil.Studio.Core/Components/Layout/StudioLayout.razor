@@ -254,4 +254,21 @@
 
 @code {
     private bool _drawerOpen = true;
+    private IEnumerable<MenuItem> MenuItems = Array.Empty<MenuItem>();
+    
+    [Inject] private JwtAuthService JwtAuthService { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (string.IsNullOrEmpty(JwtAuthService.Token) || string.IsNullOrEmpty(JwtAuthService.RefreshToken))
+                await JwtAuthService.InitializeAsync();
+
+            MenuItems = await JwtAuthService.GetMenuItems();
+        }
+        
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
 }

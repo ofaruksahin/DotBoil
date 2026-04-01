@@ -89,7 +89,7 @@
 
         var authServerConfiguration = Configuration.GetConfigurations<AuthServerConfiguration>();
         
-        if (currentPath.StartsWith(authServerConfiguration.CallbackUrl.TrimStart('/'), StringComparison.OrdinalIgnoreCase))
+        if (currentPath.StartsWith(authServerConfiguration.CallbackEndpoint.TrimStart('/'), StringComparison.OrdinalIgnoreCase))
             return;
         
         if (firstRender && !_checkedToken)
@@ -97,7 +97,7 @@
             _checkedToken = true;
 
             await AuthService.InitializeAsync();
-            var isTokenValid = await AuthService.IsTokenValidAsync();
+            var isTokenValid = AuthService.IsTokenValidAsync();
 
             if (!isTokenValid)
             {
@@ -118,7 +118,7 @@
                 var authServerUrl = string.Format("{0}{1}?redirect_uri={2}{3}",
                     authServerConfiguration.Url,
                     authServerConfiguration.AuthorizeEndpoint, redirectUri,
-                    authServerConfiguration.CallbackUrl.TrimStart('/'));
+                    authServerConfiguration.CallbackEndpoint.TrimStart('/'));
                 
                 Nav.NavigateTo(authServerUrl, forceLoad: true);
             }

@@ -1,6 +1,7 @@
+using DotBoil.Studio.Core.Contracts;
 using Microsoft.AspNetCore.Components;
 
-namespace DotBoil.Studio.Core.Contracts;
+namespace DotBoil.Studio.Core.ValueObjects;
 
 public class ComponentContext
 {

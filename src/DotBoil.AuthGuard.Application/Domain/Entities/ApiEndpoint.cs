@@ -7,6 +7,6 @@ public class ApiEndpoint : BaseEntity
     public string Controller { get; set; }
     public string Action { get; set; }
 
-    public virtual ICollection<AppModule> AppModules { get; set; }
-    public virtual ICollection<Role> Roles { get; set; }
+    public virtual ICollection<AppModuleEndpoint> AppModules { get; set; }
+    public virtual ICollection<RoleApiEndpoint> Roles { get; set; }
 }

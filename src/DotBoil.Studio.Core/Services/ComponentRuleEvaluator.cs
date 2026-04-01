@@ -2,6 +2,7 @@ using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 using DotBoil.Studio.Core.Contracts.Rules;
 using DotBoil.Studio.Core.Enums;
+using DotBoil.Studio.Core.ValueObjects;
 
 namespace DotBoil.Studio.Core.Services;
 

@@ -4,5 +4,5 @@ namespace DotBoil.AuthGuard.Application.Domain.Interfaces;
 
 public interface IJwtService
 {
-    string GenerateToken(IEnumerable<Claim> claims, int expirationMinutes);
+    Task<string> GenerateToken(IEnumerable<Claim> claims, int expirationMinutes);
 }

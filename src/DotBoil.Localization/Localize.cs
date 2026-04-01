@@ -1,4 +1,5 @@
-﻿using DotBoil.Localization.Configurations;
+﻿using System.Diagnostics;
+using DotBoil.Localization.Configurations;
 using DotBoil.Localization.Exceptions;
 using DotBoil.Localization.Persistence;
 using DotBoil.Serialization;
@@ -80,28 +81,35 @@ namespace DotBoil.Localization
 
         private async Task Initialize()
         {
-            using var scope = _serivceProvider.CreateAsyncScope();
-
-            var localizationDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
-            var localizations = await localizationDbContext.Localizations.ToListAsync();
-
-            foreach (var item in localizations.Where(l => string.IsNullOrEmpty(l.Group)))
-                item.Group = "DotBoil";
-
-            var groupedLocalizations = localizations.GroupBy(l => new { l.Language, l.Group });
-
-            TimeSpan? timeSpan = null;
-
-            if (_configuration.Caching.ExpireInHour.HasValue)
-                timeSpan = TimeSpan.FromHours(_configuration.Caching.ExpireInHour.Value);
-
-            foreach (var group in groupedLocalizations)
+            try
             {
-                foreach (var localization in group)
+                using var scope = _serivceProvider.CreateAsyncScope();
+
+                var localizationDbContext = scope.ServiceProvider.GetService<LocalizationDbContext>();
+                var localizations = await localizationDbContext.Localizations.ToListAsync();
+
+                foreach (var item in localizations.Where(l => string.IsNullOrEmpty(l.Group)))
+                    item.Group = "DotBoil";
+
+                var groupedLocalizations = localizations.GroupBy(l => new { l.Language, l.Group });
+
+                TimeSpan? timeSpan = null;
+
+                if (_configuration.Caching.ExpireInHour.HasValue)
+                    timeSpan = TimeSpan.FromHours(_configuration.Caching.ExpireInHour.Value);
+
+                foreach (var group in groupedLocalizations)
                 {
-                    var cacheKey = string.Concat(_prefix, string.Join(':', group.Key.Language, group.Key.Group, localization.Key));
-                    await _cache.StringSetAsync(cacheKey, localization.Value, timeSpan, When.Always);
+                    foreach (var localization in group)
+                    {
+                        var cacheKey = string.Concat(_prefix, string.Join(':', group.Key.Language, group.Key.Group, localization.Key));
+                        await _cache.StringSetAsync(cacheKey, localization.Value, timeSpan, When.Always);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
             }
         }
 

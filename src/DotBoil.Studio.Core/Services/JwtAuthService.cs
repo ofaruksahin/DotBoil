@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using DotBoil.Configuration;
 using DotBoil.Studio.Core.Configurations;
-using DotBoil.Studio.Core.Models;
+using DotBoil.Studio.Core.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 
@@ -70,7 +70,7 @@ public class JwtAuthService
         return true;
     }
 
-    public async Task<bool> IsTokenValidAsync()
+    public bool IsTokenValidAsync()
     {
         if (string.IsNullOrEmpty(Token))
             return false;
@@ -104,6 +104,26 @@ public class JwtAuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "refresh_token");
     }
 
+    public async Task<IEnumerable<MenuItem>> GetMenuItems()
+    {
+        var authServerConfiguration = _configuration.GetConfigurations<AuthServerConfiguration>();
+        
+        var url = authServerConfiguration.Url.Trim('/');
+        var menuEndpoint = authServerConfiguration.MenuEndpoint.Trim('/');
+        var baseUrl = new Uri(string.Format("{0}/{1}", url, menuEndpoint));
+        
+        var request = new HttpRequestMessage(HttpMethod.Post, baseUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+        var response = await this._httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+            return Array.Empty<MenuItem>();
+        
+        var menuResult = await response.Content.ReadFromJsonAsync<List<MenuItem>>();
+        
+        return menuResult ?? new List<MenuItem>();
+    }
+    
     private string Base64UrlDecode(string input)
     {
         input = input.Replace('-', '+').Replace('_', '/');

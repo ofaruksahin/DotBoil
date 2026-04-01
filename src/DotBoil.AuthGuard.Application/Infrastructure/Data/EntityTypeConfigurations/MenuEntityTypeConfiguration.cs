@@ -19,7 +19,6 @@ public class MenuEntityTypeConfiguration : EFCoreEntityTypeConfiguration<Menu>
 
         builder
             .Property(p => p.Icon)
-            .HasMaxLength(50)
             .IsRequired(false);
 
         builder

@@ -1,4 +1,5 @@
-﻿using DotBoil.Parameter.Configurations;
+﻿using System.Diagnostics;
+using DotBoil.Parameter.Configurations;
 using DotBoil.Parameter.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,22 +68,29 @@ namespace DotBoil.Parameter
 
         private async Task Initialize()
         {
-            _caching = (await ConnectionMultiplexer.ConnectAsync(_configuration.Caching.ConnectionString))?.GetDatabase(0);
-
-            using var scope = _serviceProvider.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetService<ParameterDbContext>();
-
-            var parameters = await dbContext.Parameters.ToListAsync();
-
-            foreach (var param in parameters.Where(p => string.IsNullOrEmpty(p.Section)))
+            try
             {
-                param.Section = "DotBoil";
+                _caching = (await ConnectionMultiplexer.ConnectAsync(_configuration.Caching.ConnectionString))?.GetDatabase(0);
+
+                using var scope = _serviceProvider.CreateAsyncScope();
+                var dbContext = scope.ServiceProvider.GetService<ParameterDbContext>();
+
+                var parameters = await dbContext.Parameters.ToListAsync();
+
+                foreach (var param in parameters.Where(p => string.IsNullOrEmpty(p.Section)))
+                {
+                    param.Section = "DotBoil";
+                }
+
+                foreach (var param in parameters)
+                {
+                    var key = string.Join(':', _prefix, param.TenantId, param.Section, param.Key, param.IsPublic);
+                    await _caching.StringSetAsync(key, param.Value);
+                }
             }
-
-            foreach (var param in parameters)
+            catch (Exception e)
             {
-                var key = string.Join(':', _prefix, param.TenantId, param.Section, param.Key, param.IsPublic);
-                await _caching.StringSetAsync(key, param.Value);
+                Debug.WriteLine(e);
             }
         }
 

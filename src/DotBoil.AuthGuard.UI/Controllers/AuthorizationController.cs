@@ -113,17 +113,6 @@ public class AuthorizationController : Controller
         return Redirect(redirectUri);
     }
 
-    [HttpPost("connect/refresh_token")]
-    public async Task<IActionResult> RefreshToken([FromQuery] string refreshToken)
-    {
-        var refreshTokenResult = await _userService.RefreshToken(refreshToken);
-
-        return new ObjectResult(refreshTokenResult)
-        {
-            StatusCode = refreshTokenResult.IsSuccess ? StatusCodes.Status200OK : StatusCodes.Status401Unauthorized,
-        };
-    }
-
     [HttpGet("authorize/register")]
     public async Task<IActionResult> Register()
     {

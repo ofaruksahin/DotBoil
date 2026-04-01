@@ -7,8 +7,8 @@ public class Role : BaseEntity
     public string Name { get; set; }
     public bool IsDefault { get; set; }
 
-    public virtual ICollection<User> Users { get; set; }
-    public virtual ICollection<Menu> Menus { get; set; }
-    public virtual ICollection<AppModule> AppModules { get; set; }
-    public virtual ICollection<ApiEndpoint> ApiEndpoints { get; set; }
+    public virtual ICollection<UserRole> Users { get; set; }
+    public virtual ICollection<RoleMenu> Menus { get; set; }
+    public virtual ICollection<RoleAppModule> AppModules { get; set; }
+    public virtual ICollection<RoleApiEndpoint> ApiEndpoints { get; set; }
 }

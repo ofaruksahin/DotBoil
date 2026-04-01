@@ -28,11 +28,7 @@
         if (!firstRender)
             return;
 
-        if (Current.DependsOnHandler == null)
-            Current.DependsOnHandler += OnDepend;
-
-        if (!Context.DesignerMode)
-            ComponentRuleEvaluator.Apply(Current, Context);
+        ComponentRuleRenderHelper.Initialize(Current, Context, OnDepend);
         
         base.OnAfterRender(firstRender);
     }
@@ -47,16 +43,15 @@
 
     private async Task OnDepend(BaseComponent baseComponent, EventArgs args)
     {
+        ComponentRuleRenderHelper.ApplyOnDepends(Current, Context);
         if (Context.DesignerMode)
             return;
 
-        ComponentRuleEvaluator.Apply(Current, Context);
         await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        if (Current.DependsOnHandler != null)
-            Current.DependsOnHandler -= OnDepend;
+        ComponentRuleRenderHelper.Dispose(Current, Context, OnDepend);
     }
 }

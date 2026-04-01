@@ -10,6 +10,7 @@ namespace DotBoil.Configuration
         {
             AddConfigurationProviders();
             AddConfigurations();
+            AddConfigurationProviders();
 
             return Task.CompletedTask;
         }

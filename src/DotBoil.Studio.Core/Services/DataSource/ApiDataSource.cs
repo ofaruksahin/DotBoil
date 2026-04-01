@@ -3,8 +3,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using DotBoil.Entities;
 using DotBoil.Studio.Core.Services;
+using DotBoil.Studio.Core.ValueObjects;
 
 namespace DotBoil.Studio.Core.Contracts;
 

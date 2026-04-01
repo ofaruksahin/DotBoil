@@ -20,54 +20,26 @@ public class RoleEntityTypeConfiguration : EFCoreEntityTypeConfiguration<Role>
         builder
             .Property(p => p.IsDefault)
             .IsRequired();
+        
+        
 
         builder
-            .HasMany(p => p.Menus)
-            .WithMany(p => p.Roles)
-            .UsingEntity<Dictionary<string, object>>("RoleMenus",
-                j =>
-                    j.HasOne<Menu>()
-                        .WithMany()
-                        .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                    j.HasOne<Role>()
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j => j.ToTable("RoleMenus"));
+            .HasMany(r => r.Menus)
+            .WithOne(m => m.Role)
+            .HasForeignKey(m => m.RoleId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder
-            .HasMany(p => p.AppModules)
-            .WithMany(p => p.Roles)
-            .UsingEntity<Dictionary<string, object>>("RoleAppModules",
-                j =>
-                    j.HasOne<AppModule>()
-                        .WithMany()
-                        .HasForeignKey("AppModuleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                    j.HasOne<Role>()
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j => j.ToTable("RoleAppModules"));
+            .HasMany(r => r.AppModules)
+            .WithOne(m => m.Role)
+            .HasForeignKey(r => r.RoleId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder
-            .HasMany(p => p.ApiEndpoints)
-            .WithMany(p => p.Roles)
-            .UsingEntity<Dictionary<string, object>>("RoleApiEndpoints",
-                j =>
-                    j.HasOne<ApiEndpoint>()
-                        .WithMany()
-                        .HasForeignKey("ApiEndpointId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j =>
-                    j.HasOne<Role>()
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict),
-                j => j.ToTable("RoleApiEndpoints"));
+            .HasMany(r => r.ApiEndpoints)
+            .WithOne(a => a.Role)
+            .HasForeignKey(r => r.RoleId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.ToTable("Roles");
     }

@@ -15,6 +15,11 @@ public class DotBoilAuthGuardDbContext : EFCoreDbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<OtpCode> OtpCodes { get; set; }
+    public DbSet<RoleMenu> RoleMenus { get; set; }
+    public DbSet<RoleAppModule> RoleAppModules { get; set; }
+    public DbSet<RoleApiEndpoint> RoleApiEndpoints { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<AppModuleEndpoint> AppModuleEndpoints { get; set; }
     
     public DotBoilAuthGuardDbContext(IServiceProvider serviceProvider) : base(serviceProvider)
     {

@@ -71,8 +71,8 @@ public class EmailPasswordBasedLogin : IUserService
 
         var claimsDictionary = claims.ToDictionary(c => c.Type, c => c.Value);
         
-        var createdAccessToken = _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
-        var createdRefreshToken = _jwtService.GenerateToken(claims, _jwtOptions.RefreshTokenExpirationMinutes);
+        var createdAccessToken = await _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
+        var createdRefreshToken = await _jwtService.GenerateToken(claims, _jwtOptions.RefreshTokenExpirationMinutes);
         var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var createdRefreshTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.RefreshTokenExpirationMinutes);
         
@@ -196,35 +196,6 @@ public class EmailPasswordBasedLogin : IUserService
         return new ResendOtpResult(result.IsSuccess, result.Message);
     }
 
-    public async Task<RefreshTokenResult> RefreshToken(string refreshToken)
-    {
-        var refreshTokenExists = await _cache.KeyExistsAsync($"DotBoil:AuthGuard:RefreshTokens:{refreshToken}");
-        
-        if (!refreshTokenExists)
-            return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
-        
-        var claimsDictionary = await _cache.GetOrSetAsync(
-            $"DotBoil:AuthGuard:RefreshTokens:{refreshToken}",
-            async () => new Dictionary<string,string>(),
-            TimeSpan.FromSeconds(5));
-        
-        if (!claimsDictionary.Any())
-            return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
-
-        var claims = claimsDictionary.Select(c => new Claim(c.Key, c.Value)).ToList();
-        
-        var createdAccessToken =
-            _jwtService.GenerateToken(claims, _jwtOptions.AccessTokenExpirationMinutes);
-        var createdAccessTokenExpiryTime = DateTime.Now.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
-        
-        await _cache.SetAsync(
-            $"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}",
-            claimsDictionary,
-            TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
-        
-        return RefreshTokenResult.Success(createdAccessToken, createdAccessTokenExpiryTime);
-    }
-
     public async Task<GetUserInfoResponse> GetUserInfo()
     {
         var claims = _httpContextAccessor.HttpContext?.User.Claims;
@@ -237,4 +208,3 @@ public class EmailPasswordBasedLogin : IUserService
         return new GetUserInfoResponse(true, string.Empty, claims.ToDictionary(c => c.Type, c => c.Value));
     }
 }
-

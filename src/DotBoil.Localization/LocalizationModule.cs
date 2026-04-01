@@ -1,7 +1,9 @@
 ﻿using DotBoil.Configuration;
 using DotBoil.Dependency;
 using DotBoil.Localization.Configurations;
+using DotBoil.Localization.Endpoints;
 using DotBoil.Localization.Persistence;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,19 +31,24 @@ namespace DotBoil.Localization
 
         public override async Task UseModule()
         {
-            var scope = DotBoilApp.Host.Services.CreateScope();
-            scope.ServiceProvider.GetRequiredService<ILocalize>();
+            using var scope = DotBoilApp.Host.Services.CreateScope();
 
             var context = scope.ServiceProvider.GetRequiredService<LocalizationDbContext>();
             
             try
             {
-
                 await context.Database.MigrateAsync();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+
+            scope.ServiceProvider.GetRequiredService<ILocalize>();
+
+            if (DotBoilApp.Host is WebApplication app)
+            {
+                app.MapLocalizationEndpoints();
             }
         }
     }

@@ -1,4 +1,4 @@
-namespace DotBoil.Studio.Core.Models;
+namespace DotBoil.Studio.Core.ValueObjects;
 
 public class RefreshTokenResult
 {
