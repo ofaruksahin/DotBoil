@@ -1,0 +1,67 @@
+using System.Net;
+using System.Security.Claims;
+using DotBoil.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace DotBoil;
+
+internal class CheckRoleAuthorizationFilter : IAsyncAuthorizationFilter
+{
+    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    {
+        var endpoint = context.HttpContext.GetEndpoint();
+
+        var allowAnonymous = endpoint?.Metadata.GetMetadata<IAllowAnonymous>();
+
+        if (allowAnonymous is not null)
+            return;
+
+        var roleAttributes = endpoint?.Metadata.GetOrderedMetadata<CheckRoleAttribute>();
+
+        if (roleAttributes is null || !roleAttributes.Any())
+            return;
+
+        var user = context.HttpContext.User;
+
+        if (user?.Identity.IsAuthenticated != true)
+        {
+            var response = new BaseResponse(new { }, HttpStatusCode.Unauthorized);
+            context.Result = new ObjectResult(response)
+            {
+                StatusCode = (int)response.StatusCode   
+            };
+            
+            return;
+        }
+
+        var userRoles = user.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        var hasRole = false;
+
+        foreach (var roleAttribute in roleAttributes)
+        {
+            if (hasRole) break;
+
+            hasRole = userRoles.Contains(roleAttribute.Role);
+        }
+
+        if (!hasRole)
+        {
+            var response = new BaseResponse(new { }, HttpStatusCode.Forbidden);
+            context.Result = new ObjectResult(response)
+            {
+                StatusCode = (int)response.StatusCode   
+            };
+            
+            return;
+        }
+
+        return;
+    }
+}

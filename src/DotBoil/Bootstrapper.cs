@@ -21,6 +21,9 @@ namespace DotBoil
             await ConfigurationBootstrapper.AddDotBoilConfigurations();
             await DependencyBootstrapper.AddDotBoilDependencies();
 
+            DotBoilApp.Services.AddScoped<CheckRoleAuthorizationFilter>();
+            DotBoilApp.Services.AddScoped<CheckAppModuleAuthorizationFilter>();
+
             return builder;
         }
 

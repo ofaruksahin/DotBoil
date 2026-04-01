@@ -23,12 +23,6 @@ namespace DotBoil.EFCore
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                ConfigureDatabaseProvider(optionsBuilder);
-                return;
-            }
-            
             var contexts = DotBoilApp.Configuration.GetConfigurations<EFCoreConfiguration>();
 
             var interceptors = contexts

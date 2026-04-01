@@ -20,15 +20,24 @@ namespace DotBoil.Parameter.Endpoints
                 .WithTags("Parameter");
 
             group.MapGet(string.Empty, GetParameters);
-            group.MapGet("/{id:int}", GetParameter);
-            group.MapPost(string.Empty, CreateParameter);
-            group.MapPut("/{id:int}", UpdateParameter);
-            group.MapDelete("/{id:int}", DeleteParameter);
+            group.MapGet("/{id:int}", GetParameter)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
+            group.MapPost(string.Empty, CreateParameter)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
+            group.MapPut("/{id:int}", UpdateParameter)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
+            group.MapDelete("/{id:int}", DeleteParameter)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
 
             return endpoints;
         }
 
         private static async Task<IResult> GetParameters(
+            HttpContext httpContext,
             ParameterDbContext dbContext,
             int? tenantId,
             string? section,
@@ -57,7 +66,16 @@ namespace DotBoil.Parameter.Endpoints
 
             if (isPublic.HasValue)
             {
+                if (!isPublic.Value)
+                {
+                    isPublic = !httpContext.User.CheckRole("Admin");
+                }
+                
                 query = query.Where(parameter => parameter.IsPublic == isPublic.Value);
+            }
+            else
+            {
+                isPublic = true;
             }
 
             var parameters = await query

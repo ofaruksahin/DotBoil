@@ -13,7 +13,6 @@ namespace DotBoil.Localization.Endpoints
     internal static class LocalizationEndpoints
     {
         private const string RoutePrefix = "/api/localizations";
-        private const string AdminRole = "Admin";
 
         public static IEndpointRouteBuilder MapLocalizationEndpoints(this IEndpointRouteBuilder endpoints)
         {
@@ -23,9 +22,15 @@ namespace DotBoil.Localization.Endpoints
 
             group.MapGet(string.Empty, GetLocalizations);
             group.MapGet("/{id:int}", GetLocalization);
-            group.MapPost(string.Empty, CreateLocalization);
-            group.MapPut("/{id:int}", UpdateLocalization);
-            group.MapDelete("/{id:int}", DeleteLocalization);
+            group.MapPost(string.Empty, CreateLocalization)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
+            group.MapPut("/{id:int}", UpdateLocalization)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
+            group.MapDelete("/{id:int}", DeleteLocalization)
+                .WithMetadata(new CheckRoleAttribute("Admin"))
+                .AddEndpointFilter<CheckRoleEndpointFilter>();
 
             return endpoints;
         }
