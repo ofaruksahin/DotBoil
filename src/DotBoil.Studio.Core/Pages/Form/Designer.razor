@@ -18,7 +18,7 @@
                     <MudText Typo="Typo.h6">Form</MudText>
 
                     <MudItem xs="12" Class="pt-3">
-                        <ComponentRenderer FormFields="FormFieldsToRender" DesignerMode="DesignerMode" OnFieldSelected="OnFieldSelected"></ComponentRenderer>
+                        <ComponentRenderer FormFields="FormFieldsToRender" DesignerMode="DesignerMode" OnFieldSelected="OnFieldSelected" OnFieldsReordered="OnFieldsReordered"></ComponentRenderer>
                     </MudItem>
                 </MudPaper>
             </MudItem>
@@ -84,6 +84,8 @@
         DesignerMode = !DesignerMode;
         StateHasChanged();
     }
+
+    private void OnFieldsReordered() => StateHasChanged();
 
     private void FormFieldOnDelete(BaseComponent component)
     {

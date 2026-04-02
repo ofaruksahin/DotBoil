@@ -1,119 +1,153 @@
-@inject ISnackbar Snackbar;
+@inject ISnackbar Snackbar
+
+<style>
+    /* ── Component header ── */
+    .ffp-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 14px; border-radius: 12px;
+        background: linear-gradient(135deg, #f0f9ff, #ede9fe);
+        border: 1px solid #e0e7ff; margin-bottom: 14px;
+    }
+    .ffp-header-icon {
+        width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+        background: linear-gradient(145deg, #0ea5e9, #6366f1);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 8px rgba(14,165,233,.25);
+    }
+    .ffp-header-icon .mud-icon-root { color: #fff; font-size: 18px !important; }
+    .ffp-header-title { font-size: .82rem; font-weight: 700; color: #0f172a; line-height: 1.2; }
+    .ffp-header-cat   { font-size: .68rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+    /* ── Property row ── */
+    .ffp-prop {
+        padding: 12px 4px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .ffp-prop:last-child { border-bottom: none; }
+    .ffp-prop-label { font-size: .75rem; font-weight: 700; color: #334155; margin-bottom: 2px; }
+    .ffp-prop-desc  { font-size: .68rem; color: #94a3b8; margin-bottom: 8px; line-height: 1.4; }
+    .ffp-prop .mud-input-root    { border-radius: 8px !important; }
+    .ffp-prop .mud-switch-root   { margin: 0; }
+
+    /* ── Delete button ── */
+    .ffp-footer {
+        margin-top: 14px; padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+    }
+</style>
+
 @if (SelectedFormField != null)
 {
-    @if (SelectedFormField != null)
-    {
-        <div Style="overflow-y: initial">
-        <MudExpansionPanels Dense="true">
+    <div>
+        <!-- Component identity -->
+        <div class="ffp-header">
+            <div class="ffp-header-icon">
+                <MudIcon Icon="@SelectedFormField.ComponentIcon" />
+            </div>
+            <div>
+                <div class="ffp-header-title">@SelectedFormField.Title</div>
+                <div class="ffp-header-cat">@SelectedFormField.Category</div>
+            </div>
+        </div>
+
+        <!-- Properties -->
+        <div style="overflow-y: auto;">
             @foreach (var attr in Attributes)
             {
-                <MudExpansionPanel>
-                    <TitleContent>
-                        <MudText>@attr.Value.Name</MudText>
-                        <MudText Typo="Typo.caption">@attr.Value.Description</MudText>
-                    </TitleContent>
-                    <ChildContent>
-                        @if (attr.Value.RendererType is null)
-                        {
-                            var propInfo = SelectedFormField.GetType().GetProperty(attr.Key);
-                            var propertyType = Nullable.GetUnderlyingType(propInfo!.PropertyType) ?? propInfo.PropertyType;
-                            var currentValue = propInfo?.GetValue(SelectedFormField);
+                <div class="ffp-prop">
+                    <div class="ffp-prop-label">@attr.Value.Name</div>
+                    @if (!string.IsNullOrWhiteSpace(attr.Value.Description))
+                    {
+                        <div class="ffp-prop-desc">@attr.Value.Description</div>
+                    }
 
-                            if (NumericTypes.Contains(propertyType))
-                            {
-                                <MudNumericField T="decimal?"
-                                                 Label="@attr.Value.Name"
-                                                 Value="@(currentValue is null ? null : Convert.ToDecimal(currentValue))"
-                                                 class="mb-4"
-                                                 ValueChanged="@(v =>
+                    @if (attr.Value.RendererType is null)
+                    {
+                        var propInfo     = SelectedFormField.GetType().GetProperty(attr.Key);
+                        var propertyType = Nullable.GetUnderlyingType(propInfo!.PropertyType) ?? propInfo.PropertyType;
+                        var currentValue = propInfo?.GetValue(SelectedFormField);
+
+                        if (NumericTypes.Contains(propertyType))
+                        {
+                            <MudNumericField T="decimal?"
+                                             Value="@(currentValue is null ? null : Convert.ToDecimal(currentValue))"
+                                             Variant="Variant.Outlined"
+                                             Margin="Margin.Dense"
+                                             ValueChanged="@(v =>
+                                             {
+                                                 if (propInfo != null && propInfo.CanWrite)
                                                  {
-                                                     if (propInfo != null && propInfo.CanWrite)
-                                                     {
-                                                         if (v == null)
-                                                         {
-                                                             propInfo.SetValue(SelectedFormField, null);
-                                                         }
-                                                         else
-                                                         {
-                                                             var converted = Convert.ChangeType(v, propertyType);
-                                                             propInfo.SetValue(SelectedFormField, converted);
-                                                         }
-                                                     }
-                                                 })"/>
-                            }
-                            else if (DateTypes.Contains(propertyType))
-                            {
-                                <MudDatePicker Date="@(currentValue as DateTime?)"
-                                               Label="@attr.Value.Name"
-                                               class="mb-4"
-                                               DateChanged="@(v =>
-                                               {
-                                                   if (propInfo != null && propInfo.CanWrite)
-                                                   {
-                                                       propInfo.SetValue(SelectedFormField, v);
-                                                   }
-                                               })"/>
-                            }
-                            else if (BooleanTypes.Contains(propertyType))
-                            {
-                                <MudSwitch T="bool"
-                                           Color="Color.Primary"
-                                           Label="@attr.Value.Name"
-                                           Value="(bool)currentValue"
-                                           class="mb-4"
-                                           ValueChanged="@((bool v) =>
+                                                     if (v == null) propInfo.SetValue(SelectedFormField, null);
+                                                     else propInfo.SetValue(SelectedFormField, Convert.ChangeType(v, propertyType));
+                                                 }
+                                             })" />
+                        }
+                        else if (DateTypes.Contains(propertyType))
+                        {
+                            <MudDatePicker Date="@(currentValue as DateTime?)"
+                                           Variant="Variant.Outlined"
+                                           Margin="Margin.Dense"
+                                           DateChanged="@(v =>
                                            {
                                                if (propInfo != null && propInfo.CanWrite)
-                                               {
                                                    propInfo.SetValue(SelectedFormField, v);
-                                               }
-                                           })"/>
-                            }
-                            else
-                            {
-                                <MudTextField T="string"
-                                              Label="@attr.Value.Name"
-                                              Value="@(currentValue?.ToString())"
-                                              class="mb-4"
-                                              ValueChanged="@(v =>
-                                              {
-                                                  if (propInfo != null && propInfo.CanWrite)
-                                                  {
-                                                      propInfo.SetValue(SelectedFormField, v);
-                                                  }
-                                              })"/>
-                            }
+                                           })" />
+                        }
+                        else if (BooleanTypes.Contains(propertyType))
+                        {
+                            <MudSwitch T="bool"
+                                       Color="Color.Primary"
+                                       Value="(bool)currentValue"
+                                       ValueChanged="@((bool v) =>
+                                       {
+                                           if (propInfo != null && propInfo.CanWrite)
+                                               propInfo.SetValue(SelectedFormField, v);
+                                       })" />
                         }
                         else
                         {
-                            var propInfo = SelectedFormField!.GetType().GetProperty(attr.Key);
-                            var currentValue = propInfo?.GetValue(SelectedFormField);
-
-                            var parameters = new Dictionary<string, object>()
-                            {
-                                { "CurrentComponent", SelectedFormField },
-                                { "Current", currentValue }
-                            };
-
-                            if (attr.Value.RendererType == typeof(RuleSettingsRenderer))
-                                parameters.Add("CurrentPropertyName", attr.Key);
-
-                            <DynamicComponent Type="attr.Value.RendererType" Parameters="parameters"></DynamicComponent>
+                            <MudTextField T="string"
+                                          Value="@(currentValue?.ToString())"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          ValueChanged="@(v =>
+                                          {
+                                              if (propInfo != null && propInfo.CanWrite)
+                                                  propInfo.SetValue(SelectedFormField, v);
+                                          })" />
                         }
-                    </ChildContent>
-                </MudExpansionPanel>
+                    }
+                    else
+                    {
+                        var propInfo     = SelectedFormField!.GetType().GetProperty(attr.Key);
+                        var currentValue = propInfo?.GetValue(SelectedFormField);
+
+                        var parameters = new Dictionary<string, object>
+                        {
+                            { "CurrentComponent", SelectedFormField },
+                            { "Current", currentValue }
+                        };
+
+                        if (attr.Value.RendererType == typeof(RuleSettingsRenderer))
+                            parameters.Add("CurrentPropertyName", attr.Key);
+
+                        <DynamicComponent Type="attr.Value.RendererType" Parameters="parameters" />
+                    }
+                </div>
             }
-        </MudExpansionPanels>
-        <MudStack Class="mt-4" Row="true" Justify="Justify.FlexEnd">
-            <MudButton Color="Color.Error"
-                       Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Delete"
-                       OnClick="OnDeleteClicked">
-                Sil
-            </MudButton>
-        </MudStack>
         </div>
-    }
+
+        <!-- Delete -->
+        <div class="ffp-footer">
+            <MudButton FullWidth="true"
+                       Color="Color.Error"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Rounded.DeleteOutline"
+                       OnClick="OnDeleteClicked">
+                Bileşeni Sil
+            </MudButton>
+        </div>
+    </div>
 }
 
 @code
@@ -122,31 +156,16 @@
     [Parameter] public EventCallback<BaseComponent> OnDelete { get; set; }
 
     private Dictionary<string, FieldPropertyAttribute> Attributes = new();
-    
-    private List<Type> NumericTypes = new List<Type>()
-    {
-        typeof(byte),
-        typeof(sbyte),
-        typeof(short),
-        typeof(ushort),
-        typeof(int),
-        typeof(uint),
-        typeof(long),
-        typeof(ulong),
-        typeof(float),
-        typeof(double),
-        typeof(decimal)
-    };
 
-    private List<Type> BooleanTypes = new List<Type>()
-    {
-        typeof(bool)
-    };
+    private static readonly List<Type> NumericTypes =
+    [
+        typeof(byte), typeof(sbyte), typeof(short), typeof(ushort),
+        typeof(int),  typeof(uint),  typeof(long),  typeof(ulong),
+        typeof(float), typeof(double), typeof(decimal)
+    ];
 
-    private List<Type> DateTypes = new List<Type>()
-    {
-        typeof(DateTime)
-    };
+    private static readonly List<Type> BooleanTypes = [typeof(bool)];
+    private static readonly List<Type> DateTypes    = [typeof(DateTime)];
 
     protected override void OnParametersSet()
     {
@@ -159,28 +178,23 @@
             var props = SelectedFormField.GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.GetCustomAttribute<FieldPropertyAttribute>() != null)
-                .OrderBy(prop => prop.GetCustomAttribute<FieldPropertyAttribute>().Order)
+                .OrderBy(p => p.GetCustomAttribute<FieldPropertyAttribute>()!.Order)
                 .ToList();
 
             foreach (var prop in props)
-            {
-                var attr = prop.GetCustomAttribute<FieldPropertyAttribute>()!;
-                Attributes.Add(prop.Name, attr);
-            }
+                Attributes.Add(prop.Name, prop.GetCustomAttribute<FieldPropertyAttribute>()!);
         }
     }
 
     private async Task OnDeleteClicked()
     {
-        if (string.IsNullOrWhiteSpace(SelectedFormField.Id))
+        if (string.IsNullOrWhiteSpace(SelectedFormField!.Id))
         {
             Snackbar.Add("Silinecek alanın Id değeri boş olamaz.", Severity.Error);
             return;
         }
 
         if (OnDelete.HasDelegate)
-        {
             await OnDelete.InvokeAsync(SelectedFormField);
-        }
     }
 }

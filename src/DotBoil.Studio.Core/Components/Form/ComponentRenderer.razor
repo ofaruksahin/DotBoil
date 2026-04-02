@@ -1,28 +1,129 @@
+<style>
+    .cr-item-wrap {
+        position: relative;
+        border-radius: 10px;
+        transition: box-shadow .15s, opacity .15s;
+    }
+    .cr-item-wrap.designer {
+        cursor: grab;
+    }
+    .cr-item-wrap.designer:active {
+        cursor: grabbing;
+    }
+
+    /* drag handle – üst sol köşe, hover'da görünür */
+    .cr-drag-handle {
+        position: absolute; top: 4px; left: 4px; z-index: 10;
+        opacity: 0; transition: opacity .15s;
+        color: #94a3b8; cursor: grab; line-height: 0;
+    }
+    .cr-item-wrap.designer:hover .cr-drag-handle { opacity: 1; }
+
+    /* dragged item */
+    .cr-item-wrap.cr-dragging {
+        opacity: .35;
+        box-shadow: none !important;
+    }
+
+    /* drop target indicator */
+    .cr-item-wrap.cr-drag-over {
+        box-shadow: 0 0 0 2px #0ea5e9, 0 4px 16px rgba(14,165,233,.18) !important;
+        border-radius: 10px;
+    }
+
+    /* selection highlight in designer */
+    .cr-item-wrap.designer.selected {
+        box-shadow: 0 0 0 2px #6366f1, 0 4px 12px rgba(99,102,241,.15);
+    }
+</style>
+
 <MudGrid GutterSize="3">
-    @foreach (var field in FormFields)
+    @for (var i = 0; i < FormFields.Count; i++)
     {
+        var index = i;
+        var field = FormFields[i];
+
         <MudHidden Breakpoint="@field.ColumnSpanSize.BreakPoint">
-            <MudItem
-                xs="@field.ColumnSpanSize.ColumnSpanXs"
-                sm="@field.ColumnSpanSize.ColumnSpanSm"
-                md="@field.ColumnSpanSize.ColumnSpanMd"
-                lg="@field.ColumnSpanSize.ColumnSpanLg"
-                xl="@field.ColumnSpanSize.ColumnSpanXl"
-                @onclick="() => OnFieldClicked(field)">
-                <DynamicComponent Type="field.RendererType" Parameters="GetParameters(field)"/>
+            <MudItem xs="@field.ColumnSpanSize.ColumnSpanXs"
+                     sm="@field.ColumnSpanSize.ColumnSpanSm"
+                     md="@field.ColumnSpanSize.ColumnSpanMd"
+                     lg="@field.ColumnSpanSize.ColumnSpanLg"
+                     xl="@field.ColumnSpanSize.ColumnSpanXl">
+
+                <div class="cr-item-wrap @(DesignerMode ? "designer" : "")
+                                         @(DesignerMode && index == _draggedIndex ? "cr-dragging" : "")
+                                         @(DesignerMode && index == _targetIndex && index != _draggedIndex ? "cr-drag-over" : "")
+                                         @(DesignerMode && field == SelectedField ? "selected" : "")"
+                     draggable="@(DesignerMode ? "true" : "false")"
+                     @ondragstart="@(() => OnDragStart(index))"
+                     @ondragover:preventDefault="true"
+                     @ondragover="@(() => OnDragOver(index))"
+                     @ondrop:preventDefault="true"
+                     @ondrop="@OnDrop"
+                     @ondragend="@OnDragEnd"
+                     @onclick="@(() => OnFieldClicked(field))">
+
+                    @if (DesignerMode)
+                    {
+                        <div class="cr-drag-handle">
+                            <MudIcon Icon="@Icons.Material.Rounded.DragIndicator" Size="Size.Small" />
+                        </div>
+                    }
+
+                    <DynamicComponent Type="field.RendererType" Parameters="GetParameters(field)" />
+                </div>
+
             </MudItem>
         </MudHidden>
     }
 </MudGrid>
 
 @code {
-    [Parameter] public List<BaseComponent> FormFields { get; set; }
-
+    [Parameter] public List<BaseComponent> FormFields { get; set; } = [];
     [Parameter] public bool DesignerMode { get; set; }
-
     [Parameter] public EventCallback<BaseComponent> OnFieldSelected { get; set; }
+    [Parameter] public EventCallback OnFieldsReordered { get; set; }
 
     internal BaseComponent? SelectedField { get; set; }
+
+    private int _draggedIndex = -1;
+    private int _targetIndex  = -1;
+
+    private void OnDragStart(int index)
+    {
+        _draggedIndex = index;
+        _targetIndex  = -1;
+    }
+
+    private void OnDragOver(int index)
+    {
+        if (_targetIndex != index)
+        {
+            _targetIndex = index;
+        }
+    }
+
+    private async Task OnDrop()
+    {
+        if (_draggedIndex >= 0 && _targetIndex >= 0 && _draggedIndex != _targetIndex)
+        {
+            var item = FormFields[_draggedIndex];
+            FormFields.RemoveAt(_draggedIndex);
+            FormFields.Insert(_targetIndex, item);
+
+            if (OnFieldsReordered.HasDelegate)
+                await OnFieldsReordered.InvokeAsync();
+        }
+
+        _draggedIndex = -1;
+        _targetIndex  = -1;
+    }
+
+    private void OnDragEnd()
+    {
+        _draggedIndex = -1;
+        _targetIndex  = -1;
+    }
 
     private async Task OnFieldClicked(BaseComponent field)
     {
@@ -36,21 +137,20 @@
         var componentContext = new ComponentContext
         {
             DesignerMode = DesignerMode,
-            Components = FormFields,
+            Components   = FormFields,
             OnFieldSelected = OnFieldSelected
         };
 
         return new Dictionary<string, object>
         {
-            { "Current", baseComponent },
-            { "Context", componentContext }
+            { "Current",  baseComponent },
+            { "Context",  componentContext }
         };
     }
 
     protected override void OnInitialized()
     {
-        this.DesignerMode = false;
+        DesignerMode = false;
         base.OnInitialized();
     }
-
 }
