@@ -88,6 +88,11 @@ public class AuthGuardModule : Module
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapAuthGuardEndpoints();
+        app.MapApiEndpointEndpoints();
+        app.MapAppModuleEndpoints();
+        app.MapMenuEndpoints();
+        app.MapRoleEndpoints();
+        app.MapUserEndpoints();
 
         using var scope = DotBoilApp.Host.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetService<DotBoilAuthGuardDbContext>();
