@@ -9,6 +9,7 @@ public class PasswordField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Password Field";
+    public override string ComponentIcon => Icons.Material.Rounded.Lock;
     public override Type RendererType => typeof(PasswordFieldRenderer);
     
     [FieldProperty(1,"Label", "Label of the text field.")]

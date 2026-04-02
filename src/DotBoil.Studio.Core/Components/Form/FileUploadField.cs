@@ -10,6 +10,7 @@ public class FileUploadField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "File Field";
+    public override string ComponentIcon => Icons.Material.Rounded.AttachFile;
     public override Type RendererType => typeof(FileUploadFieldRenderer);
 
     [FieldProperty(1,"Text", "Button text displayed for file upload.")]

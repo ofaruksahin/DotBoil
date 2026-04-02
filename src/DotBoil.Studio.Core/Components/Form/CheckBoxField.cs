@@ -10,6 +10,7 @@ public class CheckBoxField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Check Box";
+    public override string ComponentIcon => Icons.Material.Rounded.CheckBox;
     public override Type RendererType => typeof(CheckBoxFieldRenderer);
 
     [FieldProperty(1, "Label", "The text displayed next to the checkbox.")]

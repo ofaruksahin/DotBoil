@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
+using MudBlazor;
 
 namespace DotBoil.Studio.Core.Components.Form;
 
@@ -8,6 +9,7 @@ public class RadioButtonField : DataSourceComponent
 {
     public override string Category => "Form";
     public override string Title => "Radio Button";
+    public override string ComponentIcon => Icons.Material.Rounded.RadioButtonChecked;
     public override Type RendererType => typeof(RadioButtonFieldRenderer);
 
     [FieldProperty(1, "Label", "Specifies the label text displayed above the radio button group.")]

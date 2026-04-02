@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
 using DotBoil.Studio.Core.Enums;
+using MudBlazor;
 
 namespace DotBoil.Studio.Core.Components.Form;
 
@@ -9,6 +10,7 @@ public class DatePickerField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Date Picker";
+    public override string ComponentIcon => Icons.Material.Rounded.CalendarMonth;
     public override Type RendererType => typeof(DatePickerFieldRenderer);
 
     [FieldProperty(1, "Label", "The label text shown above the date input.")]

@@ -9,6 +9,7 @@ public class IconSelectionField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Icon Selection";
+    public override string ComponentIcon => Icons.Material.Rounded.EmojiEmotions;
     public override Type RendererType => typeof(IconSelectionFieldRenderer);
 
     [FieldOutputProperty] 

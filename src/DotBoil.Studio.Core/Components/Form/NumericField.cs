@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
+using MudBlazor;
 
 namespace DotBoil.Studio.Core.Components.Form;
 
@@ -8,6 +9,7 @@ public class NumericField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Numeric Field";
+    public override string ComponentIcon => Icons.Material.Rounded.Numbers;
     public override Type RendererType => typeof(NumericFieldRenderer);
 
     [FieldProperty(1,"Label", "Label of the text field.")]

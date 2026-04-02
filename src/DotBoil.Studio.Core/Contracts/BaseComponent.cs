@@ -9,7 +9,8 @@ public abstract class BaseComponent
 {
     public abstract string Category { get; }
     public abstract string Title { get; }
-    
+    public abstract string ComponentIcon { get; }
+
     public abstract Type RendererType { get; }
 
     [FieldProperty(Int32.MinValue, "Id", "Unique identifier for the form field. This value is used for form processing and referencing.")]

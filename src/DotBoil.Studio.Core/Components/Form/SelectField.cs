@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Contracts;
+using MudBlazor;
 
 namespace DotBoil.Studio.Core.Components.Form;
 
@@ -8,6 +9,7 @@ public class SelectField : DataSourceComponent
 {
     public override string Category => "Form";
     public override string Title => "Select Field";
+    public override string ComponentIcon => Icons.Material.Rounded.ArrowDropDownCircle;
     public override Type RendererType => typeof(SelectFieldRenderer);
 
     [FieldProperty(1, "Label", "Specifies the label text displayed above the select component.")]

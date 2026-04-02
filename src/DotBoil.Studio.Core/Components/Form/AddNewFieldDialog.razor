@@ -1,57 +1,140 @@
 @using DotBoil.Reflection
 
-<MudDialog>
+<style>
+    .anfd-search .mud-input-root { border-radius: 10px !important; }
+
+    .anfd-chip-set { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .anfd-chip {
+        padding: 4px 14px; border-radius: 20px; font-size: .75rem; font-weight: 600;
+        cursor: pointer; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b;
+        transition: all .15s ease; user-select: none;
+    }
+    .anfd-chip:hover  { border-color: #bae6fd; background: #f0f9ff; color: #0284c7; }
+    .anfd-chip.active { border-color: #0ea5e9; background: #e0f2fe; color: #0369a1; }
+
+    .anfd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .anfd-card {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 8px; padding: 16px 8px; border-radius: 12px;
+        border: 1.5px solid #e8edf5; background: #fff; cursor: pointer;
+        transition: all .16s ease; text-align: center;
+    }
+    .anfd-card:hover {
+        border-color: #0ea5e9; background: #f0f9ff;
+        box-shadow: 0 4px 14px rgba(14,165,233,.12);
+        transform: translateY(-2px);
+    }
+    .anfd-card-icon { color: #0ea5e9; font-size: 28px !important; }
+    .anfd-card-title { font-size: .74rem; font-weight: 600; color: #334155; line-height: 1.3; }
+
+    .anfd-empty { display:flex; flex-direction:column; align-items:center; padding:32px 0; color:#94a3b8; gap:8px; }
+    .anfd-empty-icon { font-size:40px !important; }
+    .anfd-empty-text { font-size:.82rem; font-weight:500; }
+</style>
+
+<MudDialog Style="min-width:480px;">
     <DialogContent>
-        <MudStack Spacing="2">
-            @foreach (var group in AvailableFields.GroupBy(f => f.Category))
+        <MudStack Spacing="0">
+
+            <!-- Search -->
+            <MudTextField @bind-Value="_search"
+                          Placeholder="Bileşen ara..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Rounded.Search"
+                          Clearable="true"
+                          Immediate="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="anfd-search mb-3" />
+
+            <!-- Category chips -->
+            @if (_categories.Count > 1)
             {
-                <MudExpansionPanels>
-                    <MudExpansionPanel Text="@group.Key">
-                        <MudStack Spacing="1">
-                            @foreach (var field in group)
-                            {
-                                <MudButton Variant="Variant.Outlined"
-                                           Color="@Color.Default"
-                                           OnClick="() => AddNewField(field)">
-                                    @field.Title
-                                </MudButton>
-                            }
-                        </MudStack>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <div class="anfd-chip-set mb-3">
+                    <div class="anfd-chip @(_activeCategory == null ? "active" : "")"
+                         @onclick="() => _activeCategory = null">
+                        Tümü
+                    </div>
+                    @foreach (var cat in _categories)
+                    {
+                        <div class="anfd-chip @(_activeCategory == cat ? "active" : "")"
+                             @onclick="() => _activeCategory = cat">
+                            @cat
+                        </div>
+                    }
+                </div>
             }
+
+            <!-- Card grid -->
+            @if (FilteredFields.Any())
+            {
+                <div class="anfd-grid">
+                    @foreach (var field in FilteredFields)
+                    {
+                        <div class="anfd-card" @onclick="() => AddNewField(field)">
+                            <MudIcon Icon="@field.ComponentIcon" Class="anfd-card-icon" />
+                            <span class="anfd-card-title">@field.Title</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="anfd-empty">
+                    <MudIcon Icon="@Icons.Material.Rounded.SearchOff" Class="anfd-empty-icon" />
+                    <span class="anfd-empty-text">Bileşen bulunamadı</span>
+                </div>
+            }
+
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Default" Variant="Variant.Text" OnClick="Close">Kapat</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    public static string DialogTitle => "Add New Field Dialog";
-    
-    private List<BaseComponent> BaseComponents = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(BaseComponent))
-        .Where(type => !type.IsAbstract)
-        .Select(baseComponent => (BaseComponent)Activator.CreateInstance(baseComponent))
-        .ToList();
-    
-    private List<BaseComponent> DataSourceComponents = AppDomain.CurrentDomain.FindTypesWithBaseType(typeof(DataSourceComponent))
-        .Where(type => !type.IsAbstract)
-        .Select(baseComponent => (BaseComponent)Activator.CreateInstance(baseComponent))
+    public static string DialogTitle => "Bileşen Ekle";
+
+    private string _search = string.Empty;
+    private string? _activeCategory;
+
+    private List<BaseComponent> _allFields = AppDomain.CurrentDomain
+        .GetAssemblies()
+        .SelectMany(a => a.GetTypes())
+        .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(BaseComponent)))
+        .Select(t => (BaseComponent)Activator.CreateInstance(t)!)
+        .OrderBy(f => f.Category)
+        .ThenBy(f => f.Title)
         .ToList();
 
-    private List<BaseComponent> AvailableFields =>
-        BaseComponents
-            .Concat(DataSourceComponents)
-            .ToList();
-    
-    [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
-    
-    private void AddNewField(BaseComponent field)
+    private List<string> _categories => _allFields
+        .Select(f => f.Category)
+        .Distinct()
+        .OrderBy(c => c)
+        .ToList();
+
+    private IEnumerable<BaseComponent> FilteredFields
     {
-        MudDialog.Close(DialogResult.Ok(field));
+        get
+        {
+            var result = _allFields.AsEnumerable();
+
+            if (_activeCategory is not null)
+                result = result.Where(f => f.Category == _activeCategory);
+
+            if (!string.IsNullOrWhiteSpace(_search))
+                result = result.Where(f => f.Title.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+            return result;
+        }
     }
 
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void AddNewField(BaseComponent field) => MudDialog.Close(DialogResult.Ok(field));
+
     private void Close() => MudDialog.Cancel();
+
 }

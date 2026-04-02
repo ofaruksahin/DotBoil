@@ -9,6 +9,7 @@ public class EmailField : BaseComponent
 {
     public override string Category => "Form";
     public override string Title => "Email Field";
+    public override string ComponentIcon => Icons.Material.Rounded.Email;
     public override Type RendererType => typeof(EmailFieldRenderer);
 
     [FieldProperty(1,"Label", "Label of the text field.")]
