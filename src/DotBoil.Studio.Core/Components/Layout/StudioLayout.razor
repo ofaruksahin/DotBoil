@@ -163,9 +163,9 @@
         <div class="sab-divider mx-2"></div>
 
         <!-- Avatar + user menu -->
-        <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true">
+        <MudMenu @ref="_userMenu" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true">
             <ActivatorContent>
-                <div class="sum-trigger">
+                <div class="sum-trigger" @onclick="@(async (e) => await _userMenu!.OpenMenuAsync(e))">
                     <div class="sum-avatar">
                         <img src="https://i.pravatar.cc/40?img=12" alt="AY" />
                     </div>
@@ -268,6 +268,7 @@
 @code {
     private bool _drawerOpen = true;
     private IEnumerable<MenuItem> MenuItems = Array.Empty<MenuItem>();
+    private MudMenu? _userMenu;
     
     [Inject] private JwtAuthService JwtAuthService { get; set; }
     
