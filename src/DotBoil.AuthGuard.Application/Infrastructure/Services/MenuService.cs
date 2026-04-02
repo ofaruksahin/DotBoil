@@ -42,7 +42,7 @@ public class MenuService : IMenuService
                 .Get()
                 .Where(u => u.Id == userId)
                 .SelectMany(u => u.Roles.Where(r => !r.IsDeleted))
-                .SelectMany(r => r.Role.Menus.Where(m => !m.IsDeleted && !m.Menu.IsDeleted))
+                .SelectMany(r => r.Role.Menus.Where(m => !m.IsDeleted && !m.Menu.IsDeleted).Select(r => r.Menu))
                 .ToListAsync();
 
             menuList = menuList
@@ -50,18 +50,18 @@ public class MenuService : IMenuService
                 .ToList();
 
             return menuList
-                .Where(m => m.Menu.ParentMenuId is null)
+                .Where(m => m.ParentMenuId is null)
                 .Select(m => new MenuItem
                 {
-                    Name = m.Menu.Name,
-                    Icon = m.Menu.Icon,
-                    Path = m.Menu.Path,
-                    Childs = menuList.Where(mm => mm.Menu.ParentMenuId == m.Id)
+                    Name = m.Name,
+                    Icon = m.Icon,
+                    Path = m.Path,
+                    Childs = menuList.Where(mm => mm.ParentMenuId == m.Id)
                         .Select(mm => new MenuItem
                         {
-                            Name = mm.Menu.Name,
-                            Icon = mm.Menu.Icon,
-                            Path = mm.Menu.Path
+                            Name = mm.Name,
+                            Icon = mm.Icon,
+                            Path = mm.Path
                         }).ToArray()
                 });
         }, TimeSpan.FromDays(1));

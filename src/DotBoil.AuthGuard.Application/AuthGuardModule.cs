@@ -187,7 +187,6 @@ public class AuthGuardModule : Module
                             Name = "Roller",
                             Icon = "<g><rect fill=\"none\" height=\"24\" width=\"24\"/></g><g><g><path d=\"M21,9v2h-2V3h-2v2h-2V3h-2v2h-2V3H9v2H7V3H5v8H3V9H1v12h9v-3c0-1.1,0.9-2,2-2s2,0.9,2,2v3h9V9H21z M11,12H9V9h2V12z M15,12h-2V9h2V12z\"/></g></g>",
                             Path = "/roles",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now,
                         },
@@ -196,7 +195,6 @@ public class AuthGuardModule : Module
                             Name = "Modüller",
                             Icon = "<path d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M18 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-2.5 4c0-1.38 1.12-2.5 2.5-2.5.42 0 .8.11 1.15.29l-3.36 3.36c-.18-.35-.29-.73-.29-1.15zm2.5 2.5c-.42 0-.8-.11-1.15-.29l3.36-3.36c.18.35.29.73.29 1.15 0 1.38-1.12 2.5-2.5 2.5zM17 18H7V6h10v1h2V3c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-4h-2v1z\"/>",
                             Path = "/modules",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now
                         },
@@ -205,7 +203,6 @@ public class AuthGuardModule : Module
                             Name = "Menüler",
                             Icon = "<path d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z\"/>",
                             Path = "/menu",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now
                         },
@@ -214,7 +211,6 @@ public class AuthGuardModule : Module
                             Name = "Servisler",
                             Icon = "<g><path d=\"M0,0h24v24H0V0z\" fill=\"none\"/><path d=\"M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z\"/></g>",
                             Path = "/api-endpoints",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now
                         },
@@ -223,7 +219,6 @@ public class AuthGuardModule : Module
                             Name = "Parametreler",
                             Icon = "<path clip-rule=\"evenodd\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z\"/>",
                             Path = "/parameters",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now
                         },
@@ -232,7 +227,6 @@ public class AuthGuardModule : Module
                             Name = "Lokalizasyonlar",
                             Icon = "<path d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z\"/>",
                             Path = "/localizations",
-                            ParentMenuId = 0,
                             CreateUser = "SYSTEM",
                             CreateTime = DateTime.Now
                         }
