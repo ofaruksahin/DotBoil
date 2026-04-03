@@ -1,56 +1,85 @@
-<MudContainer>
-    <MudGrid>
-        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12">
-            <MudTextField 
-                T="string"
-                @bind-Value="Value" 
-                Label="Element Id" 
-                Placeholder="Enter the Element Id" 
-                Adornment="Adornment.End" 
-                AdornmentIcon="@Icons.Material.Filled.Add"
-                OnAdornmentClick="AddDependsOn"
-                Variant="Variant.Outlined"></MudTextField>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="12" lg="12" xl="12" xxl="12">
-            <MudTable T="string" Items="Current" Hover="true">
-                <RowTemplate>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Actions</MudTh>
-                </RowTemplate>
-                <RowTemplate>
-                    @foreach (var item in Current)
-                    {
-                        <MudTd DataLabel="Name">@item</MudTd>
-                        <MudTd DataLabel="Actions">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveDependsOn(item)"></MudIconButton>
-                        </MudTd>
-                    }
-                </RowTemplate>
-            </MudTable>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+<style>
+    .dor-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+    .dor-chips {
+        display: flex; flex-wrap: wrap; gap: 6px;
+        min-height: 36px; padding: 8px 10px;
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 10px;
+    }
+    .dor-empty {
+        font-size: .72rem; color: #94a3b8;
+        display: flex; align-items: center; gap: 5px;
+    }
+</style>
+
+<div class="dor-wrap">
+
+    <MudTextField T="string"
+                  @bind-Value="Value"
+                  Label="Element Id ekle"
+                  Placeholder="Bağımlı olunacak alanın Id'sini girin"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Rounded.AddCircleOutline"
+                  OnAdornmentClick="AddDependsOn"
+                  OnKeyDown="OnKeyDown" />
+
+    <div class="dor-chips">
+        @if (Current != null && Current.Any())
+        {
+            @foreach (var item in Current)
+            {
+                <MudChip T="string"
+                         Text="@item"
+                         Color="Color.Primary"
+                         Variant="Variant.Outlined"
+                         Size="Size.Small"
+                         CloseIcon="@Icons.Material.Rounded.Close"
+                         OnClose="() => RemoveDependsOn(item)" />
+            }
+        }
+        else
+        {
+            <span class="dor-empty">
+                <MudIcon Icon="@Icons.Material.Rounded.LinkOff" Size="Size.Small" />
+                Henüz bağımlılık tanımlanmadı
+            </span>
+        }
+    </div>
+
+</div>
 
 @code {
-    [Parameter] public List<string> Current { get; set; }
+    [Parameter] public List<string> Current { get; set; } = new();
     [Parameter] public BaseComponent CurrentComponent { get; set; }
-    
-    private string Value { get; set; }
 
-    private async Task AddDependsOn()
+    private string Value { get; set; } = string.Empty;
+
+    private void AddDependsOn()
     {
-        if (string.IsNullOrEmpty(Value))
+        var trimmed = Value?.Trim();
+        if (string.IsNullOrEmpty(trimmed) || Current.Contains(trimmed))
+        {
+            Value = string.Empty;
             return;
-        
-        Current.Add(Value);
-        CurrentComponent.DependsOn = Current;
+        }
 
+        Current.Add(trimmed);
+        CurrentComponent.DependsOn = Current;
         Value = string.Empty;
     }
 
-    private async Task RemoveDependsOn(string item)
+    private void OnKeyDown(KeyboardEventArgs e)
     {
-        Current.RemoveAll(curr => curr == item);
+        if (e.Key == "Enter")
+            AddDependsOn();
+    }
+
+    private void RemoveDependsOn(string item)
+    {
+        Current.RemoveAll(c => c == item);
         CurrentComponent.DependsOn = Current;
-    } 
+    }
 }

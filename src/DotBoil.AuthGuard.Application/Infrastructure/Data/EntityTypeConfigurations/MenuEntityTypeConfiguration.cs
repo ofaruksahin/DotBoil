@@ -27,9 +27,19 @@ public class MenuEntityTypeConfiguration : EFCoreEntityTypeConfiguration<Menu>
             .IsRequired(false);
 
         builder
+            .Property(p => p.Header)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        builder
+            .Property(p => p.Rank)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder
             .Property(p => p.ParentMenuId)
             .IsRequired(false);
-        
+
         builder.ToTable("Menus");
     }
 }

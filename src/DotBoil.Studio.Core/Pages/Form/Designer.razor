@@ -3,40 +3,135 @@
 @inject IDialogService DialogService;
 @inject ISnackbar Snackbar;
 
+<style>
+    /* ── Sayfa Kimliği başlık alanı ── */
+    .page-identity {
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: 16px 20px; margin-bottom: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0; border-radius: 14px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .page-identity-icon {
+        width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px;
+        background: linear-gradient(145deg, #6366f1, #818cf8);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 8px rgba(99,102,241,.3);
+    }
+    .page-identity-icon .mud-icon-root { color: #fff; font-size: 20px !important; }
+    .page-identity-fields { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .page-identity-name {
+        font-size: 1.05rem; font-weight: 700; color: #0f172a;
+        cursor: pointer; border-radius: 6px; padding: 2px 4px;
+        transition: background .15s;
+    }
+    .page-identity-name:hover { background: #f1f5f9; }
+    .page-identity-desc {
+        font-size: .78rem; color: #64748b;
+        cursor: pointer; border-radius: 6px; padding: 2px 4px;
+        transition: background .15s;
+    }
+    .page-identity-desc:hover { background: #f1f5f9; }
+    .page-identity-placeholder { color: #cbd5e1; font-style: italic; }
+</style>
+
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
+
+    <!-- Sayfa Kimliği -->
+    <div class="page-identity">
+        <div class="page-identity-icon">
+            <MudIcon Icon="@Icons.Material.Rounded.WebAsset" />
+        </div>
+        <div class="page-identity-fields">
+            @if (_editingName)
+            {
+                <MudTextField T="string"
+                              @bind-Value="_pageName"
+                              Placeholder="Sayfa adı girin"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              AutoFocus="true"
+                              OnBlur="() => _editingName = false"
+                              OnKeyDown="@(e => { if (e.Key == "Enter" || e.Key == "Escape") _editingName = false; })" />
+            }
+            else
+            {
+                <span class="page-identity-name" @onclick="() => _editingName = true">
+                    @if (string.IsNullOrWhiteSpace(_pageName))
+                    {
+                        <span class="page-identity-placeholder">İsimsiz Sayfa</span>
+                    }
+                    else
+                    {
+                        @_pageName
+                    }
+                </span>
+            }
+
+            @if (_editingDescription)
+            {
+                <MudTextField T="string"
+                              @bind-Value="_pageDescription"
+                              Placeholder="Kısa bir açıklama ekleyin"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Lines="2"
+                              AutoFocus="true"
+                              OnBlur="() => _editingDescription = false" />
+            }
+            else
+            {
+                <span class="page-identity-desc" @onclick="() => _editingDescription = true">
+                    @if (string.IsNullOrWhiteSpace(_pageDescription))
+                    {
+                        <span class="page-identity-placeholder">Açıklama eklemek için tıklayın…</span>
+                    }
+                    else
+                    {
+                        @_pageDescription
+                    }
+                </span>
+            }
+        </div>
+    </div>
 
     <MudGrid GutterSize="3">
 
-        <!-- Sol 8-column alan -->
+        <!-- Sol alan: canvas -->
         <MudItem xs="@(DesignerMode ? 12 : 8)" md="@(DesignerMode ? 8 : 12)" lg="@(DesignerMode ? 8 : 12)" xl="@(DesignerMode ? 8 : 12)" xxl="@(DesignerMode ? 10 : 12)">
             <MudItem xs="12">
                 <MudPaper Class="pa-4" Style="min-height:400px; position: relative;">
                     <MudIconButton Icon="@Icons.Material.Filled.Add" Style="position: absolute; top: 8px; right: 8px;"
-                                   OnClick="OpenAddNewFieldDialog" Disabled="!DesignerMode"/>
-                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Style="position: absolute; top: 8px; right: 88px;" OnClick="() => StateHasChanged()" Disabled="!DesignerMode"></MudIconButton>
-                    <MudIconButton Icon="@(DesignerMode ? Icons.Material.Filled.Preview : Icons.Material.Filled.StopCircle)" Style="position: absolute; top: 8px; right: 48px;" OnClick="ChangeDesignerMode"></MudIconButton>
-                    <MudText Typo="Typo.h6">Form</MudText>
+                                   OnClick="OpenAddNewFieldDialog" Disabled="!DesignerMode" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Style="position: absolute; top: 8px; right: 88px;"
+                                   OnClick="() => StateHasChanged()" Disabled="!DesignerMode" />
+                    <MudIconButton Icon="@(DesignerMode ? Icons.Material.Filled.Preview : Icons.Material.Filled.StopCircle)"
+                                   Style="position: absolute; top: 8px; right: 48px;"
+                                   OnClick="ChangeDesignerMode" />
+                    <MudText Typo="Typo.h6">Canvas</MudText>
 
                     <MudItem xs="12" Class="pt-3">
-                        <ComponentRenderer FormFields="FormFieldsToRender" DesignerMode="DesignerMode" OnFieldSelected="OnFieldSelected" OnFieldsReordered="OnFieldsReordered"></ComponentRenderer>
+                        <ComponentRenderer FormFields="FormFieldsToRender" DesignerMode="DesignerMode"
+                                           OnFieldSelected="OnFieldSelected" OnFieldDeleted="OnFieldDeleted"
+                                           OnFieldsReordered="OnFieldsReordered" />
                     </MudItem>
                 </MudPaper>
             </MudItem>
-
         </MudItem>
 
         @if (DesignerMode)
         {
-            <!-- Sağ 4-column alan -->
+            <!-- Sağ alan: element ayarları -->
             <MudItem xs="12" md="4" lg="4" xl="4" xxl="2">
                 <MudPaper Class="pa-4" Style="min-height:400px; max-height:80vh; overflow-y:auto;">
                     <MudText Typo="Typo.h6">Element Settings</MudText>
                     <MudItem xs="12" Class="pt-3">
-                        <FormFieldProperties SelectedFormField="SelectedFormField" OnDelete="FormFieldOnDelete"></FormFieldProperties>
+                        <FormFieldProperties SelectedFormField="SelectedFormField" OnDelete="FormFieldOnDelete" OnPropertyChanged="StateHasChanged" />
                     </MudItem>
                 </MudPaper>
             </MudItem>
         }
+
     </MudGrid>
 </MudContainer>
 
@@ -45,11 +140,16 @@
     private BaseComponent? SelectedFormField = null;
     private bool DesignerMode = true;
 
+    private string _pageName = string.Empty;
+    private string _pageDescription = string.Empty;
+    private bool _editingName;
+    private bool _editingDescription;
+
     private async Task OnFieldSelected(BaseComponent component)
     {
         SelectedFormField = component;
     }
-    
+
     private async Task OpenAddNewFieldDialog()
     {
         var options = new DialogOptions
@@ -76,7 +176,7 @@
         {
             if (!FormFieldsToRender.Any())
             {
-                Snackbar.Add("Görüntüleme yapman için henüz ortada bir form yok", Severity.Warning);
+                Snackbar.Add("Görüntüleme yapman için henüz ortada bir bileşen yok", Severity.Warning);
                 return;
             }
         }
@@ -87,18 +187,46 @@
 
     private void OnFieldsReordered() => StateHasChanged();
 
+    private void OnFieldDeleted(BaseComponent component)
+    {
+        if (SelectedFormField?.Id == component.Id)
+            SelectedFormField = null;
+        StateHasChanged();
+    }
+
     private void FormFieldOnDelete(BaseComponent component)
     {
-        var deleteItem = FormFieldsToRender.FirstOrDefault(ff => ff.Id == component.Id);
-        if (deleteItem is null)
+        if (string.IsNullOrWhiteSpace(component.Id))
         {
             Snackbar.Add("Silinecek alanın Id değeri boş olamaz.", Severity.Error);
             return;
         }
 
-        if (SelectedFormField.Id == component.Id)
-            SelectedFormField = null;
+        if (!TryDelete(FormFieldsToRender, component.Id))
+        {
+            Snackbar.Add("Bileşen bulunamadı.", Severity.Error);
+            return;
+        }
 
-        FormFieldsToRender.Remove(deleteItem);
+        if (SelectedFormField?.Id == component.Id)
+            SelectedFormField = null;
+    }
+
+    private static bool TryDelete(List<BaseComponent> fields, string id)
+    {
+        var item = fields.FirstOrDefault(f => f.Id == id);
+        if (item is not null)
+        {
+            fields.Remove(item);
+            return true;
+        }
+
+        foreach (var container in fields.OfType<ContainerComponent>())
+        {
+            if (TryDelete(container.Children, id))
+                return true;
+        }
+
+        return false;
     }
 }

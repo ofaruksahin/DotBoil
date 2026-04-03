@@ -1,0 +1,163 @@
+@inject IDialogService DialogService
+
+<style>
+    .fcr-wrap {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #fafbfd;
+        transition: border-color .2s;
+    }
+    .fcr-wrap:hover { border-color: #94a3b8; }
+    .fcr-wrap.fcr-selected { border-color: #6366f1; border-style: solid; }
+
+    .fcr-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 10px 10px 0 0;
+        background: linear-gradient(135deg, #f0f9ff, #ede9fe);
+        border-bottom: 1px solid #e0e7ff; cursor: pointer;
+        user-select: none;
+    }
+    .fcr-header-icon { color: #6366f1; }
+    .fcr-header-title { font-size: .78rem; font-weight: 700; color: #0f172a; flex: 1; }
+    .fcr-header-desc {
+        font-size: .66rem; color: #64748b; margin-top: 1px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .fcr-header-url {
+        font-size: .68rem; color: #64748b; font-family: monospace;
+        background: #e2e8f0; padding: 1px 7px; border-radius: 6px;
+        max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .fcr-body { padding: 12px; }
+
+    .fcr-empty {
+        display: flex; flex-direction: column; align-items: center;
+        padding: 24px 16px; color: #94a3b8; gap: 6px;
+    }
+    .fcr-empty-icon { font-size: 32px !important; }
+    .fcr-empty-text { font-size: .78rem; font-weight: 500; }
+
+    .fcr-footer {
+        padding: 8px 12px; border-top: 1px solid #f1f5f9;
+        display: flex; justify-content: flex-end;
+        border-radius: 0 0 10px 10px;
+    }
+</style>
+
+@if (Context.DesignerMode)
+{
+    <div class="fcr-wrap @(_isSelected ? "fcr-selected" : "")">
+
+        <!-- Header — tıklanınca formu seçer -->
+        <div class="fcr-header" @onclick="SelectForm" @onclick:stopPropagation="true">
+            <MudIcon Icon="@Icons.Material.Rounded.DynamicForm" Size="Size.Small" Class="fcr-header-icon" />
+            <div style="flex:1; min-width:0;">
+                <div class="fcr-header-title">
+                    @(string.IsNullOrWhiteSpace(Form.Name) ? Form.Title : Form.Name)
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Form.Description))
+                {
+                    <div class="fcr-header-desc">@Form.Description</div>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Form.ActionUrl))
+            {
+                <span class="fcr-header-url">@Form.HttpMethod @Form.ActionUrl</span>
+            }
+        </div>
+
+        <!-- Children -->
+        <div class="fcr-body" @onclick:stopPropagation="true">
+            @if (Form.Children.Any())
+            {
+                <ComponentRenderer FormFields="Form.Children"
+                                   DesignerMode="true"
+                                   OnFieldSelected="Context.OnFieldSelected"
+                                   OnFieldDeleted="Context.OnFieldDeleted"
+                                   OnFieldsReordered="StateHasChanged" />
+            }
+            else
+            {
+                <div class="fcr-empty" @onclick="SelectForm" @onclick:stopPropagation="true">
+                    <MudIcon Icon="@Icons.Material.Rounded.AddBox" Class="fcr-empty-icon" />
+                    <span class="fcr-empty-text">Forma bileşen eklemek için + butonuna tıklayın</span>
+                </div>
+            }
+        </div>
+
+        <!-- Footer — bileşen ekle -->
+        <div class="fcr-footer" @onclick:stopPropagation="true">
+            <MudButton Size="Size.Small"
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Rounded.Add"
+                       Color="Color.Primary"
+                       OnClick="OpenAddFieldDialog">
+                Bileşen Ekle
+            </MudButton>
+        </div>
+
+    </div>
+}
+else
+{
+    <form method="@Form.HttpMethod.ToLower()" action="@Form.ActionUrl">
+        <ComponentRenderer FormFields="Form.Children" DesignerMode="false" OnFieldSelected="Context.OnFieldSelected" />
+        @if (!string.IsNullOrWhiteSpace(Form.SubmitButtonText))
+        {
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Class="mt-3">
+                @Form.SubmitButtonText
+            </MudButton>
+        }
+    </form>
+}
+
+@code {
+    [Parameter] public BaseComponent Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+
+    private FormComponent Form => (FormComponent)Current;
+    private bool _isSelected;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // Context üzerinden seçili olup olmadığını izle
+        _isSelected = false;
+    }
+
+    private async Task SelectForm()
+    {
+        _isSelected = true;
+        if (Context.OnFieldSelected.HasDelegate)
+            await Context.OnFieldSelected.InvokeAsync(Current);
+    }
+
+    private async Task OpenAddFieldDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.ShowAsync<AddNewFieldDialog>(
+            AddNewFieldDialog.DialogTitle,
+            new DialogParameters { ["ExcludeContainers"] = true },
+            options);
+
+        var dialogRef = await dialog;
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled)
+        {
+            var field = (BaseComponent)Activator.CreateInstance(result.Data.GetType())!;
+            field.Id = Guid.NewGuid().ToString().Replace("-", "")[..8];
+            Form.Children.Add(field);
+            StateHasChanged();
+        }
+    }
+}

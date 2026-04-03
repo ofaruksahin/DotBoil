@@ -1,0 +1,63 @@
+@page "/404"
+@layout StudioLayout
+
+<style>
+    .nf-wrap {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 60vh; text-align: center; gap: 0;
+        padding: 40px 20px;
+    }
+
+    .nf-code {
+        font-size: 7rem; font-weight: 800; line-height: 1;
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        letter-spacing: -.05em; user-select: none;
+    }
+
+    .nf-icon {
+        font-size: 48px !important; color: #cbd5e1;
+        margin: 8px 0 16px;
+    }
+
+    .nf-title {
+        font-size: 1.25rem; font-weight: 700; color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .nf-desc {
+        font-size: .875rem; color: #94a3b8; max-width: 380px;
+        line-height: 1.6; margin-bottom: 28px;
+    }
+
+    .nf-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+</style>
+
+<div class="nf-wrap">
+    <div class="nf-code">404</div>
+    <MudIcon Icon="@Icons.Material.Rounded.SearchOff" Class="nf-icon" />
+    <div class="nf-title">Sayfa bulunamadı</div>
+    <div class="nf-desc">
+        Aradığınız sayfa kaldırılmış, taşınmış ya da hiç var olmamış olabilir.
+    </div>
+    <div class="nf-actions">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Rounded.Home"
+                   Href="/"
+                   Size="Size.Medium">
+            Ana Sayfaya Dön
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   StartIcon="@Icons.Material.Rounded.ArrowBack"
+                   OnClick="@(() => NavigationManager.NavigateTo("javascript:history.back()"))"
+                   Size="Size.Medium">
+            Geri Git
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; }
+}

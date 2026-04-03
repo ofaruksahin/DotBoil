@@ -1,44 +1,97 @@
-<MudContainer>
-    <MudGrid>
-        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
-            <MudNumericField
-                @bind-Value="Current.ColumnSpanXs"
-                Label="Extra Small"
-                Min="0"
-                Max="12"></MudNumericField>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
-            <MudNumericField
-                @bind-Value="Current.ColumnSpanSm"
-                Label="Small"
-                Min="0"
-                Max="12"></MudNumericField>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
-            <MudNumericField
-                @bind-Value="Current.ColumnSpanMd"
-                Label="Medium"
-                Min="0"
-                Max="12"></MudNumericField>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
-            <MudNumericField
-                @bind-Value="Current.ColumnSpanLg"
-                Label="Large"
-                Min="0"
-                Max="12"></MudNumericField>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="6" lg="6" xl="6" xxl="6" class="mb-2">
-            <MudNumericField
-                @bind-Value="Current.ColumnSpanXl"
-                Label="Extra Large"
-                Min="0"
-                Max="12"></MudNumericField>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+<style>
+    .css-root { display: flex; flex-direction: column; gap: 10px; }
+
+    .css-row { display: flex; flex-direction: column; gap: 4px; }
+
+    .css-label {
+        display: flex; align-items: center; gap: 6px;
+        font-size: .72rem; font-weight: 700; color: #475569;
+        text-transform: uppercase; letter-spacing: .04em;
+    }
+    .css-label-icon { font-size: 15px !important; color: #94a3b8; }
+    .css-label-badge {
+        margin-left: auto; font-size: .68rem; font-weight: 700;
+        color: #0369a1; background: #e0f2fe;
+        padding: 1px 7px; border-radius: 10px;
+    }
+
+    .css-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 3px;
+    }
+    .css-cell {
+        height: 22px; border-radius: 4px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: all .12s ease;
+        position: relative;
+    }
+    .css-cell:hover { border-color: #7dd3fc; background: #e0f2fe; }
+    .css-cell.active {
+        background: #0ea5e9;
+        border-color: #0284c7;
+    }
+    .css-cell.active:hover { background: #0284c7; }
+    .css-cell-num {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .6rem; font-weight: 700;
+        color: transparent;
+        pointer-events: none;
+    }
+    .css-cell.active .css-cell-num { color: #fff; }
+    .css-cell:hover .css-cell-num { color: #0369a1; }
+    .css-cell.active:hover .css-cell-num { color: #fff; }
+</style>
+
+<div class="css-root">
+    @foreach (var bp in _breakpoints)
+    {
+        <div class="css-row">
+            <div class="css-label">
+                <MudIcon Icon="@bp.Icon" Class="css-label-icon" />
+                <span>@bp.Label</span>
+                <span class="css-label-badge">@bp.GetValue(Current) / 12</span>
+            </div>
+            <div class="css-grid">
+                @for (int col = 1; col <= 12; col++)
+                {
+                    var capturedCol = col;
+                    var capturedBp = bp;
+                    var isActive = capturedCol <= capturedBp.GetValue(Current);
+                    <div class="css-cell @(isActive ? "active" : "")"
+                         @onclick="() => capturedBp.SetValue(Current, capturedCol)">
+                        <span class="css-cell-num">@capturedCol</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter] public ColumnSpanSize Current { get; set; }
     [Parameter] public BaseComponent CurrentComponent { get; set; }
+
+    private record Breakpoint(
+        string Label,
+        string Icon,
+        Func<ColumnSpanSize, int> GetValue,
+        Action<ColumnSpanSize, int> SetValue);
+
+    private readonly List<Breakpoint> _breakpoints =
+    [
+        new("XS", Icons.Material.Rounded.PhoneAndroid,
+            s => s.ColumnSpanXs, (s, v) => s.ColumnSpanXs = v),
+        new("SM", Icons.Material.Rounded.TabletAndroid,
+            s => s.ColumnSpanSm, (s, v) => s.ColumnSpanSm = v),
+        new("MD", Icons.Material.Rounded.Laptop,
+            s => s.ColumnSpanMd, (s, v) => s.ColumnSpanMd = v),
+        new("LG", Icons.Material.Rounded.DesktopWindows,
+            s => s.ColumnSpanLg, (s, v) => s.ColumnSpanLg = v),
+        new("XL", Icons.Material.Rounded.Tv,
+            s => s.ColumnSpanXl, (s, v) => s.ColumnSpanXl = v),
+    ];
 }

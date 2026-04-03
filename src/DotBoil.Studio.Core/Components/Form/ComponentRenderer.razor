@@ -35,7 +35,54 @@
     .cr-item-wrap.designer.selected {
         box-shadow: 0 0 0 2px #6366f1, 0 4px 12px rgba(99,102,241,.15);
     }
+
+    /* context menu overlay */
+    .cr-ctx-overlay {
+        position: fixed; inset: 0; z-index: 999;
+    }
+
+    /* context menu */
+    .cr-ctx-menu {
+        position: fixed; z-index: 1000;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(15,23,42,.12);
+        min-width: 160px;
+        overflow: hidden;
+        padding: 4px 0;
+    }
+    .cr-ctx-item {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 14px;
+        font-size: .78rem; font-weight: 600; color: #334155;
+        cursor: pointer;
+        transition: background .1s;
+        user-select: none;
+    }
+    .cr-ctx-item:hover { background: #f8fafc; }
+    .cr-ctx-item.danger { color: #dc2626; }
+    .cr-ctx-item.danger:hover { background: #fff1f2; }
+    .cr-ctx-item .mud-icon-root { font-size: 17px !important; }
+    .cr-ctx-divider { height: 1px; background: #f1f5f9; margin: 4px 0; }
 </style>
+
+<!-- Context menu overlay (closes on click outside) -->
+@if (_ctxField is not null)
+{
+    <div class="cr-ctx-overlay" @onclick="CloseContextMenu"></div>
+    <div class="cr-ctx-menu" style="left:@(_ctxX)px; top:@(_ctxY)px;">
+        <div class="cr-ctx-item" @onclick="() => CtxSelect(_ctxField)">
+            <MudIcon Icon="@Icons.Material.Rounded.TouchApp" />
+            Seç
+        </div>
+        <div class="cr-ctx-divider"></div>
+        <div class="cr-ctx-item danger" @onclick="() => CtxDelete(_ctxField)">
+            <MudIcon Icon="@Icons.Material.Rounded.DeleteOutline" />
+            Sil
+        </div>
+    </div>
+}
 
 <MudGrid GutterSize="3">
     @for (var i = 0; i < FormFields.Count; i++)
@@ -61,7 +108,9 @@
                      @ondrop:preventDefault="true"
                      @ondrop="@OnDrop"
                      @ondragend="@OnDragEnd"
-                     @onclick="@(() => OnFieldClicked(field))">
+                     @onclick="@(() => OnFieldClicked(field))"
+                     @oncontextmenu:preventDefault="true"
+                     @oncontextmenu="@(e => OpenContextMenu(e, field))">
 
                     @if (DesignerMode)
                     {
@@ -82,12 +131,42 @@
     [Parameter] public List<BaseComponent> FormFields { get; set; } = [];
     [Parameter] public bool DesignerMode { get; set; }
     [Parameter] public EventCallback<BaseComponent> OnFieldSelected { get; set; }
+    [Parameter] public EventCallback<BaseComponent> OnFieldDeleted { get; set; }
     [Parameter] public EventCallback OnFieldsReordered { get; set; }
 
     internal BaseComponent? SelectedField { get; set; }
 
     private int _draggedIndex = -1;
     private int _targetIndex  = -1;
+
+    private BaseComponent? _ctxField;
+    private double _ctxX;
+    private double _ctxY;
+
+    private void OpenContextMenu(MouseEventArgs e, BaseComponent field)
+    {
+        if (!DesignerMode) return;
+        _ctxField = field;
+        _ctxX = e.ClientX;
+        _ctxY = e.ClientY;
+    }
+
+    private void CloseContextMenu() => _ctxField = null;
+
+    private async Task CtxSelect(BaseComponent field)
+    {
+        CloseContextMenu();
+        await OnFieldClicked(field);
+    }
+
+    private async Task CtxDelete(BaseComponent field)
+    {
+        CloseContextMenu();
+        FormFields.Remove(field);
+        if (SelectedField == field) SelectedField = null;
+        if (OnFieldDeleted.HasDelegate) await OnFieldDeleted.InvokeAsync(field);
+        if (OnFieldsReordered.HasDelegate) await OnFieldsReordered.InvokeAsync();
+    }
 
     private void OnDragStart(int index)
     {
@@ -98,9 +177,7 @@
     private void OnDragOver(int index)
     {
         if (_targetIndex != index)
-        {
             _targetIndex = index;
-        }
     }
 
     private async Task OnDrop()
@@ -136,9 +213,10 @@
     {
         var componentContext = new ComponentContext
         {
-            DesignerMode = DesignerMode,
-            Components   = FormFields,
-            OnFieldSelected = OnFieldSelected
+            DesignerMode    = DesignerMode,
+            Components      = FormFields,
+            OnFieldSelected = OnFieldSelected,
+            OnFieldDeleted  = OnFieldDeleted
         };
 
         return new Dictionary<string, object>

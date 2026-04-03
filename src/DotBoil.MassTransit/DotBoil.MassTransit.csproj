@@ -17,8 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
-    <PackageReference Include="MassTransit" Version="9.0.0" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0" />
+    <PackageReference Include="MassTransit" Version="8.5.8" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">

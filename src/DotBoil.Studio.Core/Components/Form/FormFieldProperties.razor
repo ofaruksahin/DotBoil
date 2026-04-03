@@ -73,12 +73,13 @@
                                              Value="@(currentValue is null ? null : Convert.ToDecimal(currentValue))"
                                              Variant="Variant.Outlined"
                                              Margin="Margin.Dense"
-                                             ValueChanged="@(v =>
+                                             ValueChanged="@(async v =>
                                              {
                                                  if (propInfo != null && propInfo.CanWrite)
                                                  {
                                                      if (v == null) propInfo.SetValue(SelectedFormField, null);
                                                      else propInfo.SetValue(SelectedFormField, Convert.ChangeType(v, propertyType));
+                                                     await NotifyChanged();
                                                  }
                                              })" />
                         }
@@ -87,10 +88,13 @@
                             <MudDatePicker Date="@(currentValue as DateTime?)"
                                            Variant="Variant.Outlined"
                                            Margin="Margin.Dense"
-                                           DateChanged="@(v =>
+                                           DateChanged="@(async v =>
                                            {
                                                if (propInfo != null && propInfo.CanWrite)
+                                               {
                                                    propInfo.SetValue(SelectedFormField, v);
+                                                   await NotifyChanged();
+                                               }
                                            })" />
                         }
                         else if (BooleanTypes.Contains(propertyType))
@@ -98,10 +102,13 @@
                             <MudSwitch T="bool"
                                        Color="Color.Primary"
                                        Value="(bool)currentValue"
-                                       ValueChanged="@((bool v) =>
+                                       ValueChanged="@(async (bool v) =>
                                        {
                                            if (propInfo != null && propInfo.CanWrite)
+                                           {
                                                propInfo.SetValue(SelectedFormField, v);
+                                               await NotifyChanged();
+                                           }
                                        })" />
                         }
                         else
@@ -110,10 +117,13 @@
                                           Value="@(currentValue?.ToString())"
                                           Variant="Variant.Outlined"
                                           Margin="Margin.Dense"
-                                          ValueChanged="@(v =>
+                                          ValueChanged="@(async v =>
                                           {
                                               if (propInfo != null && propInfo.CanWrite)
+                                              {
                                                   propInfo.SetValue(SelectedFormField, v);
+                                                  await NotifyChanged();
+                                              }
                                           })" />
                         }
                     }
@@ -154,6 +164,7 @@
 {
     [Parameter] public BaseComponent? SelectedFormField { get; set; }
     [Parameter] public EventCallback<BaseComponent> OnDelete { get; set; }
+    [Parameter] public EventCallback OnPropertyChanged { get; set; }
 
     private Dictionary<string, FieldPropertyAttribute> Attributes = new();
 
@@ -184,6 +195,13 @@
             foreach (var prop in props)
                 Attributes.Add(prop.Name, prop.GetCustomAttribute<FieldPropertyAttribute>()!);
         }
+    }
+
+    private async Task NotifyChanged()
+    {
+        StateHasChanged();
+        if (OnPropertyChanged.HasDelegate)
+            await OnPropertyChanged.InvokeAsync();
     }
 
     private async Task OnDeleteClicked()

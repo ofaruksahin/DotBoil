@@ -1,3 +1,5 @@
+@inject NavigationManager Nav
+
 <MudThemeProvider Theme="_theme"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
@@ -5,13 +7,25 @@
 
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData"
-                   DefaultLayout="@typeof(StudioLayout)"/>
+        @{
+            var path = Nav.ToBaseRelativePath(Nav.Uri);
+            var isAuthCallback = path.StartsWith("auth/callback", StringComparison.OrdinalIgnoreCase);
+        }
+
+        @if (isAuthCallback)
+        {
+            <RouteView RouteData="@routeData" />
+        }
+        else
+        {
+            <RouteView RouteData="@routeData"
+                       DefaultLayout="@typeof(StudioLayout)" />
+        }
     </Found>
 
     <NotFound>
         <LayoutView Layout="@typeof(StudioLayout)">
-            <p>Page not found</p>
+            <NotFoundRedirect/>
         </LayoutView>
     </NotFound>
 </Router>
@@ -68,13 +82,6 @@
     }
 
     [Inject]
-    private NavigationManager Nav
-    {
-        get;
-        set;
-    }
-
-    [Inject]
     private IConfiguration Configuration
     {
         get;
@@ -114,7 +121,7 @@
                     await AuthService.ClearTokenAsync();
                 }
                 
-                var redirectUri = Uri.EscapeDataString(Nav.Uri);
+                var redirectUri = Uri.EscapeDataString(Nav.BaseUri);
                 var authServerUrl = string.Format("{0}{1}?redirect_uri={2}{3}",
                     authServerConfiguration.Url,
                     authServerConfiguration.AuthorizeEndpoint, redirectUri,

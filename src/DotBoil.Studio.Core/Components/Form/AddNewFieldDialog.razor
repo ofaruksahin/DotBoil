@@ -96,13 +96,16 @@
 @code {
     public static string DialogTitle => "Bileşen Ekle";
 
+    [Parameter] public bool ExcludeContainers { get; set; }
+
     private string _search = string.Empty;
     private string? _activeCategory;
 
-    private List<BaseComponent> _allFields = AppDomain.CurrentDomain
+    private List<BaseComponent> _allFields => AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(a => a.GetTypes())
-        .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(BaseComponent)))
+        .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(BaseComponent)) &&
+                    (!ExcludeContainers || !t.IsSubclassOf(typeof(ContainerComponent))))
         .Select(t => (BaseComponent)Activator.CreateInstance(t)!)
         .OrderBy(f => f.Category)
         .ThenBy(f => f.Title)

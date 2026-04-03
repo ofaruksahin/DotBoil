@@ -51,17 +51,24 @@ public class MenuService : IMenuService
 
             return menuList
                 .Where(m => m.ParentMenuId is null)
+                .OrderBy(m => m.Rank)
                 .Select(m => new MenuItem
                 {
                     Name = m.Name,
                     Icon = m.Icon,
                     Path = m.Path,
-                    Childs = menuList.Where(mm => mm.ParentMenuId == m.Id)
+                    Header = m.Header,
+                    Rank = m.Rank,
+                    Childs = menuList
+                        .Where(mm => mm.ParentMenuId == m.Id)
+                        .OrderBy(mm => mm.Rank)
                         .Select(mm => new MenuItem
                         {
                             Name = mm.Name,
                             Icon = mm.Icon,
-                            Path = mm.Path
+                            Path = mm.Path,
+                            Header = mm.Header,
+                            Rank = mm.Rank
                         }).ToArray()
                 });
         }, TimeSpan.FromDays(1));

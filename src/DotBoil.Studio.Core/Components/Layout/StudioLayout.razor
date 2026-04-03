@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using MudBlazor
 @inherits LayoutComponentBase
+@inject JwtAuthService JwtAuthServivce
 @inject NavigationManager NavigationManager
 
 <style>
@@ -183,7 +184,7 @@
                 <MudMenuItem Icon="@Icons.Material.Rounded.Keyboard"       Href="/shortcuts">Kısayollar</MudMenuItem>
                 <MudDivider Class="my-1" />
                 <MudMenuItem Icon="@Icons.Material.Rounded.Logout" IconColor="Color.Error"
-                             OnClick="@(() => NavigationManager.NavigateTo("/login", true))">
+                             OnClick="Logout">
                     <MudText Style="color:#ef4444;">Çıkış Yap</MudText>
                 </MudMenuItem>
             </ChildContent>
@@ -205,40 +206,29 @@
         <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:12px;">
         <MudNavMenu Dense="true" Rounded="true">
 
-            @if (_drawerOpen) { <span class="snm-section">Genel</span> }
-            @foreach (var menu in MenuItems)
+            @foreach (var group in GroupedMenuItems)
             {
-                if (menu.Childs.Any())
+                @if (_drawerOpen && !string.IsNullOrWhiteSpace(group.Key))
                 {
-                    
+                    <span class="snm-section">@group.Key</span>
                 }
-                else
+                @foreach (var menu in group)
                 {
-                    <MudNavLink Href="@menu.Path" Icon="@menu.Icon" Match="NavLinkMatch.Prefix">@menu.Name</MudNavLink>
+                    if (menu.Childs.Any())
+                    {
+                        <MudNavGroup Title="@menu.Name" Icon="@menu.Icon" Expanded="false">
+                            @foreach (var childMenu in menu.Childs.OrderBy(c => c.Rank))
+                            {
+                                <MudNavLink Href="@childMenu.Path" Icon="@childMenu.Icon" Match="NavLinkMatch.Prefix">@childMenu.Name</MudNavLink>
+                            }
+                        </MudNavGroup>
+                    }
+                    else
+                    {
+                        <MudNavLink Href="@menu.Path" Icon="@menu.Icon" Match="NavLinkMatch.Prefix">@menu.Name</MudNavLink>
+                    }
                 }
             }
-            
-            @* @if (_drawerOpen) { <span class="snm-section">Genel</span> } *@
-            @* <MudNavLink Href="/dashboard"  Icon="@Icons.Material.Rounded.GridView"   Match="NavLinkMatch.Prefix">Dashboard</MudNavLink> *@
-            @* <MudNavLink Href="/analytics"  Icon="@Icons.Material.Rounded.BarChart"   Match="NavLinkMatch.Prefix">Analitik</MudNavLink> *@
-            @* *@
-            @* @if (_drawerOpen) { <span class="snm-section">İçerik</span> } *@
-            @* <MudNavGroup Title="İçerik Tipleri" Icon="@Icons.Material.Rounded.DashboardCustomize" Expanded="false"> *@
-            @*     <MudNavLink Href="/content/posts"      Icon="@Icons.Material.Rounded.Article">Yazılar</MudNavLink> *@
-            @*     <MudNavLink Href="/content/pages"      Icon="@Icons.Material.Rounded.WebAsset">Sayfalar</MudNavLink> *@
-            @*     <MudNavLink Href="/content/categories" Icon="@Icons.Material.Rounded.FolderOpen">Kategoriler</MudNavLink> *@
-            @* </MudNavGroup> *@
-            @* <MudNavLink Href="/page-builder" Icon="@Icons.Material.Rounded.SpaceDashboard" Match="NavLinkMatch.Prefix">Sayfa Builder</MudNavLink> *@
-            @* <MudNavLink Href="/media"        Icon="@Icons.Material.Rounded.PermMedia"      Match="NavLinkMatch.Prefix">Medya</MudNavLink> *@
-            @* *@
-            @* @if (_drawerOpen) { <span class="snm-section">Sistem</span> } *@
-            @* <MudNavGroup Title="Lokalizasyon" Icon="@Icons.Material.Rounded.Translate" Expanded="false"> *@
-            @*     <MudNavLink Href="/localization/languages" Icon="@Icons.Material.Rounded.Language">Diller</MudNavLink> *@
-            @*     <MudNavLink Href="/localization/strings"   Icon="@Icons.Material.Rounded.TextFields">Çeviri Stringleri</MudNavLink> *@
-            @* </MudNavGroup> *@
-            @* <MudNavLink Href="/users"    Icon="@Icons.Material.Rounded.PeopleAlt"       Match="NavLinkMatch.Prefix">Kullanıcılar</MudNavLink> *@
-            @* <MudNavLink Href="/settings" Icon="@Icons.Material.Rounded.Settings" Match="NavLinkMatch.Prefix">Ayarlar</MudNavLink> *@
-
         </MudNavMenu>
         </div>
 
@@ -269,6 +259,11 @@
     private bool _drawerOpen = true;
     private IEnumerable<MenuItem> MenuItems = Array.Empty<MenuItem>();
     private MudMenu? _userMenu;
+
+    private IEnumerable<IGrouping<string, MenuItem>> GroupedMenuItems =>
+        MenuItems
+            .OrderBy(m => m.Rank)
+            .GroupBy(m => m.Header ?? string.Empty);
     
     [Inject] private JwtAuthService JwtAuthService { get; set; }
     
@@ -286,4 +281,9 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
+    private async Task Logout()
+    {
+        await JwtAuthService.ClearTokenAsync();
+        NavigationManager.Refresh(forceReload: true);
+    }
 }

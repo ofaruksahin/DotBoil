@@ -1,0 +1,24 @@
+<MudSelect T="string"
+           Variant="Variant.Outlined"
+           Margin="Margin.Dense"
+           Value="Current"
+           ValueChanged="OnChanged">
+    @foreach (var method in Methods)
+    {
+        <MudSelectItem Value="method">@method</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public string Current { get; set; } = "POST";
+    [Parameter] public BaseComponent CurrentComponent { get; set; } = default!;
+
+    private static readonly List<string> Methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
+
+    private void OnChanged(string value)
+    {
+        Current = value;
+        if (CurrentComponent is FormComponent form)
+            form.HttpMethod = value;
+    }
+}

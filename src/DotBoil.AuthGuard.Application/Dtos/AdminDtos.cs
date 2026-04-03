@@ -41,6 +41,8 @@ internal sealed class MenuResponse
     public string Name { get; init; } = string.Empty;
     public string Icon { get; init; } = string.Empty;
     public string Path { get; init; } = string.Empty;
+    public string Header { get; init; } = string.Empty;
+    public int Rank { get; init; }
     public int? ParentMenuId { get; init; }
     public IEnumerable<int> RoleIds { get; init; } = [];
 }
@@ -50,6 +52,8 @@ internal sealed class SaveMenuRequest
     public string Name { get; init; } = string.Empty;
     public string Icon { get; init; } = string.Empty;
     public string Path { get; init; } = string.Empty;
+    public string Header { get; init; } = string.Empty;
+    public int Rank { get; init; }
     public int? ParentMenuId { get; init; }
     public IEnumerable<int> RoleIds { get; init; } = [];
 }

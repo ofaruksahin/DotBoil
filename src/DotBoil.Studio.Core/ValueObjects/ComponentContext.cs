@@ -9,6 +9,7 @@ public class ComponentContext
     public List<BaseComponent> Components { get; set; }
     public List<string> UserRoles { get; set; } = new();
     public EventCallback<BaseComponent> OnFieldSelected { get; set; }
+    public EventCallback<BaseComponent> OnFieldDeleted { get; set; }
 
     public async Task OnDepends(BaseComponent component)
     {

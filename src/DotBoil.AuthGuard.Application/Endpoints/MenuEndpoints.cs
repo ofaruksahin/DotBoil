@@ -63,15 +63,19 @@ internal static class MenuEndpoints
             .GroupBy(x => x.MenuId)
             .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.RoleId).ToList(), cancellationToken);
 
-        var result = menus.Select(m => new MenuResponse
-        {
-            Id = m.Id,
-            Name = m.Name,
-            Icon = m.Icon,
-            Path = m.Path,
-            ParentMenuId = m.ParentMenuId,
-            RoleIds = roleMap.TryGetValue(m.Id, out var r) ? r : []
-        });
+        var result = menus
+            .OrderBy(m => m.Rank)
+            .Select(m => new MenuResponse
+            {
+                Id = m.Id,
+                Name = m.Name,
+                Icon = m.Icon,
+                Path = m.Path,
+                Header = m.Header,
+                Rank = m.Rank,
+                ParentMenuId = m.ParentMenuId,
+                RoleIds = roleMap.TryGetValue(m.Id, out var r) ? r : []
+            });
 
         return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
     }
@@ -95,7 +99,7 @@ internal static class MenuEndpoints
             .ToListAsync(cancellationToken);
 
         return JsonResponse(BaseResponse.Response(
-            new MenuResponse { Id = menu.Id, Name = menu.Name, Icon = menu.Icon, Path = menu.Path, ParentMenuId = menu.ParentMenuId, RoleIds = roleIds },
+            new MenuResponse { Id = menu.Id, Name = menu.Name, Icon = menu.Icon, Path = menu.Path, Header = menu.Header, Rank = menu.Rank, ParentMenuId = menu.ParentMenuId, RoleIds = roleIds },
             HttpStatusCode.OK));
     }
 
@@ -121,6 +125,8 @@ internal static class MenuEndpoints
             Name = request.Name.Trim(),
             Icon = request.Icon ?? string.Empty,
             Path = request.Path.Trim(),
+            Header = request.Header.Trim(),
+            Rank = request.Rank,
             ParentMenuId = request.ParentMenuId,
             CreateUser = currentUser,
             CreateTime = DateTime.Now
@@ -144,7 +150,7 @@ internal static class MenuEndpoints
             await roleMenuRepo.SaveChangesAsync();
 
         return JsonResponse(BaseResponse.Response(
-            new MenuResponse { Id = entity.Id, Name = entity.Name, Icon = entity.Icon, Path = entity.Path, ParentMenuId = entity.ParentMenuId, RoleIds = request.RoleIds },
+            new MenuResponse { Id = entity.Id, Name = entity.Name, Icon = entity.Icon, Path = entity.Path, Header = entity.Header, Rank = entity.Rank, ParentMenuId = entity.ParentMenuId, RoleIds = request.RoleIds },
             HttpStatusCode.Created,
             "Menu created successfully."));
     }
@@ -175,6 +181,8 @@ internal static class MenuEndpoints
         entity.Name = request.Name.Trim();
         entity.Icon = request.Icon ?? string.Empty;
         entity.Path = request.Path.Trim();
+        entity.Header = request.Header.Trim();
+        entity.Rank = request.Rank;
         entity.ParentMenuId = request.ParentMenuId;
         entity.ModifyUser = currentUser;
         entity.UpdateTime = DateTime.Now;
@@ -200,7 +208,7 @@ internal static class MenuEndpoints
         await repo.SaveChangesAsync();
 
         return JsonResponse(BaseResponse.Response(
-            new MenuResponse { Id = entity.Id, Name = entity.Name, Icon = entity.Icon, Path = entity.Path, ParentMenuId = entity.ParentMenuId, RoleIds = request.RoleIds },
+            new MenuResponse { Id = entity.Id, Name = entity.Name, Icon = entity.Icon, Path = entity.Path, Header = entity.Header, Rank = entity.Rank, ParentMenuId = entity.ParentMenuId, RoleIds = request.RoleIds },
             HttpStatusCode.OK,
             "Menu updated successfully."));
     }

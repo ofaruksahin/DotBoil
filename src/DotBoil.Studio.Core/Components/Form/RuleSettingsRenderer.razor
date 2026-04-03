@@ -1,178 +1,342 @@
 @using DotBoil.Studio.Core.Contracts.Rules
-<MudContainer>
-    <MudGrid>
-        <MudItem xs="12">
-            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddRule">
-                Add Rule
-            </MudButton>
-        </MudItem>
 
-        @foreach (var rule in Current)
+<style>
+    /* ── Empty state ── */
+    .rsr-empty {
+        display: flex; flex-direction: column; align-items: center;
+        padding: 28px 0; color: #94a3b8; gap: 6px;
+    }
+    .rsr-empty-icon { font-size: 38px !important; }
+    .rsr-empty-text { font-size: .78rem; font-weight: 500; }
+
+    /* ── Rule card ── */
+    .rsr-rule {
+        border: 1.5px solid #e2e8f0; border-radius: 12px;
+        margin-bottom: 10px; overflow: hidden;
+        transition: border-color .15s;
+    }
+    .rsr-rule:hover { border-color: #cbd5e1; }
+
+    .rsr-rule-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 1px solid #e2e8f0;
+        cursor: pointer; user-select: none;
+    }
+    .rsr-rule-header.validation { background: linear-gradient(135deg, #fefce8, #fef9c3); }
+
+    .rsr-rule-toggle { color: #94a3b8; transition: transform .2s; }
+    .rsr-rule-toggle.open { transform: rotate(180deg); }
+
+    .rsr-rule-name { flex: 1; font-size: .78rem; font-weight: 700; color: #0f172a; }
+
+    .rsr-group-chip {
+        font-size: .65rem; font-weight: 700; letter-spacing: .04em;
+        padding: 2px 8px; border-radius: 20px; cursor: pointer;
+        border: 1.5px solid #bfdbfe; background: #eff6ff; color: #1d4ed8;
+        transition: all .12s;
+    }
+    .rsr-group-chip:hover { background: #dbeafe; }
+    .rsr-group-chip.any { border-color: #fbcfe8; background: #fdf2f8; color: #9d174d; }
+
+    .rsr-rule-body { padding: 10px 12px; }
+
+    /* ── Condition row ── */
+    .rsr-cond {
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 8px; border-radius: 8px;
+        background: #f8fafc; border: 1px solid #f1f5f9;
+        margin-bottom: 5px; flex-wrap: wrap;
+    }
+    .rsr-cond-type {
+        font-size: .68rem; font-weight: 700; color: #475569;
+        background: #e2e8f0; padding: 2px 8px; border-radius: 6px;
+        white-space: nowrap;
+    }
+    .rsr-cond-sep { font-size: .65rem; color: #94a3b8; font-weight: 600; }
+    .rsr-cond-op {
+        font-size: .72rem; font-weight: 800; color: #0369a1;
+        background: #e0f2fe; padding: 2px 7px; border-radius: 6px;
+        white-space: nowrap;
+    }
+    .rsr-cond .mud-input-root { border-radius: 6px !important; font-size: .76rem !important; }
+    .rsr-cond-del { margin-left: auto; flex-shrink: 0; }
+
+    /* ── Separator between conditions ── */
+    .rsr-cond-separator {
+        display: flex; align-items: center; gap: 6px;
+        padding: 2px 8px; margin: -2px 0;
+    }
+    .rsr-cond-separator-line { flex: 1; height: 1px; background: #e2e8f0; }
+    .rsr-cond-separator-label {
+        font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+        color: #94a3b8; text-transform: uppercase;
+    }
+
+    /* ── Validation message ── */
+    .rsr-validation-row { margin-top: 8px; }
+
+    /* ── Rule footer ── */
+    .rsr-rule-footer {
+        padding: 4px 8px; border-top: 1px solid #f1f5f9;
+        display: flex; gap: 4px;
+    }
+
+    /* ── Add rule button ── */
+    .rsr-add-rule {
+        width: 100%;
+        border: 1.5px dashed #cbd5e1 !important;
+        border-radius: 10px !important;
+        color: #64748b !important;
+        transition: all .15s !important;
+    }
+    .rsr-add-rule:hover {
+        border-color: #0ea5e9 !important;
+        color: #0284c7 !important;
+        background: #f0f9ff !important;
+    }
+</style>
+
+@if (!Current.Any())
+{
+    <div class="rsr-empty">
+        <MudIcon Icon="@Icons.Material.Rounded.AccountTree" Class="rsr-empty-icon" />
+        <span class="rsr-empty-text">Henüz kural tanımlanmadı</span>
+    </div>
+}
+
+@foreach (var rule in Current)
+{
+    var isOpen = _openRules.Contains(rule);
+
+    <div class="rsr-rule">
+
+        <!-- Header -->
+        <div class="rsr-rule-header @(IsValidationRuleSet ? "validation" : "")"
+             @onclick="() => ToggleRule(rule)">
+
+            <MudIcon Icon="@(isOpen ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
+                     Size="Size.Small" Class="@($"rsr-rule-toggle {(isOpen ? "open" : "")}")" />
+
+            <span class="rsr-rule-name">@rule.Name</span>
+
+            <span class="rsr-group-chip @(rule.GroupOperator == RuleGroupOperator.Any ? "any" : "")"
+                  @onclick:stopPropagation="true"
+                  @onclick="() => ToggleGroupOperator(rule)">
+                @(rule.GroupOperator == RuleGroupOperator.All ? "TÜM KOŞULLAR" : "HERHANGİ BİRİ")
+            </span>
+
+            <div @onclick:stopPropagation="true">
+                <MudIconButton Icon="@Icons.Material.Rounded.DeleteOutline"
+                               Size="Size.Small" Color="Color.Error"
+                               OnClick="() => RemoveRule(rule)" />
+            </div>
+        </div>
+
+        @if (isOpen)
         {
-            <MudItem xs="12">
-                <MudPaper Class="pa-4">
-                    <MudStack Spacing="2">
-                        <MudTextField T="string"
-                                      Label="Rule Name"
-                                      Variant="Variant.Outlined"
-                                      Value="rule.Name"
-                                      ValueChanged="value => rule.Name = value ?? string.Empty" />
+            <div class="rsr-rule-body">
 
-                        <MudSelect T="RuleGroupOperator"
-                                   Label="Condition Group"
+                <!-- Rule name edit -->
+                <MudTextField T="string"
+                              Value="rule.Name"
+                              Label="Kural Adı"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Class="mb-2"
+                              ValueChanged="v => rule.Name = v ?? string.Empty" />
+
+                <!-- Validation message -->
+                @if (IsValidationRuleSet)
+                {
+                    <MudTextField T="string"
+                                  Value="rule.ValidationMessage"
+                                  Label="Doğrulama Mesajı"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Class="rsr-validation-row mb-2"
+                                  ValueChanged="v => rule.ValidationMessage = v ?? string.Empty" />
+                }
+
+                <!-- Conditions -->
+                @for (int ci = 0; ci < rule.Conditions.Count; ci++)
+                {
+                    var condition = rule.Conditions[ci];
+
+                    @if (ci > 0)
+                    {
+                        <div class="rsr-cond-separator">
+                            <div class="rsr-cond-separator-line"></div>
+                            <span class="rsr-cond-separator-label">
+                                @(rule.GroupOperator == RuleGroupOperator.All ? "ve" : "veya")
+                            </span>
+                            <div class="rsr-cond-separator-line"></div>
+                        </div>
+                    }
+
+                    <div class="rsr-cond">
+
+                        <!-- Type select -->
+                        <MudSelect T="RuleConditionType"
+                                   Value="condition.Type"
                                    Variant="Variant.Outlined"
-                                   Value="rule.GroupOperator"
-                                   ValueChanged="group => rule.GroupOperator = group">
-                            @foreach (var group in GroupOperators)
+                                   Margin="Margin.Dense"
+                                   Style="min-width:140px; max-width:160px;"
+                                   ValueChanged="t => { condition.Type = t; StateHasChanged(); }">
+                            @foreach (var ct in ConditionTypes)
                             {
-                                <MudSelectItem Value="group">@group</MudSelectItem>
+                                <MudSelectItem Value="ct">@ConditionTypeLabel(ct)</MudSelectItem>
                             }
                         </MudSelect>
 
-                        @if (IsValidationRuleSet)
+                        <!-- ComponentId (when needed) -->
+                        @if (condition.Type == RuleConditionType.ComponentValue ||
+                             condition.Type == RuleConditionType.ComponentHasValue ||
+                             condition.Type == RuleConditionType.ComponentIsEmpty)
                         {
                             <MudTextField T="string"
-                                          Label="Validation Message"
+                                          Value="condition.ComponentId"
+                                          Placeholder="Bileşen ID"
                                           Variant="Variant.Outlined"
-                                          Value="rule.ValidationMessage"
-                                          ValueChanged="value => rule.ValidationMessage = value ?? string.Empty" />
+                                          Margin="Margin.Dense"
+                                          Style="max-width:120px;"
+                                          ValueChanged="v => condition.ComponentId = v ?? string.Empty" />
                         }
 
-                        <MudDivider />
-                        <MudText Typo="Typo.subtitle2">Conditions</MudText>
-
-                        @foreach (var condition in rule.Conditions)
+                        <!-- Operator (only for ComponentValue) -->
+                        @if (condition.Type == RuleConditionType.ComponentValue)
                         {
-                            <MudPaper Class="pa-3">
-                                <MudGrid>
-                                    <MudItem xs="12" md="12">
-                                        <MudSelect T="RuleConditionType"
-                                                   Label="Type"
-                                                   Variant="Variant.Outlined"
-                                                   Value="condition.Type"
-                                                   ValueChanged="type => condition.Type = type">
-                                            @foreach (var conditionType in ConditionTypes)
-                                            {
-                                                <MudSelectItem Value="conditionType">@conditionType</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
+                            <MudSelect T="RuleComparisonOperator"
+                                       Value="condition.Operator"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Style="min-width:80px; max-width:100px;"
+                                       ValueChanged="op => condition.Operator = op">
+                                @foreach (var op in ComparisonOperators)
+                                {
+                                    <MudSelectItem Value="op">@OperatorLabel(op)</MudSelectItem>
+                                }
+                            </MudSelect>
 
-                                    @if (condition.Type == RuleConditionType.ComponentValue ||
-                                         condition.Type == RuleConditionType.ComponentHasValue ||
-                                         condition.Type == RuleConditionType.ComponentIsEmpty)
-                                    {
-                                        <MudItem xs="12" md="12">
-                                            <MudTextField T="string"
-                                                          Label="Component Id"
-                                                          Variant="Variant.Outlined"
-                                                          Value="condition.ComponentId"
-                                                          ValueChanged="value => condition.ComponentId = value ?? string.Empty" />
-                                        </MudItem>
-                                    }
-
-                                    @if (condition.Type == RuleConditionType.ComponentValue)
-                                    {
-                                        <MudItem xs="12" md="12">
-                                            <MudSelect T="RuleComparisonOperator"
-                                                       Label="Operator"
-                                                       Variant="Variant.Outlined"
-                                                       Value="condition.Operator"
-                                                       ValueChanged="op => condition.Operator = op">
-                                                @foreach (var op in ComparisonOperators)
-                                                {
-                                                    <MudSelectItem Value="op">@op</MudSelectItem>
-                                                }
-                                            </MudSelect>
-                                        </MudItem>
-
-                                        <MudItem xs="12" md="12">
-                                            <MudTextField T="string"
-                                                          Label="Value"
-                                                          Variant="Variant.Outlined"
-                                                          Value="condition.Value"
-                                                          ValueChanged="value => condition.Value = value ?? string.Empty" />
-                                        </MudItem>
-                                    }
-
-                                    @if (condition.Type == RuleConditionType.UserRole)
-                                    {
-                                        <MudItem xs="12" md="12">
-                                            <MudTextField T="string"
-                                                          Label="Role"
-                                                          Variant="Variant.Outlined"
-                                                          Value="condition.Value"
-                                                          ValueChanged="value => condition.Value = value ?? string.Empty" />
-                                        </MudItem>
-                                    }
-
-                                    <MudItem xs="12">
-                                        <MudButton Variant="Variant.Text"
-                                                   Color="Color.Error"
-                                                   StartIcon="@Icons.Material.Filled.Delete"
-                                                   OnClick="() => RemoveCondition(rule, condition)">
-                                            Remove Condition
-                                        </MudButton>
-                                    </MudItem>
-                                </MudGrid>
-                            </MudPaper>
+                            <MudTextField T="string"
+                                          Value="condition.Value"
+                                          Placeholder="Değer"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          Style="max-width:120px;"
+                                          ValueChanged="v => condition.Value = v ?? string.Empty" />
                         }
 
-                        <MudStack Row="true" Spacing="2">
-                            <MudButton Variant="Variant.Text"
-                                       StartIcon="@Icons.Material.Filled.Add"
-                                       OnClick="() => AddCondition(rule)">
-                                Add Condition
-                            </MudButton>
+                        <!-- UserRole value -->
+                        @if (condition.Type == RuleConditionType.UserRole)
+                        {
+                            <MudTextField T="string"
+                                          Value="condition.Value"
+                                          Placeholder="Rol adı"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          Style="max-width:140px;"
+                                          ValueChanged="v => condition.Value = v ?? string.Empty" />
+                        }
 
-                            <MudButton Variant="Variant.Text"
-                                       Color="Color.Error"
-                                       StartIcon="@Icons.Material.Filled.Delete"
-                                       OnClick="() => RemoveRule(rule)">
-                                Remove Rule
-                            </MudButton>
-                        </MudStack>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
+                        <MudIconButton Icon="@Icons.Material.Rounded.Close"
+                                       Size="Size.Small" Color="Color.Error"
+                                       Class="rsr-cond-del"
+                                       OnClick="() => RemoveCondition(rule, condition)" />
+                    </div>
+                }
+
+            </div>
+
+            <!-- Footer -->
+            <div class="rsr-rule-footer">
+                <MudButton Size="Size.Small"
+                           Variant="Variant.Text"
+                           StartIcon="@Icons.Material.Rounded.Add"
+                           Color="Color.Primary"
+                           OnClick="() => AddCondition(rule)">
+                    Koşul Ekle
+                </MudButton>
+            </div>
         }
-    </MudGrid>
-</MudContainer>
+
+    </div>
+}
+
+<MudButton FullWidth="true"
+           Variant="Variant.Outlined"
+           StartIcon="@Icons.Material.Rounded.Add"
+           Class="rsr-add-rule mt-1"
+           OnClick="AddRule">
+    Kural Ekle
+</MudButton>
 
 @code {
     [Parameter] public List<ComponentRule> Current { get; set; } = new();
     [Parameter] public BaseComponent? CurrentComponent { get; set; }
     [Parameter] public string CurrentPropertyName { get; set; } = string.Empty;
 
+    private readonly HashSet<ComponentRule> _openRules = new();
+
     private List<RuleConditionType> ConditionTypes { get; } = Enum.GetValues<RuleConditionType>().ToList();
     private List<RuleComparisonOperator> ComparisonOperators { get; } = Enum.GetValues<RuleComparisonOperator>().ToList();
-    private List<RuleGroupOperator> GroupOperators { get; } = Enum.GetValues<RuleGroupOperator>().ToList();
+
     private bool IsValidationRuleSet => CurrentPropertyName == nameof(BaseComponent.ValidationRules);
+
+    private static string ConditionTypeLabel(RuleConditionType t) => t switch
+    {
+        RuleConditionType.ComponentValue    => "Bileşen Değeri",
+        RuleConditionType.ComponentHasValue => "Değer Var",
+        RuleConditionType.ComponentIsEmpty  => "Değer Boş",
+        RuleConditionType.UserRole          => "Kullanıcı Rolü",
+        _                                   => t.ToString()
+    };
+
+    private static string OperatorLabel(RuleComparisonOperator op) => op switch
+    {
+        RuleComparisonOperator.Equals             => "=",
+        RuleComparisonOperator.NotEquals          => "≠",
+        RuleComparisonOperator.GreaterThan        => ">",
+        RuleComparisonOperator.GreaterThanOrEqual => "≥",
+        RuleComparisonOperator.LessThan           => "<",
+        RuleComparisonOperator.LessThanOrEqual    => "≤",
+        _                                         => op.ToString()
+    };
+
+    private void ToggleRule(ComponentRule rule)
+    {
+        if (!_openRules.Add(rule))
+            _openRules.Remove(rule);
+    }
+
+    private void ToggleGroupOperator(ComponentRule rule)
+    {
+        rule.GroupOperator = rule.GroupOperator == RuleGroupOperator.All
+            ? RuleGroupOperator.Any
+            : RuleGroupOperator.All;
+    }
 
     private void AddRule()
     {
-        Current.Add(new ComponentRule
+        var rule = new ComponentRule
         {
-            Name = $"Rule {Current.Count + 1}",
-            Conditions = new List<RuleCondition>
-            {
-                new()
-            }
-        });
+            Name = $"Kural {Current.Count + 1}",
+            Conditions = [new RuleCondition()]
+        };
+        Current.Add(rule);
+        _openRules.Add(rule);
     }
 
     private void RemoveRule(ComponentRule rule)
     {
+        _openRules.Remove(rule);
         Current.Remove(rule);
     }
 
-    private void AddCondition(ComponentRule rule)
-    {
+    private void AddCondition(ComponentRule rule) =>
         rule.Conditions.Add(new RuleCondition());
-    }
 
-    private void RemoveCondition(ComponentRule rule, RuleCondition condition)
-    {
+    private void RemoveCondition(ComponentRule rule, RuleCondition condition) =>
         rule.Conditions.Remove(condition);
-    }
 }
