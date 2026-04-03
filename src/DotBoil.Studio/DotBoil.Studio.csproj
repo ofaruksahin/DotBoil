@@ -21,6 +21,7 @@
     <ItemGroup>
       <ProjectReference Include="..\DotBoil.Studio.Core\DotBoil.Studio.Core.csproj" />
       <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2" />
     </ItemGroup>
 
 </Project>

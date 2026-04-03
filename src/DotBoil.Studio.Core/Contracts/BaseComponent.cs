@@ -11,8 +11,6 @@ public abstract class BaseComponent
     public abstract string Title { get; }
     public abstract string ComponentIcon { get; }
 
-    public abstract Type RendererType { get; }
-
     [FieldProperty(Int32.MinValue, "Id", "Unique identifier for the form field. This value is used for form processing and referencing.")]
     public string Id { get; set; }
 
@@ -38,6 +36,9 @@ public abstract class BaseComponent
     public List<ComponentRule> ValidationRules { get; set; } = new();
 
     [JsonIgnore]
+    public abstract Type RendererType { get; }
+
+    [JsonIgnore]
     public bool IsVisible { get; set; } = true;
 
     [JsonIgnore]
@@ -48,6 +49,7 @@ public abstract class BaseComponent
 
     [JsonIgnore]
     public string ValidationMessage { get; set; } = string.Empty;
-    
+
+    [JsonIgnore]
     public Func<BaseComponent, EventArgs, Task> DependsOnHandler { get; set; }
 }

@@ -21,6 +21,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+      <ProjectReference Include="..\DotBoil.EFCore\DotBoil.EFCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
     </ItemGroup>
 
     <ItemGroup>

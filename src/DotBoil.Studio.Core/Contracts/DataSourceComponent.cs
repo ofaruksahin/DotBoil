@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DotBoil.Studio.Core.Attributes;
 using DotBoil.Studio.Core.Components.Form;
 
@@ -10,6 +11,7 @@ public abstract class DataSourceComponent : BaseComponent
         typeof(DataSourceSettingsRenderer))]
     public DataSource DataSource { get; set; }
     
+    [JsonIgnore]
     public Func<object?, EventArgs, Task> DataSourceChangeHandler { get; set; }
 
     public async Task DataSourceChanged()

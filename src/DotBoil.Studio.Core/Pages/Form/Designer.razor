@@ -1,7 +1,10 @@
 @page "/Designer"
+@page "/Designer/{Id:int}"
 @using DotBoil.Studio.Core.Components.Form
 @inject IDialogService DialogService;
 @inject ISnackbar Snackbar;
+@inject IUIConfigService UIConfigService;
+@inject NavigationManager NavigationManager;
 
 <style>
     /* ── Sayfa Kimliği başlık alanı ── */
@@ -93,6 +96,13 @@
                 </span>
             }
         </div>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   OnClick="SaveAsync"
+                   Disabled="_saving">
+            @(Id.HasValue ? "Güncelle" : "Kaydet")
+        </MudButton>
     </div>
 
     <MudGrid GutterSize="3">
@@ -136,6 +146,8 @@
 </MudContainer>
 
 @code {
+    [Parameter] public int? Id { get; set; }
+
     private List<BaseComponent> FormFieldsToRender = new();
     private BaseComponent? SelectedFormField = null;
     private bool DesignerMode = true;
@@ -144,6 +156,66 @@
     private string _pageDescription = string.Empty;
     private bool _editingName;
     private bool _editingDescription;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var config = await UIConfigService.GetByIdAsync(Id.Value);
+            if (config is not null)
+            {
+                _pageName = config.Name;
+                _pageDescription = config.Description ?? string.Empty;
+                FormFieldsToRender = UIConfigService.DeserializeComponents(config.StateData);
+            }
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_pageName))
+        {
+            Snackbar.Add("Sayfa adı boş olamaz.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var stateData = UIConfigService.SerializeComponents(FormFieldsToRender);
+
+            if (Id.HasValue)
+            {
+                var config = await UIConfigService.GetByIdAsync(Id.Value);
+                config.Name = _pageName;
+                config.Description = _pageDescription;
+                config.StateData = stateData;
+                await UIConfigService.UpdateAsync(config);
+                Snackbar.Add("Güncellendi.", Severity.Success);
+            }
+            else
+            {
+                var config = new DotBoil.Studio.Core.Entities.UIConfig
+                {
+                    Name = _pageName,
+                    Description = _pageDescription,
+                    StateData = stateData
+                };
+                await UIConfigService.CreateAsync(config);
+                Snackbar.Add("Kaydedildi.", Severity.Success);
+                NavigationManager.NavigateTo($"/Designer/{config.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Hata: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
 
     private async Task OnFieldSelected(BaseComponent component)
     {

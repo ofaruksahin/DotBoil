@@ -1,4 +1,6 @@
-﻿namespace DotBoil.Reflection
+﻿using System.Diagnostics;
+
+namespace DotBoil.Reflection
 {
     public static class ReflectionExtensions
     {
@@ -79,18 +81,26 @@
 
         public static IEnumerable<Type> FindTypesWithInterface(this AppDomain appDomain, Type interfaceType)
         {
+            var responseTypes = new List<Type>();
             foreach (var assembly in appDomain.GetAssemblies())
             {
-                var types = assembly
-                    .GetTypes()
-                    .Where(type => type.GetInterface(interfaceType.Name) is not null)
-                    .ToList();
+                try
+                {
+                    var types = assembly
+                        .GetTypes()
+                        .Where(type => !type.IsAbstract && type.GetInterface(interfaceType.Name) is not null)
+                        .ToList();
 
-                if (types is not null && types.Any())
-                    return types;
+                    if (types is not null && types.Any())
+                        responseTypes.AddRange(types);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e);
+                }
             }
 
-            return null;
+            return responseTypes;
         }
     }
 }

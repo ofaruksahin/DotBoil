@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using DotBoil.Studio.Core.Services;
 using DotBoil.Studio.Core.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotBoil.Studio.Core.Contracts;
 
@@ -15,18 +16,10 @@ public class ApiDataSource : DataSource
     public HttpMethod HttpMethod { get; set; }
     
     [JsonIgnore]
-    private readonly IHttpClientFactory _httpClientFactory;
-    
-    [JsonIgnore]
     private JwtAuthService _jwtAuthService { get; set; }
 
     [JsonIgnore]
     private string NormalizedUrl { get; set; }
-
-    public ApiDataSource(IHttpClientFactory httpClientFactory)
-    {
-        _httpClientFactory = httpClientFactory;
-    }
     
     public bool OverrideApiUrl(ComponentContext context, JwtAuthService jwtAuthService)
     {
@@ -107,7 +100,7 @@ public class ApiDataSource : DataSource
         if (_jwtAuthService == null)
             throw new ArgumentNullException(nameof(JwtAuthService));
         
-        var client = _httpClientFactory.CreateClient();
+        var client = serviceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
         
         if (!BaseUrl.EndsWith('/'))
             BaseUrl += '/';

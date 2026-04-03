@@ -1,0 +1,93 @@
+@page "/ui-configs"
+@using Microsoft.EntityFrameworkCore
+@using DotBoil.Studio.Core.Entities
+@inject IUIConfigService UIConfigService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
+
+    <MudPaper Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+            <MudText Typo="Typo.h5">UI Konfigürasyonları</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="CreateNew">
+                Yeni Oluştur
+            </MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="_configs" Hover="true" Striped="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>Ad</MudTh>
+                    <MudTh>Açıklama</MudTh>
+                    <MudTh>Oluşturulma Tarihi</MudTh>
+                    <MudTh Style="width:140px"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>@context.Description</MudTd>
+                    <MudTd>@context.CreateTime.ToString("dd.MM.yyyy HH:mm")</MudTd>
+                    <MudTd>
+                        <MudStack Row="true" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Size="Size.Small"
+                                           Color="Color.Primary"
+                                           OnClick="() => Edit(context)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="() => DeleteAsync(context)" />
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="pa-4" Color="Color.Secondary">Henüz konfigürasyon bulunmuyor.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        }
+    </MudPaper>
+
+</MudContainer>
+
+@code {
+    private List<UIConfig> _configs = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _configs = await UIConfigService.GetAll().ToListAsync();
+        _loading = false;
+    }
+
+    private void CreateNew() => NavigationManager.NavigateTo("/Designer");
+
+    private void Edit(UIConfig config) => NavigationManager.NavigateTo($"/Designer/{config.Id}");
+
+    private async Task DeleteAsync(UIConfig config)
+    {
+        try
+        {
+            await UIConfigService.DeleteAsync(config);
+            Snackbar.Add("Konfigürasyon silindi.", Severity.Success);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Hata: {ex.Message}", Severity.Error);
+        }
+    }
+}

@@ -1,3 +1,5 @@
+using DotBoil.Studio.Core.ValueObjects;
+
 namespace DotBoil.Studio.Core.Contracts;
 
 public class StaticDataSource : DataSource
@@ -6,7 +8,7 @@ public class StaticDataSource : DataSource
     public string Value { get; set; }
     public bool IsSelected { get; set; }
     
-    public List<object> Items { get; set; } = new();
+    public List<SelectItem> Items { get; set; } = new();
     
     public override Task<DataSourceResult> GetItemsAsync(IServiceProvider serviceProvider)
     {

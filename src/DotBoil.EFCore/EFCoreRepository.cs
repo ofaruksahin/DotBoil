@@ -53,7 +53,8 @@ namespace DotBoil.EFCore
             return await _context
                 .Set<TEntity>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(entity => entity.Id == id && !entity.IsDeleted);
+                .Where(entity => entity.Id == id && !entity.IsDeleted)
+                .FirstOrDefaultAsync();
         }
 
         public IQueryable<TEntity> Get()
@@ -69,6 +70,7 @@ namespace DotBoil.EFCore
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
         }
 
         private IQueryable<TEntity> GetQueryable()
