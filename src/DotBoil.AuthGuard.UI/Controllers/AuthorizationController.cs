@@ -1,6 +1,5 @@
 using DotBoil.AuthGuard.Application.Domain.Exceptions;
 using DotBoil.AuthGuard.Application.Domain.Interfaces;
-using DotBoil.AuthGuard.Application.Domain.ValueObjects;
 using DotBoil.AuthGuard.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,18 +8,12 @@ namespace DotBoil.AuthGuard.Controllers;
 
 public class AuthorizationController : Controller
 {
-    private readonly IConfiguration _configuration;
     private readonly IUserService _userService;
-    private readonly IExternalSignInManager _externalSignInManager;
 
     public AuthorizationController(
-        IConfiguration configuration,
-        [FromKeyedServices("EmailPasswordBasedLogin")] IUserService userService,
-        IExternalSignInManager externalSignInManager)
+        [FromKeyedServices("EmailPasswordBasedLogin")] IUserService userService)
     {
-        _configuration = configuration;
         _userService = userService;
-        _externalSignInManager = externalSignInManager;
     }
     
     [HttpGet("/connect/authorize")]
@@ -61,56 +54,6 @@ public class AuthorizationController : Controller
         ViewBag.Message = authorizeResult.Message;
         
         return View(viewModel);
-    }
-
-    [HttpGet("connect/{provider}")]
-    public async Task<IActionResult> ExternalLogin(string provider)
-    {
-        var externalSignInManagers = _configuration.GetSection("DotBoil:ExternalSignInManagers").Get<List<ExternalSignInManagerViewModel>>() ?? new List<ExternalSignInManagerViewModel>();
-
-        var externalSignInManager = externalSignInManagers.FirstOrDefault(e => e.ServiceName == provider);
-        if (externalSignInManager is null)
-            throw new ExternalSignInManagerNotSupportedException(provider);
-
-        return Redirect(externalSignInManager.AuthorizationEndpoint);
-    }
-
-    [HttpGet("connect/external/{provider}")]
-    public async Task<IActionResult> ExternalLoginCallback(string provider)
-    {
-        var code = HttpContext.Request.Query["code"].ToString() ?? string.Empty;
-
-        if (string.IsNullOrEmpty(code))
-            throw new AuthorizationCodeEmptyException();
-        
-        var externalSignInManagers = _configuration.GetSection("DotBoil:ExternalSignInManagers").Get<List<ExternalSignInManagerViewModel>>() ?? new List<ExternalSignInManagerViewModel>();
-
-        var externalSignInManager = externalSignInManagers.FirstOrDefault(e => e.ServiceName == provider);
-        if (externalSignInManager is null)
-            throw new ExternalSignInManagerNotSupportedException(provider);
-
-        var tokenEndpoint = $"{externalSignInManager.TokenEndpoint}&code={code}";
-
-        var externalLoginRequest = new ExternalLoginRequest(
-            provider,
-            tokenEndpoint,
-            externalSignInManager.UserInfoEndpoint,
-            externalSignInManager.EmailIdentifier,
-            externalSignInManager.UsernameIdentifier,
-            externalSignInManager.NameIdentifier,
-            externalSignInManager.SurnameIdentifier);
-        
-        var authorizeResult = await _externalSignInManager.ExternalLogin(externalLoginRequest);
-
-        if (!authorizeResult.IsSuccess)
-            throw new ExternalSignInManagerAuthorizationException();
-
-        var redirectUri = externalSignInManager.RedirectUrl;
-        
-        redirectUri =
-            $"{redirectUri}?access_token={authorizeResult.AccessToken}&refresh_token={authorizeResult.RefreshToken}&expire_access_token={authorizeResult.ExpireAccessToken.ToString("dd/MM/yyyy-HH:mm")}&expire_refresh_token={authorizeResult.ExpireRefreshToken.ToString("dd/MM/yyyy-HH:mm")}";
-        
-        return Redirect(redirectUri);
     }
 
     [HttpGet("authorize/register")]

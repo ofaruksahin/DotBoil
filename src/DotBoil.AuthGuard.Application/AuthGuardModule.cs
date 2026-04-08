@@ -90,6 +90,7 @@ public class AuthGuardModule : Module
         app.MapAuthGuardEndpoints();
         app.MapApiEndpointEndpoints();
         app.MapAppModuleEndpoints();
+        app.MapExternalLoginEndpoints();
         app.MapMenuEndpoints();
         app.MapRoleEndpoints();
         app.MapUserEndpoints();
