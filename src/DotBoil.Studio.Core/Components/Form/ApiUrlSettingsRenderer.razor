@@ -1,0 +1,101 @@
+<MudStack Spacing="2">
+    <MudSelect T="string"
+               Label="Base URL"
+               Value="_selectedBase"
+               ValueChanged="OnBaseChanged"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Clearable="true">
+        @foreach (var source in _sources)
+        {
+            <MudSelectItem Value="@source.BaseUrl">@source.Name (@source.BaseUrl)</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudTextField T="string"
+                  Label="Path"
+                  Placeholder="/api/resource/{id}"
+                  Value="_path"
+                  ValueChanged="OnPathChanged"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  HelperText="@CombinedUrl" />
+</MudStack>
+
+@code {
+    [Parameter] public string Current { get; set; } = string.Empty;
+    [Parameter] public BaseComponent CurrentComponent { get; set; } = default!;
+    [Parameter] public string CurrentPropertyName { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Inject] IConfiguration Configuration { get; set; } = default!;
+
+    private List<ApiDataSourceConfiguration.ApiDataSourceOptions> _sources = new();
+    private string _selectedBase = string.Empty;
+    private string _path = string.Empty;
+
+    private string CombinedUrl => string.IsNullOrWhiteSpace(_selectedBase)
+        ? _path
+        : $"{_selectedBase.TrimEnd('/')}/{_path.TrimStart('/')}";
+
+    protected override void OnInitialized()
+    {
+        var config = Configuration.GetConfigurations<ApiDataSourceConfiguration>();
+        _sources = config?.Sources ?? new();
+        ParseCurrentUrl(Current);
+    }
+
+    protected override void OnParametersSet()
+    {
+        ParseCurrentUrl(Current);
+    }
+
+    private void ParseCurrentUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            _selectedBase = string.Empty;
+            _path = string.Empty;
+            return;
+        }
+
+        var match = _sources.FirstOrDefault(s =>
+            url.StartsWith(s.BaseUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+        {
+            _selectedBase = match.BaseUrl;
+            _path = url[match.BaseUrl.TrimEnd('/').Length..].TrimStart('/');
+            _path = "/" + _path;
+        }
+        else
+        {
+            _selectedBase = string.Empty;
+            _path = url;
+        }
+    }
+
+    private void OnBaseChanged(string value)
+    {
+        _selectedBase = value ?? string.Empty;
+        WriteBack();
+    }
+
+    private void OnPathChanged(string value)
+    {
+        _path = value ?? string.Empty;
+        WriteBack();
+    }
+
+    private void WriteBack()
+    {
+        if (ValueChanged.HasDelegate)
+        {
+            _ = ValueChanged.InvokeAsync(CombinedUrl);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentPropertyName)) return;
+        var prop = CurrentComponent?.GetType().GetProperty(CurrentPropertyName);
+        prop?.SetValue(CurrentComponent, CombinedUrl);
+    }
+}

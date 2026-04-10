@@ -1,0 +1,165 @@
+@using DotBoil.Studio.Core.Components.Form
+
+<style>
+    .ccr-wrap {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #fafbfd;
+        transition: border-color .2s;
+    }
+    .ccr-wrap:hover { border-color: #94a3b8; }
+    .ccr-wrap.ccr-selected { border-color: #6366f1; border-style: solid; }
+
+    .ccr-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 10px 10px 0 0;
+        background: linear-gradient(135deg, #f0f9ff, #ede9fe);
+        border-bottom: 1px solid #e0e7ff; cursor: pointer;
+        user-select: none;
+    }
+    .ccr-header-icon { color: #6366f1; }
+    .ccr-header-title { font-size: .78rem; font-weight: 700; color: #0f172a; flex: 1; }
+    .ccr-header-subtitle {
+        font-size: .66rem; color: #64748b; margin-top: 1px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .ccr-body { padding: 12px; }
+
+    .ccr-empty {
+        display: flex; flex-direction: column; align-items: center;
+        padding: 24px 16px; color: #94a3b8; gap: 6px;
+    }
+    .ccr-empty-icon { font-size: 32px !important; }
+    .ccr-empty-text { font-size: .78rem; font-weight: 500; }
+
+    .ccr-footer {
+        padding: 8px 12px; border-top: 1px solid #f1f5f9;
+        display: flex; justify-content: flex-end;
+        border-radius: 0 0 10px 10px;
+    }
+</style>
+
+@if (Context.DesignerMode)
+{
+    <div class="ccr-wrap @(_isSelected ? "ccr-selected" : "")">
+
+        <div class="ccr-header" @onclick="SelectCard" @onclick:stopPropagation="true">
+            <MudIcon Icon="@Icons.Material.Rounded.CreditCard" Size="Size.Small" Class="ccr-header-icon" />
+            <div style="flex:1; min-width:0;">
+                <div class="ccr-header-title">
+                    @(string.IsNullOrWhiteSpace(Card.Header) ? Card.Title : Card.Header)
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Card.SubTitle))
+                {
+                    <div class="ccr-header-subtitle">@Card.SubTitle</div>
+                }
+            </div>
+        </div>
+
+        <div class="ccr-body" @onclick:stopPropagation="true">
+            @if (Card.Children.Any())
+            {
+                <ComponentRenderer FormFields="Card.Children"
+                                   DesignerMode="true"
+                                   OnFieldSelected="Context.OnFieldSelected"
+                                   OnFieldDeleted="Context.OnFieldDeleted"
+                                   OnFieldsReordered="StateHasChanged" />
+            }
+            else
+            {
+                <div class="ccr-empty" @onclick="SelectCard" @onclick:stopPropagation="true">
+                    <MudIcon Icon="@Icons.Material.Rounded.AddBox" Class="ccr-empty-icon" />
+                    <span class="ccr-empty-text">Karta bileşen eklemek için + butonuna tıklayın</span>
+                </div>
+            }
+        </div>
+
+        <div class="ccr-footer" @onclick:stopPropagation="true">
+            <MudButton Size="Size.Small"
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Rounded.Add"
+                       Color="Color.Primary"
+                       OnClick="OpenAddFieldDialog">
+                Bileşen Ekle
+            </MudButton>
+        </div>
+
+    </div>
+}
+else
+{
+    <MudCard>
+        @if (!string.IsNullOrWhiteSpace(Card.Header) || !string.IsNullOrWhiteSpace(Card.SubTitle))
+        {
+            <MudCardHeader>
+                <CardHeaderContent>
+                    @if (!string.IsNullOrWhiteSpace(Card.Header))
+                    {
+                        <MudText Typo="Typo.h6">@Card.Header</MudText>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Card.SubTitle))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@Card.SubTitle</MudText>
+                    }
+                </CardHeaderContent>
+            </MudCardHeader>
+        }
+        @if (Card.Children.Any())
+        {
+            <MudCardContent>
+                <ComponentRenderer FormFields="Card.Children"
+                                   DesignerMode="false"
+                                   OnFieldSelected="Context.OnFieldSelected" />
+            </MudCardContent>
+        }
+    </MudCard>
+}
+
+@inject IDialogService DialogService
+
+@code {
+    [Parameter] public BaseComponent Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+
+    private CardComponent Card => (CardComponent)Current;
+    private bool _isSelected;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _isSelected = false;
+    }
+
+    private async Task SelectCard()
+    {
+        _isSelected = true;
+        if (Context.OnFieldSelected.HasDelegate)
+            await Context.OnFieldSelected.InvokeAsync(Current);
+    }
+
+    private async Task OpenAddFieldDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.ShowAsync<AddNewFieldDialog>(
+            AddNewFieldDialog.DialogTitle,
+            new DialogParameters { ["ExcludeContainers"] = false },
+            options);
+
+        var dialogRef = await dialog;
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled)
+        {
+            var field = (BaseComponent)Activator.CreateInstance(result.Data.GetType())!;
+            field.Id = Guid.NewGuid().ToString().Replace("-", "")[..8];
+            Card.Children.Add(field);
+            StateHasChanged();
+        }
+    }
+}

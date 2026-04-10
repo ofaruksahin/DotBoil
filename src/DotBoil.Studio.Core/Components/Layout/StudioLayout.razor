@@ -1,8 +1,12 @@
 @using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.EntityFrameworkCore
 @using MudBlazor
+@using DotBoil.Studio.Core.Entities
+@using DotBoil.Studio.Core.Enums
 @inherits LayoutComponentBase
 @inject JwtAuthService JwtAuthServivce
 @inject NavigationManager NavigationManager
+@inject IMenuUISettingsService MenuUISettingsService
 
 <style>
     @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -63,13 +67,26 @@
         box-shadow:0 1px 3px rgba(0,0,0,.05);
     }
     .sum-trigger:hover { border-color:#bac0d4; box-shadow:0 2px 8px rgba(14,165,233,.12); }
-    .sum-avatar { width:28px; height:28px; border-radius:50%; overflow:hidden; background:linear-gradient(135deg,#0ea5e9,#6366f1); }
-    .sum-avatar img { width:100%; height:100%; object-fit:cover; }
+    .sum-avatar {
+        width:28px; height:28px; border-radius:50%; flex-shrink:0;
+        background:linear-gradient(135deg,#0ea5e9,#6366f1);
+        display:flex; align-items:center; justify-content:center;
+        font-size:.65rem; font-weight:700; color:#fff; letter-spacing:.02em;
+        user-select:none;
+    }
     .sum-name    { font-size:.78rem; font-weight:600; color:#1e2340; white-space:nowrap; }
     .sum-chevron { color:#9da5b8; font-size:1rem !important; }
-    .sum-header  { padding:14px 16px 12px; background:linear-gradient(135deg,#f0f9ff,#f5f3ff); border-bottom:1px solid #e8eaf0; }
-    .sum-header-name  { font-size:.84rem; font-weight:700; color:#0f172a; }
-    .sum-header-email { font-size:.71rem; color:#94a3b8; margin-top:2px; }
+    .sum-header  { padding:14px 16px 12px; background:linear-gradient(135deg,#f0f9ff,#f5f3ff); border-bottom:1px solid #e8eaf0; display:flex; align-items:center; gap:10px; }
+    .sum-header-avatar {
+        width:36px; height:36px; border-radius:50%; flex-shrink:0;
+        background:linear-gradient(135deg,#0ea5e9,#6366f1);
+        display:flex; align-items:center; justify-content:center;
+        font-size:.78rem; font-weight:700; color:#fff; letter-spacing:.02em;
+        user-select:none;
+    }
+    .sum-header-info { display:flex; flex-direction:column; min-width:0; }
+    .sum-header-name  { font-size:.84rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sum-header-email { font-size:.71rem; color:#94a3b8; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
 
     /* ── Drawer ── */
     .sdr-drawer .mud-drawer-content {
@@ -167,21 +184,19 @@
         <MudMenu @ref="_userMenu" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true">
             <ActivatorContent>
                 <div class="sum-trigger" @onclick="@(async (e) => await _userMenu!.OpenMenuAsync(e))">
-                    <div class="sum-avatar">
-                        <img src="https://i.pravatar.cc/40?img=12" alt="AY" />
-                    </div>
-                    <span class="sum-name">Ahmet</span>
+                    <div class="sum-avatar">@JwtAuthService.Initials</div>
+                    <span class="sum-name">@_firstName</span>
                     <MudIcon Icon="@Icons.Material.Rounded.KeyboardArrowDown" Class="sum-chevron" />
                 </div>
             </ActivatorContent>
             <ChildContent>
                 <div class="sum-header">
-                    <div class="sum-header-name">Ahmet Yılmaz</div>
-                    <div class="sum-header-email">ahmet@example.com</div>
+                    <div class="sum-header-avatar">@JwtAuthService.Initials</div>
+                    <div class="sum-header-info">
+                        <div class="sum-header-name">@JwtAuthService.DisplayName</div>
+                        <div class="sum-header-email">@JwtAuthService.Email</div>
+                    </div>
                 </div>
-                <MudMenuItem Icon="@Icons.Material.Rounded.AccountCircle" Href="/profile">Profilim</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Rounded.Tune"           Href="/preferences">Tercihler</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Rounded.Keyboard"       Href="/shortcuts">Kısayollar</MudMenuItem>
                 <MudDivider Class="my-1" />
                 <MudMenuItem Icon="@Icons.Material.Rounded.Logout" IconColor="Color.Error"
                              OnClick="Logout">
@@ -219,13 +234,13 @@
                         <MudNavGroup Title="@menu.Name" Icon="@menu.Icon" Expanded="false">
                             @foreach (var childMenu in menu.Childs.OrderBy(c => c.Rank))
                             {
-                                <MudNavLink Href="@childMenu.Path" Icon="@childMenu.Icon" Match="NavLinkMatch.Prefix">@childMenu.Name</MudNavLink>
+                                <MudNavLink Href="@ResolveHref(childMenu.Id, childMenu.Path)" Icon="@childMenu.Icon" Match="NavLinkMatch.Prefix">@childMenu.Name</MudNavLink>
                             }
                         </MudNavGroup>
                     }
                     else
                     {
-                        <MudNavLink Href="@menu.Path" Icon="@menu.Icon" Match="NavLinkMatch.Prefix">@menu.Name</MudNavLink>
+                        <MudNavLink Href="@ResolveHref(menu.Id, menu.Path)" Icon="@menu.Icon" Match="NavLinkMatch.Prefix">@menu.Name</MudNavLink>
                     }
                 }
             }
@@ -258,15 +273,18 @@
 @code {
     private bool _drawerOpen = true;
     private IEnumerable<MenuItem> MenuItems = Array.Empty<MenuItem>();
+    private List<MenuUISettings> _menuSettings = [];
     private MudMenu? _userMenu;
+
+    private string _firstName => JwtAuthService.DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Kullanıcı";
 
     private IEnumerable<IGrouping<string, MenuItem>> GroupedMenuItems =>
         MenuItems
             .OrderBy(m => m.Rank)
             .GroupBy(m => m.Header ?? string.Empty);
-    
+
     [Inject] private JwtAuthService JwtAuthService { get; set; }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -274,11 +292,30 @@
             if (string.IsNullOrEmpty(JwtAuthService.Token) || string.IsNullOrEmpty(JwtAuthService.RefreshToken))
                 await JwtAuthService.InitializeAsync();
 
-            MenuItems = await JwtAuthService.GetMenuItems();
+            var menuTask     = JwtAuthService.GetMenuItems();
+            var settingsTask = MenuUISettingsService.GetAll().ToListAsync();
+
+            await Task.WhenAll(menuTask, settingsTask);
+
+            MenuItems     = await menuTask;
+            _menuSettings = await settingsTask;
+
             StateHasChanged();
         }
-        
+
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private string ResolveHref(int menuId, string path)
+    {
+        var setting = _menuSettings.FirstOrDefault(s => s.MenuId == menuId);
+        if (setting is null) return path;
+
+        return setting.MenuType switch
+        {
+            MenuUISettingsType.StudioPage => $"/dynamic/{setting.Value}",
+            _                             => path
+        };
     }
 
     private async Task Logout()

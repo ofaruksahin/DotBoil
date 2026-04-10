@@ -1,4 +1,17 @@
 @inject IDialogService DialogService
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject JwtAuthService JwtAuthService
+@inject IJSRuntime JS
+@using System.Net.Http.Headers
+@using System.Net.Http.Json
+@using System.Reflection
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using DotBoil.Studio.Core.Attributes
+@using DotBoil.Studio.Core.Services
+@using DotBoil.Studio.Core.ValueObjects
+@using Microsoft.AspNetCore.WebUtilities
 
 <style>
     .fcr-wrap {
@@ -101,18 +114,38 @@
 }
 else
 {
-    <form method="@Form.HttpMethod.ToLower()" action="@Form.ActionUrl">
+    <div>
         <ComponentRenderer FormFields="Form.Children" DesignerMode="false" OnFieldSelected="Context.OnFieldSelected" />
-        @if (!string.IsNullOrWhiteSpace(Form.SubmitButtonText))
+
+        @if (!string.IsNullOrWhiteSpace(_resultMessage))
         {
-            <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       Class="mt-3">
-                @Form.SubmitButtonText
-            </MudButton>
+            <MudAlert Severity="@(_submitSuccess ? Severity.Success : Severity.Error)" Class="mt-3" Dense="true">
+                @_resultMessage
+            </MudAlert>
         }
-    </form>
+
+        <div class="d-flex justify-end gap-3 mt-3">
+            @if (Form.CancelButtonVisible)
+            {
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           StartIcon="@(string.IsNullOrWhiteSpace(Form.CancelButtonIcon?.Value) ? null : Form.CancelButtonIcon.Value)"
+                           OnClick="NavigateBack">
+                    @(string.IsNullOrWhiteSpace(Form.CancelButtonText) ? "Vazgeç" : Form.CancelButtonText)
+                </MudButton>
+            }
+            @if (!string.IsNullOrWhiteSpace(Form.SubmitButtonText))
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@(string.IsNullOrWhiteSpace(Form.SubmitButtonIcon?.Value) ? null : Form.SubmitButtonIcon.Value)"
+                           Disabled="_submitting"
+                           OnClick="HandleSubmit">
+                    @Form.SubmitButtonText
+                </MudButton>
+            }
+        </div>
+    </div>
 }
 
 @code {
@@ -121,12 +154,208 @@ else
 
     private FormComponent Form => (FormComponent)Current;
     private bool _isSelected;
+    private bool _dataLoaded;
+    private bool _submitting;
+    private bool _submitSuccess;
+    private string? _resultMessage;
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        // Context üzerinden seçili olup olmadığını izle
         _isSelected = false;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Context.DesignerMode || _dataLoaded || string.IsNullOrWhiteSpace(Form.LoadUrl))
+            return;
+
+        _dataLoaded = true;
+        await LoadFormDataAsync();
+    }
+
+    private async Task LoadFormDataAsync()
+    {
+        var resolvedUrl = ResolveUrlParameters(Form.LoadUrl);
+
+        var client = HttpClientFactory.CreateClient();
+        if (!string.IsNullOrWhiteSpace(JwtAuthService.Token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtAuthService.Token);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await client.GetAsync(resolvedUrl);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        string json;
+        try
+        {
+            json = await response.Content.ReadAsStringAsync();
+        }
+        catch
+        {
+            return;
+        }
+
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("Data", out var dataElement) &&
+            !doc.RootElement.TryGetProperty("data", out dataElement))
+            return;
+
+        if (dataElement.ValueKind != JsonValueKind.Object)
+            return;
+
+        var data = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        foreach (var prop in dataElement.EnumerateObject())
+            data[prop.Name] = prop.Value;
+
+        MapDataToComponents(data, Form.Children);
+    }
+
+    private string ResolveUrlParameters(string url)
+    {
+        if (!url.Contains('{'))
+            return url;
+
+        var uri = new Uri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        return Regex.Replace(url, @"\{(\w+)\}", match =>
+        {
+            var key = match.Groups[1].Value;
+            return query.TryGetValue(key, out var val) ? val.ToString() : match.Value;
+        });
+    }
+
+    private static void MapDataToComponents(Dictionary<string, JsonElement> data, List<BaseComponent> components)
+    {
+        foreach (var component in components)
+        {
+            var outputProp = component.GetType()
+                .GetProperties()
+                .FirstOrDefault(p => p.GetCustomAttribute<FieldOutputPropertyAttribute>() is not null);
+
+            if (outputProp is not null &&
+                !string.IsNullOrWhiteSpace(component.Id) &&
+                data.TryGetValue(component.Id, out var jsonValue))
+            {
+                var converted = ConvertJsonElement(jsonValue, outputProp.PropertyType);
+                outputProp.SetValue(component, converted);
+            }
+
+            if (component is ContainerComponent container && container.Children?.Count > 0)
+                MapDataToComponents(data, container.Children);
+        }
+    }
+
+    private static object? ConvertJsonElement(JsonElement element, Type targetType)
+    {
+        if (element.ValueKind == JsonValueKind.Null)
+            return null;
+
+        var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        if (underlying == typeof(string))
+            return element.ValueKind == JsonValueKind.String ? element.GetString() : element.ToString();
+
+        if (underlying == typeof(int))
+            return element.TryGetInt32(out var i) ? i : default(int);
+
+        if (underlying == typeof(long))
+            return element.TryGetInt64(out var l) ? l : default(long);
+
+        if (underlying == typeof(double))
+            return element.TryGetDouble(out var d) ? d : default(double);
+
+        if (underlying == typeof(decimal))
+            return element.TryGetDecimal(out var dc) ? dc : default(decimal);
+
+        if (underlying == typeof(bool))
+            return element.ValueKind == JsonValueKind.True;
+
+        if (underlying == typeof(DateTime))
+            return element.TryGetDateTime(out var dt) ? dt : default(DateTime);
+
+        return element.ToString();
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(Form.ActionUrl))
+            return;
+
+        _submitting = true;
+        _resultMessage = null;
+        StateHasChanged();
+
+        var formData = new Dictionary<string, object?>();
+        CollectFormData(formData, Form.Children);
+
+        var client = HttpClientFactory.CreateClient();
+        if (!string.IsNullOrWhiteSpace(JwtAuthService.Token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtAuthService.Token);
+
+        HttpResponseMessage response;
+        try
+        {
+            var content = JsonContent.Create(formData);
+            response = Form.HttpMethod.ToUpperInvariant() switch
+            {
+                "GET"    => await client.GetAsync(Form.ActionUrl),
+                "DELETE" => await client.DeleteAsync(Form.ActionUrl),
+                "PUT"    => await client.PutAsync(Form.ActionUrl, content),
+                "PATCH"  => await client.PatchAsync(Form.ActionUrl, content),
+                _        => await client.PostAsync(Form.ActionUrl, content)
+            };
+        }
+        catch
+        {
+            _submitSuccess = false;
+            _resultMessage = string.IsNullOrWhiteSpace(Form.ErrorMessage)
+                ? "İstek sırasında bir hata oluştu."
+                : Form.ErrorMessage;
+            _submitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        _submitting = false;
+        _submitSuccess = response.IsSuccessStatusCode;
+        _resultMessage = response.IsSuccessStatusCode
+            ? (string.IsNullOrWhiteSpace(Form.SuccessMessage) ? null : Form.SuccessMessage)
+            : (string.IsNullOrWhiteSpace(Form.ErrorMessage) ? "İşlem başarısız oldu." : Form.ErrorMessage);
+
+        StateHasChanged();
+    }
+
+    private async Task NavigateBack()
+        => await JS.InvokeVoidAsync("history.back");
+
+    private static void CollectFormData(Dictionary<string, object?> data, List<BaseComponent> components)
+    {
+        foreach (var component in components)
+        {
+            if (!string.IsNullOrWhiteSpace(component.Id))
+            {
+                var outputProp = component.GetType()
+                    .GetProperties()
+                    .FirstOrDefault(p => p.GetCustomAttribute<FieldOutputPropertyAttribute>() is not null);
+
+                if (outputProp is not null)
+                    data[component.Id] = outputProp.GetValue(component);
+            }
+
+            if (component is ContainerComponent container && container.Children?.Count > 0)
+                CollectFormData(data, container.Children);
+        }
     }
 
     private async Task SelectForm()

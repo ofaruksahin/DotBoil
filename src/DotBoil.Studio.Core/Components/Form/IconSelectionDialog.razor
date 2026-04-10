@@ -2,177 +2,259 @@
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="2">
-            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-                <MudTabPanel Text="Material - Filled">
-                    <div style="max-height: 500px; overflow-y: auto;">
+
+            <MudTextField @bind-Value="_search"
+                          Placeholder="İkon ara..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Rounded.Search"
+                          Clearable="true"
+                          Immediate="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+
+            @if (!string.IsNullOrWhiteSpace(_search))
+            {
+                <!-- Search results across all categories -->
+                <div style="max-height: 500px; overflow-y: auto;">
+                    @{ var results = GetSearchResults(); }
+                    @if (results.Any())
+                    {
                         <MudGrid>
-                            @foreach (var icon in MaterialFilledIcons)
+                            @foreach (var (name, value) in results)
                             {
                                 <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
+                                    <MudTooltip Text="@name" Placement="Placement.Top">
+                                        <MudIconButton Icon="@value"
+                                                       Color="Color.Default"
+                                                       OnClick="@(() => SelectIcon(value))" />
+                                    </MudTooltip>
                                 </MudItem>
                             }
                         </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Material - OutLined">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in MaterialOutlinedIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Material - Rounded">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in MaterialRoundedIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Material - Sharp">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in MaterialSharpIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Material - TwoTone">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in MaterialTwoToneIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Custom - Brands">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in CustomBrandIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Custom - File Formats">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in CustomFileFormatIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-                <MudTabPanel Text="Custom - Uncategorized">
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <MudGrid>
-                            @foreach (var icon in CustomUncategorizedIcons)
-                            {
-                                <MudItem xs="2" sm="1">
-                                    <MudIconButton Icon="@icon"
-                                                   Color="Color.Default"
-                                                   OnClick="@(() => SelectIcon(icon))" />
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                </MudTabPanel>
-            </MudTabs>
+                    }
+                    else
+                    {
+                        <div style="display:flex; flex-direction:column; align-items:center; padding:32px 0; color:#94a3b8; gap:8px;">
+                            <MudIcon Icon="@Icons.Material.Rounded.SearchOff" Style="font-size:40px !important;" />
+                            <span style="font-size:.82rem; font-weight:500;">İkon bulunamadı</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Material - Filled">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _filled)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Material - Outlined">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _outlined)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Material - Rounded">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _rounded)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Material - Sharp">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _sharp)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Material - TwoTone">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _twoTone)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Custom - Brands">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _brands)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Custom - File Formats">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _fileFormats)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Custom - Uncategorized">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <MudGrid>
+                                @foreach (var (name, value) in _uncategorized)
+                                {
+                                    <MudItem xs="2" sm="1">
+                                        <MudTooltip Text="@name" Placement="Placement.Top">
+                                            <MudIconButton Icon="@value"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => SelectIcon(value))" />
+                                        </MudTooltip>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Close">Kapat</MudButton>
     </DialogActions>
 </MudDialog>
 
-@code{
-
+@code {
     public static string DialogTitle => "Icon Selection Dialog";
-    
+
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
+    // Legacy parameters kept for backward compatibility
     [Parameter] public List<string> MaterialFilledIcons { get; set; } = new();
     [Parameter] public List<string> MaterialOutlinedIcons { get; set; } = new();
     [Parameter] public List<string> MaterialRoundedIcons { get; set; } = new();
     [Parameter] public List<string> MaterialSharpIcons { get; set; } = new();
     [Parameter] public List<string> MaterialTwoToneIcons { get; set; } = new();
-
     [Parameter] public List<string> CustomBrandIcons { get; set; } = new();
     [Parameter] public List<string> CustomFileFormatIcons { get; set; } = new();
     [Parameter] public List<string> CustomUncategorizedIcons { get; set; } = new();
 
+    private string _search = string.Empty;
+
+    private List<(string Name, string Value)> _filled = new();
+    private List<(string Name, string Value)> _outlined = new();
+    private List<(string Name, string Value)> _rounded = new();
+    private List<(string Name, string Value)> _sharp = new();
+    private List<(string Name, string Value)> _twoTone = new();
+    private List<(string Name, string Value)> _brands = new();
+    private List<(string Name, string Value)> _fileFormats = new();
+    private List<(string Name, string Value)> _uncategorized = new();
+
+    private List<(string Name, string Value)> _allIcons = new();
+
     protected override void OnInitialized()
     {
-        FillIcon(typeof(Icons.Material.Filled), MaterialFilledIcons);
-        FillIcon(typeof(Icons.Material.Outlined), MaterialOutlinedIcons);
-        FillIcon(typeof(Icons.Material.Rounded), MaterialRoundedIcons);
-        FillIcon(typeof(Icons.Material.Sharp), MaterialSharpIcons);
-        FillIcon(typeof(Icons.Material.TwoTone), MaterialTwoToneIcons);
-        FillIcon(typeof(Icons.Custom.Brands), CustomBrandIcons);
-        FillIcon(typeof(Icons.Custom.FileFormats), CustomFileFormatIcons);
-        FillIcon(typeof(Icons.Custom.Uncategorized), CustomUncategorizedIcons);
-        
+        _filled       = LoadIcons(typeof(Icons.Material.Filled));
+        _outlined     = LoadIcons(typeof(Icons.Material.Outlined));
+        _rounded      = LoadIcons(typeof(Icons.Material.Rounded));
+        _sharp        = LoadIcons(typeof(Icons.Material.Sharp));
+        _twoTone      = LoadIcons(typeof(Icons.Material.TwoTone));
+        _brands       = LoadIcons(typeof(Icons.Custom.Brands));
+        _fileFormats  = LoadIcons(typeof(Icons.Custom.FileFormats));
+        _uncategorized = LoadIcons(typeof(Icons.Custom.Uncategorized));
+
+        _allIcons = _filled
+            .Concat(_outlined)
+            .Concat(_rounded)
+            .Concat(_sharp)
+            .Concat(_twoTone)
+            .Concat(_brands)
+            .Concat(_fileFormats)
+            .Concat(_uncategorized)
+            .DistinctBy(x => x.Name)
+            .OrderBy(x => x.Name)
+            .ToList();
+
         base.OnInitialized();
     }
 
-    private void SelectIcon(string icon)
+    private IEnumerable<(string Name, string Value)> GetSearchResults()
     {
-        MudDialog.Close(DialogResult.Ok(icon));
+        if (string.IsNullOrWhiteSpace(_search)) return _allIcons;
+
+        return _allIcons.Where(x =>
+            x.Name.Contains(_search, StringComparison.OrdinalIgnoreCase));
     }
+
+    private static List<(string Name, string Value)> LoadIcons(Type type)
+    {
+        return type
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Select(f => (f.Name, Value: f.GetValue(null)?.ToString() ?? string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+            .ToList();
+    }
+
+    private void SelectIcon(string icon) => MudDialog.Close(DialogResult.Ok(icon));
 
     private void Close() => MudDialog.Cancel();
-
-    private void FillIcon(Type type, List<string> list)
-    {
-        var fields = type.GetFields(
-            BindingFlags.Public | BindingFlags.Static
-        );
-
-        foreach (var field in fields)
-        {
-            var value = field.GetValue(null)?.ToString();
-
-            if (!string.IsNullOrWhiteSpace(value))
-                list.Add(value);
-        }
-    }
 }

@@ -5,6 +5,7 @@ using DotBoil.AuthGuard.Application.Dtos;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.EFCore;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using NETCore.Encrypt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -50,21 +51,51 @@ internal static class UserEndpoints
 
     private static async Task<IResult> GetAll(
         IRepository<User, DotBoilAuthGuardDbContext> repo,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortColumn = null,
+        EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+        CancellationToken cancellationToken = default)
     {
-        var users = await repo.Get()
+        var query = repo.Get();
+
+        var ordered = sortColumn?.ToLowerInvariant() switch
+        {
+            "name"     => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(u => u.Name)
+                : query.OrderBy(u => u.Name),
+            "surname"  => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(u => u.Surname)
+                : query.OrderBy(u => u.Surname),
+            "username" => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(u => u.Username)
+                : query.OrderBy(u => u.Username),
+            "email"    => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(u => u.Email)
+                : query.OrderBy(u => u.Email),
+            _          => query.OrderBy(u => u.Name).ThenBy(u => u.Surname)
+        };
+
+        var totalRecords = await ordered.CountAsync(cancellationToken);
+        var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var items = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(u => new UserResponse
             {
-                Id = u.Id,
+                Id       = u.Id,
                 Provider = u.Provider,
-                Name = u.Name,
-                Surname = u.Surname,
+                Name     = u.Name,
+                Surname  = u.Surname,
                 Username = u.Username,
-                Email = u.Email
+                Email    = u.Email
             })
             .ToListAsync(cancellationToken);
 
-        return JsonResponse(BaseResponse.Response(users, HttpStatusCode.OK));
+        return JsonResponse(BaseResponse.Response(
+            new PaginatedModel<UserResponse>(pageNumber, pageSize, totalPages, totalRecords, items),
+            HttpStatusCode.OK));
     }
 
     private static async Task<IResult> GetById(

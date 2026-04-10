@@ -54,6 +54,7 @@ public class MenuService : IMenuService
                 .OrderBy(m => m.Rank)
                 .Select(m => new MenuItem
                 {
+                    Id = m.Id,
                     Name = m.Name,
                     Icon = m.Icon,
                     Path = m.Path,
@@ -64,6 +65,7 @@ public class MenuService : IMenuService
                         .OrderBy(mm => mm.Rank)
                         .Select(mm => new MenuItem
                         {
+                            Id = mm.Id,
                             Name = mm.Name,
                             Icon = mm.Icon,
                             Path = mm.Path,

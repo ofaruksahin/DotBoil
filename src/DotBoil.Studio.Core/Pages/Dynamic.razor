@@ -1,0 +1,37 @@
+@page "/dynamic/{Id:int}"
+@using DotBoil.Studio.Core.Components.Form
+@inject IUIConfigService UIConfigService
+@inject NavigationManager NavigationManager
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_components is not null)
+{
+    <ComponentRenderer FormFields="_components" DesignerMode="false" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private List<BaseComponent>? _components;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _components = null;
+
+        var config = await UIConfigService.GetByIdAsync(Id);
+
+        if (config is null)
+        {
+            NavigationManager.NavigateTo("/404", replace: true);
+            return;
+        }
+
+        _components = UIConfigService.DeserializeComponents(config.StateData);
+        _loading = false;
+    }
+}

@@ -70,6 +70,51 @@ public class JwtAuthService
         return true;
     }
 
+    public string DisplayName
+    {
+        get
+        {
+            var name = GetClaim("name");
+            if (!string.IsNullOrWhiteSpace(name)) return name;
+
+            var given  = GetClaim("given_name")  ?? string.Empty;
+            var family = GetClaim("family_name") ?? string.Empty;
+            var combined = $"{given} {family}".Trim();
+            if (!string.IsNullOrWhiteSpace(combined)) return combined;
+
+            return GetClaim("preferred_username") ?? GetClaim("email") ?? "Kullanıcı";
+        }
+    }
+
+    public string Email => GetClaim("email") ?? GetClaim("preferred_username") ?? string.Empty;
+
+    public string Initials
+    {
+        get
+        {
+            var parts = DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length switch
+            {
+                0 => "?",
+                1 => parts[0][..1].ToUpperInvariant(),
+                _ => $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant()
+            };
+        }
+    }
+
+    private string? GetClaim(string claimName)
+    {
+        if (string.IsNullOrEmpty(Token)) return null;
+        try
+        {
+            var payload = Token.Split('.')[1];
+            var json    = Base64UrlDecode(payload);
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty(claimName, out var el) ? el.GetString() : null;
+        }
+        catch { return null; }
+    }
+
     public bool IsTokenValidAsync()
     {
         if (string.IsNullOrEmpty(Token))

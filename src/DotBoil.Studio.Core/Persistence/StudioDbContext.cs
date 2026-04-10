@@ -10,6 +10,7 @@ public class StudioDbContext : EFCoreDbContext
 {
     public DbSet<UIConfig> UIConfigs { get; set; }
     public DbSet<UIConfigVersion> UIConfigVersions { get; set; }
+    public DbSet<MenuUISettings> MenuUISettings { get; set; }
 
     public StudioDbContext(IServiceProvider serviceProvider) : base(serviceProvider)
     {

@@ -11,6 +11,7 @@ public class UIConfigService : IUIConfigService
 {
     private readonly IRepository<UIConfig, StudioDbContext> _repository;
     private readonly IRepository<UIConfigVersion, StudioDbContext> _versionRepository;
+    private readonly IAuditUser _auditUser;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -25,10 +26,12 @@ public class UIConfigService : IUIConfigService
 
     public UIConfigService(
         IRepository<UIConfig, StudioDbContext> repository,
-        IRepository<UIConfigVersion, StudioDbContext> versionRepository)
+        IRepository<UIConfigVersion, StudioDbContext> versionRepository,
+        IAuditUser auditUser)
     {
         _repository = repository;
         _versionRepository = versionRepository;
+        _auditUser = auditUser;
     }
 
     public IQueryable<UIConfig> GetAll() => _repository.Get();
@@ -38,15 +41,17 @@ public class UIConfigService : IUIConfigService
     public async Task CreateAsync(UIConfig config)
     {
         config.CreateTime = DateTime.Now;
-        config.CreateUser = "SYSTEM";
+        config.CreateUser = await _auditUser.GetModifierName();
         await _repository.AddAsync(config);
         await _repository.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(UIConfig config)
     {
+        var currentUser = await _auditUser.GetModifierName();
+
         // Snapshot current state before applying changes
-        var current = await _repository.Get().Where(c => c.Id == config.Id).FirstOrDefaultAsync();
+        var current = await _repository.Get().AsNoTracking().Where(c => c.Id == config.Id).FirstOrDefaultAsync();
 
         var nextVersion = (await _versionRepository.Get()
             .Where(v => v.UIConfigId == config.Id)
@@ -61,11 +66,11 @@ public class UIConfigService : IUIConfigService
             Description = current.Description,
             StateData = current.StateData,
             CreateTime = DateTime.Now,
-            CreateUser = "SYSTEM"
+            CreateUser = currentUser
         });
 
         config.UpdateTime = DateTime.Now;
-        config.ModifyUser = "SYSTEM";
+        config.ModifyUser = currentUser;
         _repository.Update(config);
         await _repository.SaveChangesAsync();
     }

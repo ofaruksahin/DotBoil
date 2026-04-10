@@ -5,6 +5,7 @@ using DotBoil.AuthGuard.Application.Dtos;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.EFCore;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -49,12 +50,32 @@ internal static class AppModuleEndpoints
 
     private static async Task<IResult> GetAll(
         IServiceProvider serviceProvider,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortColumn = null,
+        EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+        CancellationToken cancellationToken = default)
     {
         var repo = serviceProvider.GetRequiredService<IRepository<AppModule, DotBoilAuthGuardDbContext>>();
         var roleAppModuleRepo = serviceProvider.GetRequiredService<IRepository<RoleAppModule, DotBoilAuthGuardDbContext>>();
 
-        var modules = await repo.Get().ToListAsync(cancellationToken);
+        var query = repo.Get();
+
+        var ordered = sortColumn?.ToLowerInvariant() switch
+        {
+            "name" => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(m => m.Name)
+                : query.OrderBy(m => m.Name),
+            _      => query.OrderBy(m => m.Name)
+        };
+
+        var totalRecords = await ordered.CountAsync(cancellationToken);
+        var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var modules = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
         var ids = modules.Select(m => m.Id).ToList();
 
@@ -63,15 +84,17 @@ internal static class AppModuleEndpoints
             .GroupBy(x => x.AppModuleId)
             .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.RoleId).ToList(), cancellationToken);
 
-        var result = modules.Select(m => new AppModuleResponse
+        var items = modules.Select(m => new AppModuleResponse
         {
-            Id = m.Id,
-            Name = m.Name,
+            Id          = m.Id,
+            Name        = m.Name,
             Description = m.Description,
-            RoleIds = roleMap.TryGetValue(m.Id, out var r) ? r : []
-        });
+            RoleIds     = roleMap.TryGetValue(m.Id, out var r) ? r : []
+        }).ToList();
 
-        return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
+        return JsonResponse(BaseResponse.Response(
+            new PaginatedModel<AppModuleResponse>(pageNumber, pageSize, totalPages, totalRecords, items),
+            HttpStatusCode.OK));
     }
 
     private static async Task<IResult> GetById(

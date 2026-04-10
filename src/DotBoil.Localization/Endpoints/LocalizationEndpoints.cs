@@ -1,6 +1,7 @@
 using System.Net;
 using DotBoil;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using DotBoil.Localization.Dtos;
 using DotBoil.Localization.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -37,18 +38,19 @@ namespace DotBoil.Localization.Endpoints
 
         private static async Task<IResult> GetLocalizations(
             LocalizationDbContext dbContext,
-            string language,
-            string group,
-            string key,
-            CancellationToken cancellationToken)
+            string? language = null,
+            string? group = null,
+            string? key = null,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string? sortColumn = null,
+            EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+            CancellationToken cancellationToken = default)
         {
             var query = dbContext.Localizations.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(language))
-            {
-                var normalizedLanguage = language.Trim();
-                query = query.Where(localization => localization.Language == normalizedLanguage);
-            }
+                query = query.Where(localization => localization.Language == language.Trim());
 
             if (group is not null)
             {
@@ -57,26 +59,43 @@ namespace DotBoil.Localization.Endpoints
             }
 
             if (!string.IsNullOrWhiteSpace(key))
-            {
-                var normalizedKey = key.Trim();
-                query = query.Where(localization => localization.Key == normalizedKey);
-            }
+                query = query.Where(localization => localization.Key == key.Trim());
 
-            var localizations = await query
-                .OrderBy(localization => localization.Language)
-                .ThenBy(localization => localization.Group)
-                .ThenBy(localization => localization.Key)
+            var ordered = sortColumn?.ToLowerInvariant() switch
+            {
+                "language" => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(l => l.Language)
+                    : query.OrderBy(l => l.Language),
+                "group"    => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(l => l.Group)
+                    : query.OrderBy(l => l.Group),
+                "key"      => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(l => l.Key)
+                    : query.OrderBy(l => l.Key),
+                _          => query
+                    .OrderBy(l => l.Language)
+                    .ThenBy(l => l.Group)
+                    .ThenBy(l => l.Key)
+            };
+
+            var totalRecords = await ordered.CountAsync(cancellationToken);
+            var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+            var items = await ordered
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(localization => new LocalizationResponse
                 {
-                    Id = localization.Id,
+                    Id       = localization.Id,
                     Language = localization.Language,
-                    Group = localization.Group ?? string.Empty,
-                    Key = localization.Key,
-                    Value = localization.Value
+                    Group    = localization.Group ?? string.Empty,
+                    Key      = localization.Key,
+                    Value    = localization.Value
                 })
                 .ToListAsync(cancellationToken);
 
-            return JsonResponse(BaseResponse.Response(localizations, HttpStatusCode.OK));
+            var result = new PaginatedModel<LocalizationResponse>(pageNumber, pageSize, totalPages, totalRecords, items);
+            return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
         }
 
         private static async Task<IResult> GetLocalization(

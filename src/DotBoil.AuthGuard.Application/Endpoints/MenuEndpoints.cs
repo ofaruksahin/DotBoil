@@ -5,6 +5,7 @@ using DotBoil.AuthGuard.Application.Dtos;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.EFCore;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -49,12 +50,38 @@ internal static class MenuEndpoints
 
     private static async Task<IResult> GetAll(
         IServiceProvider serviceProvider,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortColumn = null,
+        EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+        CancellationToken cancellationToken = default)
     {
         var repo = serviceProvider.GetRequiredService<IRepository<Menu, DotBoilAuthGuardDbContext>>();
         var roleMenuRepo = serviceProvider.GetRequiredService<IRepository<RoleMenu, DotBoilAuthGuardDbContext>>();
 
-        var menus = await repo.Get().ToListAsync(cancellationToken);
+        var query = repo.Get();
+
+        var ordered = sortColumn?.ToLowerInvariant() switch
+        {
+            "name"   => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(m => m.Name)
+                : query.OrderBy(m => m.Name),
+            "path"   => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(m => m.Path)
+                : query.OrderBy(m => m.Path),
+            "header" => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(m => m.Header)
+                : query.OrderBy(m => m.Header),
+            _        => query.OrderBy(m => m.Rank).ThenBy(m => m.Name)
+        };
+
+        var totalRecords = await ordered.CountAsync(cancellationToken);
+        var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var menus = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
         var ids = menus.Select(m => m.Id).ToList();
 
@@ -63,21 +90,21 @@ internal static class MenuEndpoints
             .GroupBy(x => x.MenuId)
             .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.RoleId).ToList(), cancellationToken);
 
-        var result = menus
-            .OrderBy(m => m.Rank)
-            .Select(m => new MenuResponse
-            {
-                Id = m.Id,
-                Name = m.Name,
-                Icon = m.Icon,
-                Path = m.Path,
-                Header = m.Header,
-                Rank = m.Rank,
-                ParentMenuId = m.ParentMenuId,
-                RoleIds = roleMap.TryGetValue(m.Id, out var r) ? r : []
-            });
+        var items = menus.Select(m => new MenuResponse
+        {
+            Id           = m.Id,
+            Name         = m.Name,
+            Icon         = m.Icon,
+            Path         = m.Path,
+            Header       = m.Header,
+            Rank         = m.Rank,
+            ParentMenuId = m.ParentMenuId,
+            RoleIds      = roleMap.TryGetValue(m.Id, out var r) ? r : []
+        }).ToList();
 
-        return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
+        return JsonResponse(BaseResponse.Response(
+            new PaginatedModel<MenuResponse>(pageNumber, pageSize, totalPages, totalRecords, items),
+            HttpStatusCode.OK));
     }
 
     private static async Task<IResult> GetById(

@@ -5,6 +5,7 @@ using DotBoil.AuthGuard.Application.Dtos;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.EFCore;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -50,13 +51,36 @@ internal static class ApiEndpointEndpoints
     private static async Task<IResult> GetAll(
         HttpContext httpContext,
         IServiceProvider serviceProvider,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortColumn = null,
+        EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+        CancellationToken cancellationToken = default)
     {
         var repo = serviceProvider.GetRequiredService<IRepository<ApiEndpoint, DotBoilAuthGuardDbContext>>();
         var appModuleEndpointRepo = serviceProvider.GetRequiredService<IRepository<AppModuleEndpoint, DotBoilAuthGuardDbContext>>();
         var roleApiEndpointRepo = serviceProvider.GetRequiredService<IRepository<RoleApiEndpoint, DotBoilAuthGuardDbContext>>();
 
-        var endpoints = await repo.Get().ToListAsync(cancellationToken);
+        var query = repo.Get();
+
+        var ordered = sortColumn?.ToLowerInvariant() switch
+        {
+            "controller" => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(e => e.Controller)
+                : query.OrderBy(e => e.Controller),
+            "action"     => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(e => e.Action)
+                : query.OrderBy(e => e.Action),
+            _            => query.OrderBy(e => e.Controller).ThenBy(e => e.Action)
+        };
+
+        var totalRecords = await ordered.CountAsync(cancellationToken);
+        var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var endpoints = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
         var ids = endpoints.Select(e => e.Id).ToList();
 
@@ -70,16 +94,18 @@ internal static class ApiEndpointEndpoints
             .GroupBy(x => x.ApiEndpointId)
             .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.RoleId).ToList(), cancellationToken);
 
-        var result = endpoints.Select(e => new ApiEndpointResponse
+        var items = endpoints.Select(e => new ApiEndpointResponse
         {
-            Id = e.Id,
-            Controller = e.Controller,
-            Action = e.Action,
+            Id           = e.Id,
+            Controller   = e.Controller,
+            Action       = e.Action,
             AppModuleIds = appModuleMap.TryGetValue(e.Id, out var am) ? am : [],
-            RoleIds = roleMap.TryGetValue(e.Id, out var r) ? r : []
-        });
+            RoleIds      = roleMap.TryGetValue(e.Id, out var r) ? r : []
+        }).ToList();
 
-        return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
+        return JsonResponse(BaseResponse.Response(
+            new PaginatedModel<ApiEndpointResponse>(pageNumber, pageSize, totalPages, totalRecords, items),
+            HttpStatusCode.OK));
     }
 
     private static async Task<IResult> GetById(

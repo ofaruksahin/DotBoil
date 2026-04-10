@@ -33,7 +33,6 @@ namespace DotBoil.UserConsents.Endpoints
                 .MapGroup(RoutePrefix)
                 .WithTags("UserConsents");
 
-            publicGroup.MapGet("/current", GetCurrentConsent);
             publicGroup.MapGet("/check", CheckUserConsent);
             publicGroup.MapPost("/accept", AcceptConsent);
 
@@ -121,21 +120,6 @@ namespace DotBoil.UserConsents.Endpoints
         }
 
         // --- Public endpoints ---
-
-        private static async Task<IResult> GetCurrentConsent(
-            ConsentType type,
-            string language,
-            HttpContext httpContext,
-            CancellationToken cancellationToken)
-        {
-            var service = httpContext.RequestServices.GetRequiredService<UserConsentsService>();
-            var consent = await service.GetConsent(type, language, cancellationToken);
-
-            if (consent is null)
-                return JsonResponse(BaseResponse.Response(HttpStatusCode.NotFound, "Consent not found."));
-
-            return JsonResponse(BaseResponse.Response(consent, HttpStatusCode.OK));
-        }
 
         private static async Task<IResult> CheckUserConsent(
             ConsentType type,

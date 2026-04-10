@@ -27,8 +27,8 @@ namespace DotBoil.UserConsents
                 options.UseMySQL(configuration.Persistence.ConnectionString);
             });
 
-            DotBoilApp.Services.AddSingleton<UserConsentsService>();
-            DotBoilApp.Services.AddSingleton<IUserConsentsService>(sp => sp.GetRequiredService<UserConsentsService>());
+            DotBoilApp.Services.AddScoped<UserConsentsService>();
+            DotBoilApp.Services.AddScoped<IUserConsentsService>(sp => sp.GetRequiredService<UserConsentsService>());
 
             return Task.CompletedTask;
         }

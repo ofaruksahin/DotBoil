@@ -1,0 +1,282 @@
+@inject IDialogService DialogService
+@using DotBoil.Studio.Core.Components.Form
+
+<style>
+    .dtcr-section { margin-bottom: 16px; }
+    .dtcr-col-card {
+        border: 1px solid #e2e8f0; border-radius: 10px;
+        margin-bottom: 10px; overflow: hidden;
+    }
+    .dtcr-col-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; background: #f8fafc;
+        border-bottom: 1px solid #f1f5f9; cursor: pointer;
+        user-select: none;
+    }
+    .dtcr-col-header:hover { background: #f1f5f9; }
+    .dtcr-col-title { font-size: .78rem; font-weight: 700; color: #334155; flex: 1; }
+    .dtcr-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+    .dtcr-sub-label {
+        font-size: .72rem; font-weight: 700; color: #64748b;
+        text-transform: uppercase; letter-spacing: .04em;
+        margin-bottom: 6px;
+    }
+    .dtcr-badge-row, .dtcr-btn-row {
+        display: flex; gap: 6px; align-items: flex-start;
+        padding: 8px; background: #f8fafc;
+        border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 6px;
+    }
+    .dtcr-btn-fields { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+</style>
+
+@foreach (var col in Columns)
+{
+    var isExpanded = _expanded.Contains(col);
+
+    <div class="dtcr-col-card">
+        <div class="dtcr-col-header" @onclick="() => ToggleExpand(col)">
+            <MudIcon Icon="@(isExpanded ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
+                     Size="Size.Small" Style="color:#94a3b8;" />
+            <span class="dtcr-col-title">
+                @(string.IsNullOrWhiteSpace(col.Header) ? $"[{col.Field}]" : col.Header)
+            </span>
+            <MudChip T="string" Size="Size.Small"
+                     Color="@(col.ColumnType == DataTableColumnType.Badge ? Color.Primary : Color.Default)"
+                     Variant="Variant.Outlined">
+                @col.ColumnType.ToString()
+            </MudChip>
+            <span @onclick:stopPropagation="true">
+                <MudIconButton Icon="@Icons.Material.Rounded.DeleteOutline"
+                               Size="Size.Small" Color="Color.Error"
+                               OnClick="@(() => RemoveColumn(col))" />
+            </span>
+        </div>
+
+        @if (isExpanded)
+        {
+            <div class="dtcr-col-body">
+
+                <!-- Temel alanlar -->
+                <MudTextField T="string" Label="Field" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Value="col.Field"
+                              ValueChanged="v => { col.Field = v; Notify(); }" />
+
+                <MudTextField T="string" Label="Header" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Value="col.Header"
+                              ValueChanged="v => { col.Header = v; Notify(); }" />
+
+                <MudTextField T="string" Label="Format" Placeholder="örn: dd.MM.yyyy | N2"
+                              Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Value="col.Format"
+                              ValueChanged="v => { col.Format = v; Notify(); }" />
+
+                <MudSelect T="DataTableColumnType" Label="Kolon Tipi"
+                           Variant="Variant.Outlined" Margin="Margin.Dense"
+                           Value="col.ColumnType"
+                           ValueChanged="v => { col.ColumnType = v; Notify(); }">
+                    <MudSelectItem Value="DataTableColumnType.Text">Text</MudSelectItem>
+                    <MudSelectItem Value="DataTableColumnType.Badge">Badge</MudSelectItem>
+                </MudSelect>
+
+                <!-- Badge Conditions -->
+                @if (col.ColumnType == DataTableColumnType.Badge)
+                {
+                    <div>
+                        <div class="dtcr-sub-label">Badge Koşulları</div>
+                        @foreach (var cond in col.BadgeConditions)
+                        {
+                            var capturedCond = cond;
+                            <div class="dtcr-badge-row">
+                                <MudTextField T="string" Label="Değer (boş = varsayılan)"
+                                              Variant="Variant.Outlined" Margin="Margin.Dense"
+                                              Style="flex:1;"
+                                              Value="capturedCond.Value"
+                                              ValueChanged="v => { capturedCond.Value = v; Notify(); }" />
+
+                                <MudSelect T="string" Label="Renk"
+                                           Variant="Variant.Outlined" Margin="Margin.Dense"
+                                           Style="flex:1;"
+                                           Value="capturedCond.Color"
+                                           ValueChanged="v => { capturedCond.Color = v; Notify(); }">
+                                    @foreach (var c in BadgeColors)
+                                    {
+                                        <MudSelectItem Value="c">@c</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                                <MudIconButton Icon="@Icons.Material.Rounded.Close"
+                                               Size="Size.Small" Color="Color.Error"
+                                               OnClick="() => { col.BadgeConditions.Remove(capturedCond); Notify(); }" />
+                            </div>
+                        }
+                        <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Rounded.Add"
+                                   OnClick="() => { col.BadgeConditions.Add(new BadgeCondition()); Notify(); }">
+                            Koşul Ekle
+                        </MudButton>
+                    </div>
+                }
+
+                <!-- Buttons -->
+                <div>
+                    <div class="dtcr-sub-label">Butonlar</div>
+                    @foreach (var btn in col.Buttons)
+                    {
+                        var capturedBtn = btn;
+                        <div class="dtcr-btn-row">
+                            <div class="dtcr-btn-fields">
+                                <MudSelect T="DataTableButtonType" Label="Tip"
+                                           Variant="Variant.Outlined" Margin="Margin.Dense"
+                                           Value="capturedBtn.ButtonType"
+                                           ValueChanged="v => { capturedBtn.ButtonType = v; Notify(); }">
+                                    <MudSelectItem Value="DataTableButtonType.Redirect">Redirect</MudSelectItem>
+                                    <MudSelectItem Value="DataTableButtonType.Action">Action</MudSelectItem>
+                                </MudSelect>
+
+                                <MudSelect T="string" Label="Renk" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                           Value="capturedBtn.Color"
+                                           ValueChanged="v => { capturedBtn.Color = v; Notify(); }">
+                                    @foreach (var bc in ButtonColors)
+                                    {
+                                        <MudSelectItem Value="bc">@bc</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                                <MudTextField T="string" Label="Metin" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                              Value="capturedBtn.Text"
+                                              ValueChanged="v => { capturedBtn.Text = v; Notify(); }" />
+
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <MudTooltip Text="İkon seç">
+                                        <MudIconButton Icon="@(string.IsNullOrWhiteSpace(capturedBtn.Icon) ? Icons.Material.Rounded.ImageSearch : capturedBtn.Icon)"
+                                                       Variant="Variant.Outlined"
+                                                       Size="Size.Medium"
+                                                       Color="Color.Primary"
+                                                       OnClick="@(() => SelectButtonIcon(capturedBtn))" />
+                                    </MudTooltip>
+                                    @if (!string.IsNullOrWhiteSpace(capturedBtn.Icon))
+                                    {
+                                        <MudText Typo="Typo.caption" Style="color:#64748b;">İkon seçildi</MudText>
+                                        <MudIconButton Icon="@Icons.Material.Rounded.Clear"
+                                                       Size="Size.Small" Color="Color.Error"
+                                                       OnClick="@(() => { capturedBtn.Icon = string.Empty; Notify(); })" />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.caption" Style="color:#94a3b8;">İkon seçilmedi</MudText>
+                                    }
+                                </div>
+
+                                <MudTextField T="string" Label="Tooltip" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                              Value="capturedBtn.Tooltip"
+                                              ValueChanged="v => { capturedBtn.Tooltip = v; Notify(); }" />
+
+                                @if (capturedBtn.ButtonType == DataTableButtonType.Redirect)
+                                {
+                                    <MudTextField T="string" Label="Redirect URL" Placeholder="/users/{id}"
+                                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                  Value="capturedBtn.RedirectUrl"
+                                                  ValueChanged="v => { capturedBtn.RedirectUrl = v; Notify(); }" />
+                                }
+                                else
+                                {
+                                    <MudSelect T="string" Label="HTTP Metodu"
+                                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                                               Value="capturedBtn.HttpMethod"
+                                               ValueChanged="v => { capturedBtn.HttpMethod = v; Notify(); }">
+                                        <MudSelectItem Value="@("POST")">POST</MudSelectItem>
+                                        <MudSelectItem Value="@("PUT")">PUT</MudSelectItem>
+                                        <MudSelectItem Value="@("PATCH")">PATCH</MudSelectItem>
+                                        <MudSelectItem Value="@("DELETE")">DELETE</MudSelectItem>
+                                        <MudSelectItem Value="@("GET")">GET</MudSelectItem>
+                                    </MudSelect>
+
+                                    <div style="font-size:.72rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin-top:2px;">Action URL</div>
+                                    <ApiUrlSettingsRenderer Current="@capturedBtn.ActionUrl"
+                                                            ValueChanged="v => { capturedBtn.ActionUrl = v; Notify(); }" />
+
+                                    <MudTextField T="string" Label="Onay Mesajı"
+                                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                  Value="capturedBtn.ConfirmationText"
+                                                  ValueChanged="v => { capturedBtn.ConfirmationText = v; Notify(); }" />
+                                }
+                            </div>
+
+                            <MudIconButton Icon="@Icons.Material.Rounded.DeleteOutline"
+                                           Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => { col.Buttons.Remove(capturedBtn); Notify(); }" />
+                        </div>
+                    }
+                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Info"
+                               StartIcon="@Icons.Material.Rounded.Add"
+                               OnClick="() => { col.Buttons.Add(new DataTableButton()); Notify(); }">
+                        Buton Ekle
+                    </MudButton>
+                </div>
+
+            </div>
+        }
+    </div>
+}
+
+<MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Primary"
+           StartIcon="@Icons.Material.Rounded.AddBox"
+           OnClick="AddColumn">
+    Kolon Ekle
+</MudButton>
+
+@code {
+    [Parameter] public List<DataTableColumn> Current { get; set; } = new();
+    [Parameter] public BaseComponent CurrentComponent { get; set; } = default!;
+
+    private List<DataTableColumn> Columns => (CurrentComponent as DataTableComponent)?.Columns ?? Current;
+
+    private readonly HashSet<DataTableColumn> _expanded = new();
+
+    private static readonly List<string> BadgeColors =
+    [
+        "Default", "Primary", "Secondary", "Info", "Success", "Warning", "Error", "Dark"
+    ];
+
+    private static readonly List<string> ButtonColors =
+    [
+        "Default", "Primary", "Secondary", "Info", "Success", "Warning", "Error", "Dark"
+    ];
+
+    private void ToggleExpand(DataTableColumn col)
+    {
+        if (!_expanded.Remove(col))
+            _expanded.Add(col);
+    }
+
+    private void AddColumn()
+    {
+        var col = new DataTableColumn();
+        Columns.Add(col);
+        _expanded.Add(col);
+        Notify();
+    }
+
+    private void RemoveColumn(DataTableColumn col)
+    {
+        Columns.Remove(col);
+        _expanded.Remove(col);
+        Notify();
+    }
+
+    private async Task SelectButtonIcon(DataTableButton btn)
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraExtraLarge, FullWidth = true };
+        var dialogRef = await DialogService.ShowAsync<IconSelectionDialog>(IconSelectionDialog.DialogTitle, options);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled)
+        {
+            btn.Icon = (string)result.Data;
+            Notify();
+        }
+    }
+
+    private void Notify() => StateHasChanged();
+}

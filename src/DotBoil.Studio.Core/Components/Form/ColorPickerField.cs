@@ -24,5 +24,9 @@ public class ColorPickerField : BaseComponent
 
     [JsonIgnore]
     [FieldOutputProperty]
-    public string ValueAsString => Value?.ToString();
+    public string ValueAsString
+    {
+        get => Value?.ToString();
+        set => Value = (MudColor)Enum.Parse(typeof(MudColor), value);
+    }
 }

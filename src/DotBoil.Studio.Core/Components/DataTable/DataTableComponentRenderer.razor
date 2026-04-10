@@ -1,0 +1,508 @@
+@inject IHttpClientFactory HttpClientFactory
+@inject JwtAuthService JwtAuthService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using DotBoil.Studio.Core.Services
+@using MudBlazor
+
+@if (Context.DesignerMode)
+{
+    <div style="border: 2px dashed #cbd5e1; border-radius: 10px; background: #fafbfd; padding: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+            <MudIcon Icon="@Icons.Material.Rounded.TableChart" Size="Size.Small" Style="color: #6366f1;" />
+            <span style="font-size: .78rem; font-weight: 700; color: #0f172a;">Data Table</span>
+            @if (!string.IsNullOrWhiteSpace(Table.DataUrl))
+            {
+                <span style="font-size: .68rem; color: #64748b; font-family: monospace; background: #e2e8f0; padding: 1px 7px; border-radius: 6px;">@Table.DataUrl</span>
+            }
+            @if (Table.IsPaginatedTable)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">Paginated</MudChip>
+            }
+        </div>
+
+        @if (Table.Columns.Any())
+        {
+            <MudSimpleTable Dense="true" Hover="false" Style="border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        @foreach (var col in Table.Columns)
+                        {
+                            <th style="font-size: .72rem; color: #334155; font-weight: 700; background: #f1f5f9; padding: 6px 12px;">
+                                @col.Header
+                                @if (col.ColumnType == DataTableColumnType.Badge)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Rounded.Badge" Size="Size.Small" Style="margin-left:4px; color:#6366f1; vertical-align:middle;" />
+                                }
+                                @if (col.Buttons.Any())
+                                {
+                                    <MudIcon Icon="@Icons.Material.Rounded.SmartButton" Size="Size.Small" Style="margin-left:4px; color:#0ea5e9; vertical-align:middle;" />
+                                }
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        @foreach (var col in Table.Columns)
+                        {
+                            <td style="font-size: .72rem; color: #94a3b8; padding: 6px 12px; font-style: italic;">
+                                @col.Field
+                            </td>
+                        }
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+        }
+        else
+        {
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 16px; color: #94a3b8; gap: 6px;">
+                <MudIcon Icon="@Icons.Material.Rounded.TableRows" Style="font-size: 32px !important;" />
+                <span style="font-size: .78rem; font-weight: 500;">Kolon tanımlamak için sağ paneli kullanın</span>
+            </div>
+        }
+    </div>
+}
+else if (Table.IsPaginatedTable)
+{
+    @if (Table.ShowCreateButton)
+    {
+        <div class="d-flex justify-end mb-2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@(string.IsNullOrWhiteSpace(Table.CreateButtonIcon?.Value) ? Icons.Material.Rounded.Add : Table.CreateButtonIcon.Value)"
+                       OnClick="NavigateToCreate">
+                @(string.IsNullOrWhiteSpace(Table.CreateButtonText) ? "Yeni Ekle" : Table.CreateButtonText)
+            </MudButton>
+        </div>
+    }
+    <MudTable T="Dictionary<string, JsonElement>"
+              ServerData="LoadPagedDataAsync"
+              Dense="true"
+              Hover="true"
+              Loading="_loading"
+              RowsPerPage="@Table.PageSize"
+              @ref="_mudTable">
+        <HeaderContent>
+            @foreach (var col in Table.Columns)
+            {
+                @if (col.Buttons.Any())
+                {
+                    <MudTh Style="width:1%; white-space:nowrap;">@col.Header</MudTh>
+                }
+                else
+                {
+                    <MudTh>@col.Header</MudTh>
+                }
+            }
+        </HeaderContent>
+        <RowTemplate>
+            @foreach (var col in Table.Columns)
+            {
+                @if (col.Buttons.Any())
+                {
+                    <MudTd DataLabel="@col.Header" Style="width:1%; white-space:nowrap;">
+                        @RenderColumnButtons(context, col)
+                    </MudTd>
+                }
+                else
+                {
+                    <MudTd DataLabel="@col.Header">
+                        @RenderCell(context, col)
+                    </MudTd>
+                }
+            }
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Class="pa-4" Align="Align.Center">
+                @(string.IsNullOrWhiteSpace(Table.NoDataText) ? "Kayıt bulunamadı." : Table.NoDataText)
+            </MudText>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+else
+{
+    @if (Table.ShowCreateButton)
+    {
+        <div class="d-flex justify-end mb-2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@(string.IsNullOrWhiteSpace(Table.CreateButtonIcon?.Value) ? Icons.Material.Rounded.Add : Table.CreateButtonIcon.Value)"
+                       OnClick="NavigateToCreate">
+                @(string.IsNullOrWhiteSpace(Table.CreateButtonText) ? "Yeni Ekle" : Table.CreateButtonText)
+            </MudButton>
+        </div>
+    }
+    <MudTable T="Dictionary<string, JsonElement>"
+              Items="_items"
+              Dense="true"
+              Hover="true"
+              Loading="_loading">
+        <HeaderContent>
+            @foreach (var col in Table.Columns)
+            {
+                @if (col.Buttons.Any())
+                {
+                    <MudTh Style="width:1%; white-space:nowrap;">@col.Header</MudTh>
+                }
+                else
+                {
+                    <MudTh>@col.Header</MudTh>
+                }
+            }
+        </HeaderContent>
+        <RowTemplate>
+            @foreach (var col in Table.Columns)
+            {
+                @if (col.Buttons.Any())
+                {
+                    <MudTd DataLabel="@col.Header" Style="width:1%; white-space:nowrap;">
+                        @RenderColumnButtons(context, col)
+                    </MudTd>
+                }
+                else
+                {
+                    <MudTd DataLabel="@col.Header">
+                        @RenderCell(context, col)
+                    </MudTd>
+                }
+            }
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Class="pa-4" Align="Align.Center">
+                @(string.IsNullOrWhiteSpace(Table.NoDataText) ? "Kayıt bulunamadı." : Table.NoDataText)
+            </MudText>
+        </NoRecordsContent>
+    </MudTable>
+}
+
+@code {
+    [Parameter] public BaseComponent Current { get; set; }
+    [Parameter] public ComponentContext Context { get; set; }
+
+    private DataTableComponent Table => (DataTableComponent)Current;
+
+    private List<Dictionary<string, JsonElement>> _items = new();
+    private bool _loading;
+    private MudTable<Dictionary<string, JsonElement>> _mudTable;
+    private string _lastLoadedUrl = string.Empty;
+    private bool _confirmPending;
+    private TableData<Dictionary<string, JsonElement>>? _lastPagedData;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Context.DesignerMode || Table.IsPaginatedTable || string.IsNullOrWhiteSpace(Table.DataUrl))
+            return;
+
+        if (_confirmPending || Table.DataUrl == _lastLoadedUrl)
+            return;
+
+        _lastLoadedUrl = Table.DataUrl;
+        _loading = true;
+        _items = await FetchFlatDataAsync();
+        _loading = false;
+    }
+
+    private async Task<TableData<Dictionary<string, JsonElement>>> LoadPagedDataAsync(TableState state, CancellationToken ct)
+    {
+        if (_confirmPending && _lastPagedData is not null)
+            return _lastPagedData;
+
+        _loading = true;
+
+        var url = BuildPaginatedUrl(Table.DataUrl, state.Page + 1, state.PageSize, state.SortLabel, state.SortDirection);
+        var json = await FetchJsonAsync(url);
+
+        if (json is null)
+        {
+            _loading = false;
+            return _lastPagedData ?? new TableData<Dictionary<string, JsonElement>> { Items = [], TotalItems = 0 };
+        }
+
+        using var doc = JsonDocument.Parse(json);
+
+        if (!TryGetDataElement(doc.RootElement, out var dataEl))
+        {
+            _loading = false;
+            return _lastPagedData ?? new TableData<Dictionary<string, JsonElement>> { Items = [], TotalItems = 0 };
+        }
+
+        if (!TryGetPropertyCI(dataEl, "Items", out var itemsEl))
+            return _lastPagedData ?? new TableData<Dictionary<string, JsonElement>> { Items = [], TotalItems = 0 };
+
+        var items = ParseItems(itemsEl);
+        var total = TryGetPropertyCI(dataEl, "TotalRecords", out var tr) ? tr.GetInt32() : items.Count;
+
+        _loading = false;
+        _lastPagedData = new TableData<Dictionary<string, JsonElement>> { Items = items, TotalItems = total };
+        return _lastPagedData;
+    }
+
+    private void NavigateToCreate()
+    {
+        if (!string.IsNullOrWhiteSpace(Table.CreateButtonUrl))
+            NavigationManager.NavigateTo(Table.CreateButtonUrl);
+    }
+
+    private async Task<List<Dictionary<string, JsonElement>>> FetchFlatDataAsync()
+    {
+        var json = await FetchJsonAsync(Table.DataUrl);
+        if (json is null) return new();
+
+        using var doc = JsonDocument.Parse(json);
+
+        if (!TryGetDataElement(doc.RootElement, out var dataEl))
+            return new();
+
+        if (dataEl.ValueKind == JsonValueKind.Array)
+            return ParseItems(dataEl);
+
+        if (dataEl.ValueKind == JsonValueKind.Object && TryGetPropertyCI(dataEl, "Items", out var itemsEl))
+            return ParseItems(itemsEl);
+
+        return new();
+    }
+
+    private async Task<string?> FetchJsonAsync(string url)
+    {
+        var client = HttpClientFactory.CreateClient();
+        if (!string.IsNullOrWhiteSpace(JwtAuthService.Token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtAuthService.Token);
+
+        try
+        {
+            var response = await client.GetAsync(url);
+            return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool TryGetPropertyCI(JsonElement el, string name, out JsonElement value)
+    {
+        foreach (var prop in el.EnumerateObject())
+        {
+            if (prop.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = prop.Value;
+                return true;
+            }
+        }
+        value = default;
+        return false;
+    }
+
+    private static bool TryGetDataElement(JsonElement root, out JsonElement dataEl)
+        => TryGetPropertyCI(root, "Data", out dataEl);
+
+    private static List<Dictionary<string, JsonElement>> ParseItems(JsonElement arrayEl)
+    {
+        var result = new List<Dictionary<string, JsonElement>>();
+        if (arrayEl.ValueKind != JsonValueKind.Array) return result;
+
+        foreach (var item in arrayEl.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            var row = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+            foreach (var prop in item.EnumerateObject())
+                row[prop.Name] = prop.Value.Clone();
+            result.Add(row);
+        }
+
+        return result;
+    }
+
+    private static string BuildPaginatedUrl(string baseUrl, int pageNumber, int pageSize, string? sortColumn, SortDirection sortDirection)
+    {
+        var separator = baseUrl.Contains('?') ? "&" : "?";
+        var dir = sortDirection == SortDirection.Descending ? 1 : 0;
+        var url = $"{baseUrl}{separator}PageNumber={pageNumber}&PageSize={pageSize}&SortDirection={dir}";
+        if (!string.IsNullOrWhiteSpace(sortColumn))
+            url += $"&SortColumn={Uri.EscapeDataString(sortColumn)}";
+        return url;
+    }
+
+    private RenderFragment RenderCell(Dictionary<string, JsonElement> row, DataTableColumn col) => builder =>
+    {
+        var rawValue = GetCellValue(row, col.Field);
+        var displayValue = ApplyFormat(rawValue, col.Format);
+
+        if (col.ColumnType == DataTableColumnType.Badge)
+        {
+            var color = ResolveBadgeColor(rawValue, col.BadgeConditions);
+            builder.OpenComponent<MudChip<string>>(0);
+            builder.AddAttribute(1, "Text", displayValue);
+            builder.AddAttribute(2, "Color", color);
+            builder.AddAttribute(3, "Size", Size.Small);
+            builder.AddAttribute(4, "Variant", Variant.Filled);
+            builder.CloseComponent();
+        }
+        else
+        {
+            builder.AddContent(0, displayValue);
+        }
+    };
+
+    private RenderFragment RenderColumnButtons(Dictionary<string, JsonElement> row, DataTableColumn col) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", "display:flex; gap:4px; flex-wrap:nowrap;");
+
+        var seq = 2;
+        foreach (var btn in col.Buttons)
+        {
+            var capturedBtn = btn;
+            var capturedRow = row;
+            var btnColor = Enum.TryParse<Color>(capturedBtn.Color, ignoreCase: true, out var c) ? c : Color.Default;
+
+            builder.OpenComponent<MudTooltip>(seq++);
+            builder.AddAttribute(seq++, "Text", capturedBtn.Tooltip);
+            builder.AddAttribute(seq++, "ChildContent", (RenderFragment)(b =>
+            {
+                b.OpenComponent<MudIconButton>(0);
+                b.AddAttribute(1, "Icon", string.IsNullOrWhiteSpace(capturedBtn.Icon) ? Icons.Material.Rounded.PlayArrow : capturedBtn.Icon);
+                b.AddAttribute(2, "Size", Size.Small);
+                b.AddAttribute(3, "Variant", Variant.Outlined);
+                b.AddAttribute(4, "Color", btnColor);
+                b.AddAttribute(5, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, _ => HandleButtonClick(capturedBtn, capturedRow)));
+                b.CloseComponent();
+            }));
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+    };
+
+    private async Task HandleButtonClick(DataTableButton btn, Dictionary<string, JsonElement> row)
+    {
+        if (btn.ButtonType == DataTableButtonType.Redirect)
+        {
+            var url = ResolveRowUrl(btn.RedirectUrl, row);
+            NavigationManager.NavigateTo(url);
+            return;
+        }
+
+        var confirmText = string.IsNullOrWhiteSpace(btn.ConfirmationText)
+            ? "Bu işlemi gerçekleştirmek istediğinizden emin misiniz?"
+            : btn.ConfirmationText;
+
+        _confirmPending = true;
+
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Onay",
+            confirmText,
+            yesText: "Evet",
+            cancelText: "İptal");
+
+        _confirmPending = false;
+
+        if (confirmed != true) return;
+
+        await ExecuteActionAsync(btn, row);
+    }
+
+    private async Task ExecuteActionAsync(DataTableButton btn, Dictionary<string, JsonElement> row)
+    {
+        var resolvedUrl = ResolveRowUrl(btn.ActionUrl, row);
+        var client = HttpClientFactory.CreateClient();
+        if (!string.IsNullOrWhiteSpace(JwtAuthService.Token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtAuthService.Token);
+
+        try
+        {
+            _ = (btn.HttpMethod?.ToUpperInvariant()) switch
+            {
+                "DELETE" => await client.DeleteAsync(resolvedUrl),
+                "PUT"    => await client.PutAsync(resolvedUrl, null),
+                "PATCH"  => await client.PatchAsync(resolvedUrl, null),
+                "GET"    => await client.GetAsync(resolvedUrl),
+                _        => await client.PostAsync(resolvedUrl, null)
+            };
+
+            if (Table.IsPaginatedTable && _mudTable is not null)
+                await _mudTable.ReloadServerData();
+            else
+            {
+                _lastLoadedUrl = string.Empty;
+                _items = await FetchFlatDataAsync();
+                _lastLoadedUrl = Table.DataUrl;
+            }
+
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    private static string GetCellValue(Dictionary<string, JsonElement> row, string field)
+    {
+        if (string.IsNullOrWhiteSpace(field))
+            return string.Empty;
+
+        var segments = field.Split('.');
+
+        // İlk segment root dictionary'den alınır (case-insensitive)
+        if (!row.TryGetValue(segments[0], out var current))
+            return string.Empty;
+
+        // Kalan segmentler JsonElement içinde traverse edilir
+        for (var i = 1; i < segments.Length; i++)
+        {
+            if (current.ValueKind != JsonValueKind.Object)
+                return string.Empty;
+
+            if (!TryGetPropertyCI(current, segments[i], out current))
+                return string.Empty;
+        }
+
+        return current.ValueKind == JsonValueKind.String
+            ? current.GetString() ?? string.Empty
+            : current.ToString();
+    }
+
+    private static string ApplyFormat(string value, string format)
+    {
+        if (string.IsNullOrWhiteSpace(format)) return value;
+
+        if (DateTime.TryParse(value, out var dt))
+            return dt.ToString(format);
+
+        if (decimal.TryParse(value, out var dec))
+            return dec.ToString(format);
+
+        return value;
+    }
+
+    private static Color ResolveBadgeColor(string value, List<BadgeCondition> conditions)
+    {
+        var exact = conditions.FirstOrDefault(c =>
+            !string.IsNullOrEmpty(c.Value) &&
+            string.Equals(c.Value, value, StringComparison.OrdinalIgnoreCase));
+
+        var target = exact ?? conditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Value));
+
+        if (target is null) return Color.Default;
+
+        return Enum.TryParse<Color>(target.Color, ignoreCase: true, out var color) ? color : Color.Default;
+    }
+
+    private static string ResolveRowUrl(string url, Dictionary<string, JsonElement> row)
+    {
+        if (!url.Contains('{')) return url;
+
+        return Regex.Replace(url, @"\{(\w+)\}", match =>
+        {
+            var key = match.Groups[1].Value;
+            return row.TryGetValue(key, out var el)
+                ? (el.ValueKind == JsonValueKind.String ? el.GetString() ?? string.Empty : el.ToString())
+                : match.Value;
+        });
+    }
+}

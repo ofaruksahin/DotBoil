@@ -87,6 +87,38 @@ namespace DotBoil.UserConsents.Services
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, CancellationToken cancellationToken = default)
+        {
+            var typeList = types.ToList();
+
+            var consents = await Task.WhenAll(typeList.Select(t => GetConsent(t, language, cancellationToken)));
+
+            var missing = typeList.Zip(consents, (type, consent) => (type, consent))
+                .Where(x => x.consent is null)
+                .Select(x => x.type.ToString())
+                .ToList();
+
+            if (missing.Count > 0)
+                throw new InvalidOperationException($"Consent(s) not found for type(s) '{string.Join(", ", missing)}' and language '{language}'.");
+
+            using var scope = _serviceProvider.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<UserConsentsDbContext>();
+
+            var userConsents = consents.Select(consent => new UserConsent
+            {
+                UserId = userId,
+                Type = consent.Type,
+                Language = language,
+                Content = consent.Content,
+                Version = consent.Version,
+                CreateTime = DateTime.UtcNow,
+                CreateUser = userId
+            });
+
+            await dbContext.UserConsents.AddRangeAsync(userConsents, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         internal async Task<Consent> CreateConsentInternal(CreateConsentRequest request, CancellationToken cancellationToken)
         {
             using var scope = _serviceProvider.CreateAsyncScope();

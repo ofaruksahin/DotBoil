@@ -1,0 +1,277 @@
+@page "/menu-ui-settings"
+@using Microsoft.EntityFrameworkCore
+@using DotBoil.Studio.Core.Entities
+@using DotBoil.Studio.Core.Enums
+@using DotBoil.Studio.Core.ValueObjects
+@inject IMenuUISettingsService MenuUISettingsService
+@inject IUIConfigService UIConfigService
+@inject JwtAuthService JwtAuthService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
+
+    <MudPaper Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+            <MudText Typo="Typo.h5">Menü UI Ayarları</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog">
+                Yeni Ekle
+            </MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="_settings" Hover="true" Striped="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>Menü</MudTh>
+                    <MudTh>Menü Tipi</MudTh>
+                    <MudTh>Değer</MudTh>
+                    <MudTh Style="width:100px"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@ResolveMenuName(context.MenuId)</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="@GetTypeColor(context.MenuType)" Variant="Variant.Outlined">
+                            @context.MenuType.ToString()
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.Value</MudTd>
+                    <MudTd>
+                        <MudStack Row="true" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Size="Size.Small"
+                                           Color="Color.Primary"
+                                           OnClick="() => OpenEditDialog(context)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="() => DeleteAsync(context)" />
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="pa-4" Color="Color.Secondary">Henüz menü ayarı bulunmuyor.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        }
+    </MudPaper>
+
+</MudContainer>
+
+@* Create/Edit Dialog *@
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingItem?.Id > 0 ? "Düzenle" : "Yeni Menü UI Ayarı")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect T="MenuItem"
+                       Label="Menü"
+                       @bind-Value="_selectedMenuItem"
+                       ToStringFunc="@(m => m?.Name ?? string.Empty)"
+                       Variant="Variant.Outlined"
+                       Dense="true">
+                @foreach (var item in _flatMenuItems)
+                {
+                    <MudSelectItem T="MenuItem" Value="@item">
+                        @item.Name @(string.IsNullOrWhiteSpace(item.Header) ? "" : $"({item.Header})")
+                    </MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="MenuUISettingsType"
+                       Label="Menü Tipi"
+                       @bind-Value="_editingItem.MenuType"
+                       Variant="Variant.Outlined"
+                       Dense="true">
+                @foreach (var type in Enum.GetValues<MenuUISettingsType>())
+                {
+                    <MudSelectItem T="MenuUISettingsType" Value="@type">@type.ToString()</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (_editingItem.MenuType == MenuUISettingsType.StudioPage)
+            {
+                <MudSelect T="string"
+                           Label="Değer (UI Config)"
+                           @bind-Value="_editingItem.Value"
+                           Variant="Variant.Outlined"
+                           Dense="true">
+                    @foreach (var config in _uiConfigs)
+                    {
+                        <MudSelectItem T="string" Value="@config.Id.ToString()">
+                            @config.Name
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudTextField T="string"
+                              Label="Değer"
+                              @bind-Value="_editingItem.Value"
+                              Variant="Variant.Outlined" />
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Variant="Variant.Outlined">İptal</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync" Disabled="_saving">Kaydet</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<MenuUISettings> _settings = [];
+    private List<MenuItem> _flatMenuItems = [];
+    private List<UIConfig> _uiConfigs = [];
+    private bool _loading = true;
+    private bool _dialogVisible;
+    private bool _saving;
+    private MenuUISettings _editingItem = new();
+    private MenuItem? _selectedMenuItem;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadMenuItemsAsync(), LoadUIConfigsAsync());
+        await LoadAsync();
+    }
+
+    private async Task LoadUIConfigsAsync()
+    {
+        _uiConfigs = await UIConfigService.GetAll().ToListAsync();
+    }
+
+    private async Task LoadMenuItemsAsync()
+    {
+        try
+        {
+            var items = await JwtAuthService.GetMenuItems();
+            _flatMenuItems = Flatten(items).ToList();
+        }
+        catch
+        {
+            _flatMenuItems = [];
+        }
+    }
+
+    private static IEnumerable<MenuItem> Flatten(IEnumerable<MenuItem> items)
+    {
+        foreach (var item in items)
+        {
+            if (!string.IsNullOrWhiteSpace(item.Path))
+                yield return item;
+            if (item.Childs?.Length > 0)
+                foreach (var child in Flatten(item.Childs))
+                    yield return child;
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _settings = await MenuUISettingsService.GetAll().ToListAsync();
+        _loading = false;
+    }
+
+    private string ResolveMenuName(int menuId)
+    {
+        var match = _flatMenuItems.FirstOrDefault(m => m.Id == menuId);
+        return match is not null ? match.Name : menuId.ToString();
+    }
+
+    private static Color GetTypeColor(MenuUISettingsType type) => type switch
+    {
+        MenuUISettingsType.StudioPage => Color.Primary,
+        MenuUISettingsType.Custom     => Color.Secondary,
+        _                             => Color.Default
+    };
+
+    private void OpenCreateDialog()
+    {
+        _editingItem = new MenuUISettings();
+        _selectedMenuItem = null;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(MenuUISettings item)
+    {
+        _editingItem = new MenuUISettings
+        {
+            Id = item.Id,
+            MenuId = item.MenuId,
+            MenuType = item.MenuType,
+            Value = item.Value,
+            CreateTime = item.CreateTime,
+            CreateUser = item.CreateUser
+        };
+        _selectedMenuItem = _flatMenuItems.FirstOrDefault(m => m.Id == item.MenuId);
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog()
+    {
+        _selectedMenuItem = null;
+        _dialogVisible = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_selectedMenuItem is null)
+        {
+            Snackbar.Add("Menü seçiniz.", Severity.Warning);
+            return;
+        }
+
+        _editingItem.MenuId = _selectedMenuItem.Id;
+
+        _saving = true;
+        try
+        {
+            if (_editingItem.Id > 0)
+                await MenuUISettingsService.UpdateAsync(_editingItem);
+            else
+                await MenuUISettingsService.CreateAsync(_editingItem);
+
+            Snackbar.Add("Kaydedildi.", Severity.Success);
+            _dialogVisible = false;
+            NavigationManager.Refresh(forceReload: true);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Hata: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task DeleteAsync(MenuUISettings item)
+    {
+        try
+        {
+            await MenuUISettingsService.DeleteAsync(item);
+            Snackbar.Add("Silindi.", Severity.Success);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Hata: {ex.Message}", Severity.Error);
+        }
+    }
+}

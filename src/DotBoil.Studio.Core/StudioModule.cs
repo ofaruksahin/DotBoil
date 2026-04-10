@@ -1,5 +1,6 @@
 using DotBoil.Dependency;
 using DotBoil.EFCore;
+using DotBoil.Studio.Core.Contracts;
 using DotBoil.Studio.Core.Persistence;
 using DotBoil.Studio.Core.Services;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +43,10 @@ internal class StudioModule : Module
 
         DotBoilApp
             .Services
+            .AddScoped<IMenuUISettingsService, MenuUISettingsService>();
+
+        DotBoilApp
+            .Services
             .AddScoped<IAuditUser, AuditUser>();
 
         DotBoilApp
@@ -63,7 +68,7 @@ internal class StudioModule : Module
 
         try
         {
-            await dbContext.Database.EnsureCreatedAsync();
+            await dbContext.Database.MigrateAsync();
         }
         catch (Exception ex)
         {

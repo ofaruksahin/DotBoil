@@ -15,20 +15,20 @@ public class FormComponent : ContainerComponent
 
     public string Description { get; set; } = string.Empty;
 
-    [FieldProperty(1, "Action URL", "The endpoint URL where the form data will be submitted.")]
+    [FieldProperty(1, "Action URL", "The endpoint URL where the form data will be submitted.", typeof(ApiUrlSettingsRenderer))]
     public string ActionUrl { get; set; } = string.Empty;
 
     [FieldProperty(2, "HTTP Method", "HTTP method used for form submission.", typeof(HttpMethodSettingsRenderer))]
     public string HttpMethod { get; set; } = "POST";
 
-    [FieldProperty(3, "Load URL", "Endpoint URL to load existing data for update forms.")]
+    [FieldProperty(3, "Load URL", "Endpoint URL to load existing data for update forms.", typeof(ApiUrlSettingsRenderer))]
     public string LoadUrl { get; set; } = string.Empty;
 
     [FieldProperty(4, "Submit Button Text", "Text displayed on the form submit button.")]
     public string SubmitButtonText { get; set; } = "Gönder";
 
-    [FieldProperty(5, "Submit Button Icon", "Icon displayed on the submit button.")]
-    public string SubmitButtonIcon { get; set; } = string.Empty;
+    [FieldProperty(5, "Submit Button Icon", "Icon displayed on the submit button.", typeof(IconSelectionSettingsRenderer))]
+    public Icon SubmitButtonIcon { get; set; } = new();
 
     [FieldProperty(6, "Success Message", "Message shown to the user after successful form submission.")]
     public string SuccessMessage { get; set; } = string.Empty;
@@ -42,6 +42,6 @@ public class FormComponent : ContainerComponent
     [FieldProperty(9, "Cancel Button Text", "Text displayed on the cancel button.")]
     public string CancelButtonText { get; set; } = "Vazgeç";
 
-    [FieldProperty(10, "Cancel Button Icon", "Icon displayed on the cancel button.")]
-    public string CancelButtonIcon { get; set; } = string.Empty;
+    [FieldProperty(10, "Cancel Button Icon", "Icon displayed on the cancel button.", typeof(IconSelectionSettingsRenderer))]
+    public Icon CancelButtonIcon { get; set; } = new();
 }

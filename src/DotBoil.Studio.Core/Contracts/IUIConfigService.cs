@@ -1,7 +1,6 @@
-using DotBoil.Studio.Core.Contracts;
 using DotBoil.Studio.Core.Entities;
 
-namespace DotBoil.Studio.Core.Services;
+namespace DotBoil.Studio.Core.Contracts;
 
 public interface IUIConfigService
 {

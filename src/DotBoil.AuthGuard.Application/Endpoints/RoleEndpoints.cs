@@ -5,6 +5,7 @@ using DotBoil.AuthGuard.Application.Dtos;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.EFCore;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -48,18 +49,37 @@ internal static class RoleEndpoints
 
     private static async Task<IResult> GetAll(
         IRepository<Role, DotBoilAuthGuardDbContext> repo,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortColumn = null,
+        EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+        CancellationToken cancellationToken = default)
     {
-        var roles = await repo.Get()
-            .Select(r => new RoleResponse
-            {
-                Id = r.Id,
-                Name = r.Name,
-                IsDefault = r.IsDefault
-            })
+        var query = repo.Get();
+
+        var ordered = sortColumn?.ToLowerInvariant() switch
+        {
+            "name"      => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(r => r.Name)
+                : query.OrderBy(r => r.Name),
+            "isdefault" => sortDirection == EnumSortDirection.Descending
+                ? query.OrderByDescending(r => r.IsDefault)
+                : query.OrderBy(r => r.IsDefault),
+            _           => query.OrderBy(r => r.Name)
+        };
+
+        var totalRecords = await ordered.CountAsync(cancellationToken);
+        var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var items = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RoleResponse { Id = r.Id, Name = r.Name, IsDefault = r.IsDefault })
             .ToListAsync(cancellationToken);
 
-        return JsonResponse(BaseResponse.Response(roles, HttpStatusCode.OK));
+        return JsonResponse(BaseResponse.Response(
+            new PaginatedModel<RoleResponse>(pageNumber, pageSize, totalPages, totalRecords, items),
+            HttpStatusCode.OK));
     }
 
     private static async Task<IResult> GetById(

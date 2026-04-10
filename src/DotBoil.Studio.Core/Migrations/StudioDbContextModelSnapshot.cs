@@ -19,6 +19,43 @@ namespace DotBoil.Studio.Core.Migrations
                 .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("DotBoil.Studio.Core.Entities.MenuUISettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("MenuId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("MenuType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifyUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MenuUISettings");
+                });
+
             modelBuilder.Entity("DotBoil.Studio.Core.Entities.UIConfig", b =>
                 {
                     b.Property<int>("Id")

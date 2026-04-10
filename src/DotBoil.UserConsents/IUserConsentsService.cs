@@ -6,6 +6,9 @@ namespace DotBoil.UserConsents
     {
         Task<ConsentResult> GetConsent(ConsentType type, string language, CancellationToken cancellationToken = default);
         Task AcceptConsent(string userId, ConsentType type, string language, CancellationToken cancellationToken = default);
+
+        Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language,
+            CancellationToken cancellationToken = default);
     }
 
     public sealed class ConsentResult

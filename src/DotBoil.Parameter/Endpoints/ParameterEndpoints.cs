@@ -1,5 +1,6 @@
 using System.Net;
 using DotBoil.Entities;
+using DotBoil.Enums;
 using DotBoil.Parameter.Dtos;
 using DotBoil.Parameter.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -43,14 +44,16 @@ namespace DotBoil.Parameter.Endpoints
             string? section,
             string? key,
             bool? isPublic,
-            CancellationToken cancellationToken)
+            int pageNumber = 1,
+            int pageSize = 10,
+            string? sortColumn = null,
+            EnumSortDirection sortDirection = EnumSortDirection.Ascending,
+            CancellationToken cancellationToken = default)
         {
             var query = dbContext.Parameters.AsQueryable();
 
             if (tenantId.HasValue)
-            {
                 query = query.Where(parameter => parameter.TenantId == tenantId.Value);
-            }
 
             if (section is not null)
             {
@@ -67,10 +70,8 @@ namespace DotBoil.Parameter.Endpoints
             if (isPublic.HasValue)
             {
                 if (!isPublic.Value)
-                {
                     isPublic = !httpContext.User.CheckRole("Admin");
-                }
-                
+
                 query = query.Where(parameter => parameter.IsPublic == isPublic.Value);
             }
             else
@@ -78,23 +79,42 @@ namespace DotBoil.Parameter.Endpoints
                 isPublic = true;
             }
 
-            var parameters = await query
-                .OrderBy(parameter => parameter.TenantId)
-                .ThenBy(parameter => parameter.Section)
-                .ThenBy(parameter => parameter.Key)
-                .ThenBy(parameter => parameter.IsPublic)
+            var ordered = sortColumn?.ToLowerInvariant() switch
+            {
+                "section"  => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(p => p.Section)
+                    : query.OrderBy(p => p.Section),
+                "key"      => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(p => p.Key)
+                    : query.OrderBy(p => p.Key),
+                "tenantid" => sortDirection == EnumSortDirection.Descending
+                    ? query.OrderByDescending(p => p.TenantId)
+                    : query.OrderBy(p => p.TenantId),
+                _          => query
+                    .OrderBy(p => p.TenantId)
+                    .ThenBy(p => p.Section)
+                    .ThenBy(p => p.Key)
+            };
+
+            var totalRecords = await ordered.CountAsync(cancellationToken);
+            var totalPages   = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+            var items = await ordered
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(parameter => new ParameterResponse
                 {
-                    Id = parameter.Id,
+                    Id       = parameter.Id,
                     TenantId = parameter.TenantId,
-                    Section = parameter.Section ?? string.Empty,
-                    Key = parameter.Key,
-                    Value = parameter.Value,
+                    Section  = parameter.Section ?? string.Empty,
+                    Key      = parameter.Key,
+                    Value    = parameter.Value,
                     IsPublic = parameter.IsPublic
                 })
                 .ToListAsync(cancellationToken);
 
-            return JsonResponse(BaseResponse.Response(parameters, HttpStatusCode.OK));
+            var result = new PaginatedModel<ParameterResponse>(pageNumber, pageSize, totalPages, totalRecords, items);
+            return JsonResponse(BaseResponse.Response(result, HttpStatusCode.OK));
         }
 
         private static async Task<IResult> GetParameter(
