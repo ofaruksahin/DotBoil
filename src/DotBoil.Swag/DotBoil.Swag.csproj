@@ -7,10 +7,10 @@
 	  <PackageId>DotBoil.Swagger</PackageId>
 	  <Title>DotBoil.Swagger</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Swagger package is built on the DotBoil project. It simplifies Swagger integration.</Description>
+	  <Description>OpenAPI/Swagger documentation for DotBoil applications. Configures Swashbuckle with version-aware document generation, JWT bearer auth support, and the Swagger UI explorer endpoint.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

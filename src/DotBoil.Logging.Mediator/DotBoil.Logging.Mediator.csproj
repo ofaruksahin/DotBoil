@@ -4,6 +4,14 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Title>DotBoil.Logging.Mediator</Title>
+        <Authors>Ömer Faruk Şahin</Authors>
+        <Description>MediatR pipeline behavior that logs every request and response passing through the mediator. Captures handler duration, input parameters, and exceptions using DotBoil.Logging's Serilog infrastructure.</Description>
+        <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+        <PackageIcon>dotboil.png</PackageIcon>
+        <Version>1.1.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +22,14 @@
       <Reference Include="Microsoft.Extensions.Logging.Abstractions">
         <HintPath>..\..\..\..\..\..\usr\local\share\dotnet\shared\Microsoft.AspNetCore.App\10.0.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
       </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\icons\dotboil.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        <Link>dotboil.png</Link>
+      </None>
     </ItemGroup>
 
 </Project>

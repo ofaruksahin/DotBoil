@@ -7,10 +7,10 @@
         <PackageId>DotBoil.AuthGuard</PackageId>
         <Title>DotBoil.AuthGuard</Title>
         <Authors>Ömer Faruk Şahin</Authors>
-        <Description>The DotBoil.AuthGuard package is built on the DotBoil project. It simplifies login and user authorization integration.</Description>
+        <Description>Full-stack authorization server for DotBoil applications. Implements OAuth 2.0/OpenID Connect flows with JWT issuance, refresh tokens, external provider support (Google, GitHub), role-based access control, OTP verification, password reset, and GDPR consent management.</Description>
         <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
         <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-        <Version>1.0.2</Version>
+        <Version>1.1.0</Version>
         <PackageIcon>dotboil.png</PackageIcon>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>

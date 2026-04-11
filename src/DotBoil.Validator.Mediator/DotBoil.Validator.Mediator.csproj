@@ -4,6 +4,14 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Title>DotBoil.Validator.Mediator</Title>
+        <Authors>Ömer Faruk Şahin</Authors>
+        <Description>MediatR pipeline behavior that runs FluentValidation validators on every incoming request. Returns structured validation errors before handlers are invoked, keeping handler code free of manual validation logic.</Description>
+        <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+        <PackageIcon>dotboil.png</PackageIcon>
+        <Version>1.1.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,6 +21,14 @@
 
     <ItemGroup>
       <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\icons\dotboil.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        <Link>dotboil.png</Link>
+      </None>
     </ItemGroup>
 
 </Project>

@@ -6,10 +6,10 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil.Logging</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Logging package is built on the DotBoil project. It simplifies Serilog integration.</Description>
+	  <Description>Structured logging for DotBoil applications powered by Serilog. Pre-configures console and rolling-file sinks with enriched context and appsettings-driven log-level control.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

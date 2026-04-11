@@ -6,10 +6,10 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil.Email</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Email package is built on the DotBoil project. It simplifies SMTP integration.</Description>
+	  <Description>Transactional email delivery for DotBoil applications via SMTP. Built on MailKit with configurable sender identity, server, port, and TLS settings managed through appsettings.json.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

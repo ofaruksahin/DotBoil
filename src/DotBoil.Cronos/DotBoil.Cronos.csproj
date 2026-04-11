@@ -4,10 +4,26 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>DotBoil.Cronos</Title>
+    <Authors>Ömer Faruk Şahin</Authors>
+    <Description>Background job scheduler for DotBoil applications. Define recurring tasks with Cron expressions using the Cronos library — jobs are discovered automatically and run as hosted services on their configured schedule.</Description>
+    <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+    <PackageIcon>dotboil.png</PackageIcon>
+    <Version>1.1.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icons\dotboil.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>dotboil.png</Link>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

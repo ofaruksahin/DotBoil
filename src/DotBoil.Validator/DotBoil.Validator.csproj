@@ -6,10 +6,10 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil.Validator</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Validator package is built on the DotBoil project. It simplifies FluentValidation integration.</Description>
+	  <Description>FluentValidation integration for DotBoil applications. Auto-discovers and registers validators across all loaded assemblies for use in both direct service validation and MediatR pipeline behaviors.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

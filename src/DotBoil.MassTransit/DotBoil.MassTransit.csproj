@@ -7,10 +7,10 @@
     <WarningsAsErrors>CS1591</WarningsAsErrors>
     <Title>DotBoil.MassTransit</Title>
     <Authors>Ömer Faruk Şahin</Authors>
-    <Description>The DotBoil.MassTransit package is built on the DotBoil project. It simplifies MassTransit integration.</Description>
+    <Description>Message bus integration for DotBoil applications using MassTransit and RabbitMQ. Auto-discovers consumers, configures queues via [Queue] attributes, and exposes IBusPublisher for fire-and-forget domain event publishing.</Description>
     <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <PackageIcon>dotboil.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

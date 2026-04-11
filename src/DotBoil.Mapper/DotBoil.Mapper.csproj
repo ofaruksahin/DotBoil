@@ -6,10 +6,10 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil.Mapper</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Mapper package is built on the DotBoil project. It simplifies AutoMapper integration.</Description>
+	  <Description>AutoMapper integration for DotBoil applications. Auto-discovers mapping profiles across all loaded assemblies and registers them with the DI container at startup.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

@@ -7,11 +7,11 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil package is the heart of the project. All modules are developed with reference to the DotBoil package. It contains the necessary classes for creating modules, the installers required for loading these packages, and the fundamental DotBoil modules.</Description>
+	  <Description>Core framework for building modular .NET applications. Provides the module system, lifecycle management, topological dependency resolution, and configuration pipeline that all DotBoil modules build upon.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
 	  <PackageIcon>dotboil.png</PackageIcon>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 

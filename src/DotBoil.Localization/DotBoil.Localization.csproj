@@ -6,10 +6,10 @@
 	  <Nullable>disable</Nullable>
 	  <Title>DotBoil.Localization</Title>
 	  <Authors>Ömer Faruk Şahin</Authors>
-	  <Description>The DotBoil.Localization package is built on the DotBoil project. It simplifies multi-language support integration.</Description>
+	  <Description>Database-driven localization for DotBoil applications. Stores translations in a MySQL/EF Core repository with Redis caching, exposes an ICurrentLanguage service, and supports runtime language switching without redeployment.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.1.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

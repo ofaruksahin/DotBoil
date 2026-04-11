@@ -6,10 +6,10 @@
     <Nullable>disable</Nullable>
     <Title>DotBoil.UserConsents</Title>
     <Authors>Ömer Faruk Şahin</Authors>
-    <Description>The DotBoil.UserConsents package is built on the DotBoil project. It provides user consent management with versioning, history tracking and Redis caching.</Description>
+    <Description>GDPR-ready user consent management for DotBoil applications. Tracks consent types (Terms of Service, Privacy Policy, Cookie Policy), maintains a versioned acceptance history, and caches consent state in Redis for high-throughput reads.</Description>
     <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <PackageIcon>dotboil.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
