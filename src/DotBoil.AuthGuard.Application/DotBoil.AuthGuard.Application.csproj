@@ -27,6 +27,7 @@
       <ProjectReference Include="..\DotBoil.Parameter\DotBoil.Parameter.csproj" />
       <ProjectReference Include="..\DotBoil.Validator\DotBoil.Validator.csproj" />
       <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+      <ProjectReference Include="..\DotBoil.UserConsents\DotBoil.UserConsents.csproj" />
     </ItemGroup>
 
     <ItemGroup>

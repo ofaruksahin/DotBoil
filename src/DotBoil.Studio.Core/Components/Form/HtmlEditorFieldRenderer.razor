@@ -5,7 +5,7 @@
 {
     if (Current.IsEnabled)
     {
-        <MudHtmlEditor bind-Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
+        <MudHtmlEditor Html="@Current.Value" HtmlChanged="html => HtmlChanged(html)">
         </MudHtmlEditor>
     }
     else
@@ -25,13 +25,21 @@
     [Parameter] public HtmlEditorField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    private BaseComponent? _initializedFor;
+
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            base.OnAfterRender(firstRender);
             return;
+        }
 
+        if (_initializedFor is not null)
+            ComponentRuleRenderHelper.Dispose(_initializedFor, Context, OnDepends);
+
+        _initializedFor = Current;
         ComponentRuleRenderHelper.Initialize(Current, Context, OnDepends);
-        
         base.OnAfterRender(firstRender);
     }
 

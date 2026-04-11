@@ -33,7 +33,7 @@
 
                         @if (ViewBag.Message != null)
                         {
-                            <p>@ViewBag.Message</p>
+                            <div class="alert alert-@(ViewBag.MessageType ?? "danger")" role="alert">@ViewBag.Message</div>
                         }
                         
                         <input type="hidden" name="Email" value="@Model.Email"/>

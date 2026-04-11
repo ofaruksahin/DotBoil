@@ -41,20 +41,34 @@
 
     private IEnumerable<string> SelectedValues;
 
+    private BaseComponent? _initializedFor;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
         {
-            await JwtAuthService.InitializeAsync();
-            await InitializeData();
-
-            if (Context.DesignerMode)
-                Current.DataSourceChangeHandler += DataSourceChanged;
-
-            ComponentRuleRenderHelper.Initialize(Current, Context, OnDepend);
-
-            base.OnAfterRenderAsync(firstRender);
+            await base.OnAfterRenderAsync(firstRender);
+            return;
         }
+
+        if (_initializedFor is SelectField prevField)
+        {
+            if (Context.DesignerMode)
+                prevField.DataSourceChangeHandler -= DataSourceChanged;
+            ComponentRuleRenderHelper.Dispose(prevField, Context, OnDepend);
+        }
+
+        _initializedFor = Current;
+
+        await JwtAuthService.InitializeAsync();
+        await InitializeData();
+
+        if (Context.DesignerMode)
+            Current.DataSourceChangeHandler += DataSourceChanged;
+
+        ComponentRuleRenderHelper.Initialize(Current, Context, OnDepend);
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task InitializeData()

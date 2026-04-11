@@ -1,5 +1,6 @@
 @using DotBoil.Localization
 @using DotBoil.Parameter
+@using DotBoil.UserConsents
 @inject ILocalize localize
 @inject IParameterManager parameters
 @{
@@ -8,6 +9,7 @@
     var parameterLogo = await parameters.GetParameterValue<string>("AuthGuard", "Logo");
     var parameterLogoDark = await parameters.GetParameterValue<string>("AuthGuard", "LogoDark");
     var loginUrl = $"/connect/authorize{Context.Request.QueryString}";
+    var consents = ViewBag.Consents as IList<ConsentResult> ?? new List<ConsentResult>();
 }
 
 @model DotBoil.AuthGuard.ViewModels.RegisterViewModel
@@ -24,7 +26,7 @@
 
                         @if (ViewBag.Message != null)
                         {
-                            <p>@ViewBag.Message</p>
+                            <div class="alert alert-@(ViewBag.MessageType ?? "danger")" role="alert">@ViewBag.Message</div>
                         }
 
                         @foreach (var query in Context.Request.Query)
@@ -50,9 +52,32 @@
                                 <div class="show-hide"><span class="show"><i class="fa fa-eye"></i> </span></div>
                             </div>
                         </div>
-                        <div class="form-group mb-0">
-                            <div class="form-check">
+
+                        @if (consents.Any())
+                        {
+                            <div class="form-group">
+                                @foreach (var consent in consents)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="AcceptedConsentTypes"
+                                               value="@consent.Type.ToString()"
+                                               id="consent_@consent.Type.ToString()"
+                                               @(consent.IsRequired ? "required" : "")>
+                                        <label class="form-check-label" for="consent_@consent.Type.ToString()">
+                                            @Html.Raw(consent.Content)
+                                            @if (consent.IsRequired)
+                                            {
+                                                <span class="text-danger">*</span>
+                                            }
+                                        </label>
+                                    </div>
+                                }
                             </div>
+                        }
+
+                        <div class="form-group mb-0">
                             <a class="link" href="@loginUrl">@await localize.LocalizeText("Login", "SignIn")</a>
                             <div class="text-end">
                                 <button class="btn btn-primary btn-block w-100 mt-3" type="submit">@await localize.LocalizeText("Login", "CreateAccount")</button>

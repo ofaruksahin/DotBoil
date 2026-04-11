@@ -285,10 +285,14 @@
 
     [Inject] private JwtAuthService JwtAuthService { get; set; }
 
+    private bool _initialized;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!_initialized)
         {
+            _initialized = true;
+
             if (string.IsNullOrEmpty(JwtAuthService.Token) || string.IsNullOrEmpty(JwtAuthService.RefreshToken))
                 await JwtAuthService.InitializeAsync();
 

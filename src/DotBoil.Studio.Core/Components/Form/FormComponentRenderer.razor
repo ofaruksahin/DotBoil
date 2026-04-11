@@ -218,6 +218,7 @@ else
             data[prop.Name] = prop.Value;
 
         MapDataToComponents(data, Form.Children);
+        StateHasChanged();
     }
 
     private string ResolveUrlParameters(string url)
@@ -237,6 +238,12 @@ else
 
     private static void MapDataToComponents(Dictionary<string, JsonElement> data, List<BaseComponent> components)
     {
+        var lookup = new Dictionary<string, JsonElement>(data, StringComparer.OrdinalIgnoreCase);
+        ApplyDataToComponents(lookup, components);
+    }
+
+    private static void ApplyDataToComponents(Dictionary<string, JsonElement> data, List<BaseComponent> components)
+    {
         foreach (var component in components)
         {
             var outputProp = component.GetType()
@@ -252,7 +259,7 @@ else
             }
 
             if (component is ContainerComponent container && container.Children?.Count > 0)
-                MapDataToComponents(data, container.Children);
+                ApplyDataToComponents(data, container.Children);
         }
     }
 
@@ -296,6 +303,8 @@ else
         _resultMessage = null;
         StateHasChanged();
 
+        var resolvedUrl = ResolveUrlParameters(Form.ActionUrl);
+
         var formData = new Dictionary<string, object?>();
         CollectFormData(formData, Form.Children);
 
@@ -309,11 +318,11 @@ else
             var content = JsonContent.Create(formData);
             response = Form.HttpMethod.ToUpperInvariant() switch
             {
-                "GET"    => await client.GetAsync(Form.ActionUrl),
-                "DELETE" => await client.DeleteAsync(Form.ActionUrl),
-                "PUT"    => await client.PutAsync(Form.ActionUrl, content),
-                "PATCH"  => await client.PatchAsync(Form.ActionUrl, content),
-                _        => await client.PostAsync(Form.ActionUrl, content)
+                "GET"    => await client.GetAsync(resolvedUrl),
+                "DELETE" => await client.DeleteAsync(resolvedUrl),
+                "PUT"    => await client.PutAsync(resolvedUrl, content),
+                "PATCH"  => await client.PatchAsync(resolvedUrl, content),
+                _        => await client.PostAsync(resolvedUrl, content)
             };
         }
         catch

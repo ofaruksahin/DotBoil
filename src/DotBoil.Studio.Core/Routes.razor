@@ -99,7 +99,7 @@
         if (currentPath.StartsWith(authServerConfiguration.CallbackEndpoint.TrimStart('/'), StringComparison.OrdinalIgnoreCase))
             return;
         
-        if (firstRender && !_checkedToken)
+        if (!_checkedToken)
         {
             _checkedToken = true;
 

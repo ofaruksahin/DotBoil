@@ -3,7 +3,7 @@
 @if (Current.IsVisible)
 {
     <MudCheckBox T="bool"
-                 bind-Value="Current.Value"
+                 Value="Current.Value"
                  Label="@Current.Label"
                  CheckedIcon="@Current.CheckedIcon.Value"
                  UncheckedIcon="@Current.UncheckedIcon.Value"
@@ -21,13 +21,21 @@
     [Parameter] public CheckBoxField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    private BaseComponent? _initializedFor;
+
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            base.OnAfterRender(firstRender);
             return;
+        }
 
+        if (_initializedFor is not null)
+            ComponentRuleRenderHelper.Dispose(_initializedFor, Context, OnDepends);
+
+        _initializedFor = Current;
         ComponentRuleRenderHelper.Initialize(Current, Context, OnDepends);
-        
         base.OnAfterRender(firstRender);
     }
 

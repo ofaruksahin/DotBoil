@@ -1,7 +1,7 @@
 @using MudBlazor.Utilities
 @implements IDisposable
 
-<MudColorPicker bind-Value="Current.Value"
+<MudColorPicker Value="Current.Value"
                 Label="@Current.Label"
                 HelperText="@Current.HelperText"
                 Variant="Variant.Outlined"
@@ -14,13 +14,21 @@
     [Parameter] public ComponentContext Context { get; set; }
     [Parameter] public EventCallback<ColorPickerField> ColorPicked { get; set; }
 
+    private BaseComponent? _initializedFor;
+
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            base.OnAfterRender(firstRender);
             return;
+        }
 
+        if (_initializedFor is not null)
+            ComponentRuleRenderHelper.Dispose(_initializedFor, Context, OnDepends);
+
+        _initializedFor = Current;
         ComponentRuleRenderHelper.Initialize(Current, Context, OnDepends);
-        
         base.OnAfterRender(firstRender);
     }
 

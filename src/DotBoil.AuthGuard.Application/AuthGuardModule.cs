@@ -32,6 +32,7 @@ public class AuthGuardModule : Module
         "Mapper",
         "MassTransit",
         "Parameter",
+        "UserConsents",
         "Validator"
     };
 

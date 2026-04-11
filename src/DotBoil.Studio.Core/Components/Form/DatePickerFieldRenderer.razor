@@ -63,13 +63,21 @@
         base.OnParametersSet();
     }
 
+    private BaseComponent? _initializedFor;
+
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            base.OnAfterRender(firstRender);
             return;
+        }
 
+        if (_initializedFor is not null)
+            ComponentRuleRenderHelper.Dispose(_initializedFor, Context, OnDepends);
+
+        _initializedFor = Current;
         ComponentRuleRenderHelper.Initialize(Current, Context, OnDepends);
-
         base.OnAfterRender(firstRender);
     }
 

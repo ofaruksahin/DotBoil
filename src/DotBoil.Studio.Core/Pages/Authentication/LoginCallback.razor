@@ -14,7 +14,7 @@
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_isSetToken)
+        if (!_isSetToken)
         {
             _isSetToken = true;
 

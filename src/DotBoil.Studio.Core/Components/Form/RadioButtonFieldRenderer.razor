@@ -39,10 +39,24 @@
     private List<SelectItem> Items = new();
     private string SelectedValue = string.Empty;
 
+    private BaseComponent? _initializedFor;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            await base.OnAfterRenderAsync(firstRender);
             return;
+        }
+
+        if (_initializedFor is RadioButtonField prevField)
+        {
+            if (Context.DesignerMode)
+                prevField.DataSourceChangeHandler -= DataSourceChanged;
+            ComponentRuleRenderHelper.Dispose(prevField, Context, OnDepend);
+        }
+
+        _initializedFor = Current;
 
         await JwtAuthService.InitializeAsync();
         await InitializeData();

@@ -9,6 +9,9 @@ using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.Caching;
 using DotBoil.EFCore;
 using DotBoil.Localization;
+using DotBoil.MassTransit;
+using DotBoil.UserConsents;
+using DotBoil.UserConsents.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NETCore.Encrypt;
@@ -24,6 +27,8 @@ public class EmailPasswordBasedLogin : IUserService
     private readonly ICache _cache;
     private readonly ILocalize _localize;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserConsentsService _userConsentsService;
+    private readonly IBusPublisher _busPublisher;
 
     public EmailPasswordBasedLogin(
         IRepository<User, DotBoilAuthGuardDbContext> userRepository,
@@ -32,7 +37,9 @@ public class EmailPasswordBasedLogin : IUserService
         JwtOptions jwtOptions,
         ICache cache,
         ILocalize localize,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IUserConsentsService userConsentsService,
+        IBusPublisher busPublisher)
     {
         _userRepository = userRepository;
         _otpCodeRepository = otpCodeRepository;
@@ -41,6 +48,8 @@ public class EmailPasswordBasedLogin : IUserService
         _cache = cache;
         _localize = localize;
         _httpContextAccessor = httpContextAccessor;
+        _userConsentsService = userConsentsService;
+        _busPublisher = busPublisher;
     }
     
     public async Task<AuthorizeResult> SignIn(Dictionary<string, string> parameters)
@@ -93,15 +102,34 @@ public class EmailPasswordBasedLogin : IUserService
         var name = parameters.GetValueOrDefault("Name") ?? string.Empty;
         var surname = parameters.GetValueOrDefault("Surname") ?? string.Empty;
         var username = parameters.GetValueOrDefault("Username") ?? email;
+        var language = parameters.GetValueOrDefault("Language") ?? "TR";
+        var acceptedConsentTypesRaw = parameters.GetValueOrDefault("AcceptedConsentTypes") ?? string.Empty;
 
-        var user = await _userRepository
+        var existingUser = await _userRepository
             .Get()
             .FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user != null)
+        if (existingUser != null)
             return SignupResult.Failure(await _localize.LocalizeText("Login", "UserAlreadyExists"));
 
-        user = new User
+        var acceptedTypeNames = acceptedConsentTypesRaw
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => t.Trim())
+            .Where(t => !string.IsNullOrEmpty(t))
+            .ToList();
+
+        var acceptedConsents = new List<ConsentResult>();
+        foreach (var typeName in acceptedTypeNames)
+        {
+            if (Enum.TryParse<ConsentType>(typeName, out var consentType))
+            {
+                var consent = await _userConsentsService.GetConsent(consentType, language);
+                if (consent != null)
+                    acceptedConsents.Add(consent);
+            }
+        }
+
+        var user = new User
         {
             Provider = string.Empty,
             Name = name,
@@ -112,12 +140,25 @@ public class EmailPasswordBasedLogin : IUserService
         };
 
         var userCreatedEvent = new UserCreatedDomainEvent(user.Email, user.Name, user.Surname, user.Username);
-        
         user.AddEvent(userCreatedEvent);
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
-        
+
+        if (acceptedConsents.Any())
+        {
+            foreach (var consent in acceptedConsents)
+            {
+                await _userConsentsService.AcceptConsent(user.Id.ToString(), consent.Type, language);
+
+                await _busPublisher.Publish(new ConsentAcceptedDomainEvent(
+                    user.Id.ToString(),
+                    consent.Type.ToString(),
+                    language,
+                    consent.Version));
+            }
+        }
+
         return SignupResult.Success(await _localize.LocalizeText("Success"));
     }
 

@@ -2,7 +2,7 @@
 @if (Current.IsVisible)
 {
     <MudTextField T="string"
-                  bind-Value="Current.Value"
+                  Value="@Current.Value"
                   Label="@Current.Label"
                   HelperText="@Current.HelperText"
                   Variant="Variant.Outlined"
@@ -20,13 +20,21 @@
     [Parameter] public TextField Current { get; set; }
     [Parameter] public ComponentContext Context { get; set; }
 
+    private BaseComponent? _initializedFor;
+
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (ReferenceEquals(_initializedFor, Current))
+        {
+            base.OnAfterRender(firstRender);
             return;
+        }
 
+        if (_initializedFor is not null)
+            ComponentRuleRenderHelper.Dispose(_initializedFor, Context, OnDepend);
+
+        _initializedFor = Current;
         ComponentRuleRenderHelper.Initialize(Current, Context, OnDepend);
-        
         base.OnAfterRender(firstRender);
     }
 
