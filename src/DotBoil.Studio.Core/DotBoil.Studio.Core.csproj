@@ -5,6 +5,14 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+        <Title>DotBoil.Studio.Core</Title>
+        <Authors>Ömer Faruk Şahin</Authors>
+        <Description>Headless UI studio for DotBoil applications. Provides a drag-and-drop form designer, dynamic form renderer, and low-code page builder built on MudBlazor — enabling data-driven UIs to be created and modified at runtime without redeployment.</Description>
+        <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+        <PackageIcon>dotboil.png</PackageIcon>
+        <Version>1.1.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
 
@@ -31,6 +39,14 @@
 
     <ItemGroup>
       <Folder Include="wwwroot\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\icons\dotboil.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        <Link>dotboil.png</Link>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
