@@ -8,8 +8,11 @@ internal class MediatorOptions : IOptions
 
     public List<string> Pipelines { get; set; }
 
+    public List<string> Assemblies { get; set; }
+
     public MediatorOptions()
     {
         Pipelines = new List<string>();
+        Assemblies = new List<string>();
     }
 }

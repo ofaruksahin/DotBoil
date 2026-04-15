@@ -119,7 +119,9 @@ public class AuthGuardModule : Module
         var roleMenuRepo = scope.ServiceProvider.GetService<IRepository<RoleMenu, DotBoilAuthGuardDbContext>>();
         var roleAppModuleRepo = scope.ServiceProvider.GetService<IRepository<RoleAppModule, DotBoilAuthGuardDbContext>>();
 
-        var role = await roleRepo
+        try
+        {
+var role = await roleRepo
             .Get()
             .FirstOrDefaultAsync(r => r.Name == "Admin");
 
@@ -312,6 +314,11 @@ public class AuthGuardModule : Module
                     await roleMenuRepo.SaveChangesAsync();
                 }
             }
+        }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
         }
     }
 }

@@ -9,7 +9,7 @@
 		<Description>Redis-backed distributed caching for DotBoil applications. Provides IDistributedCache integration and a high-level ICacheService with typed get/set/invalidate operations and configurable expiry.</Description>
 		<PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-		<Version>1.1.0</Version>
+		<Version>1.9.3</Version>
 		<PackageIcon>dotboil.png</PackageIcon>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>

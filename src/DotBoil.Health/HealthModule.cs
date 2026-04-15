@@ -14,7 +14,7 @@ namespace DotBoil.Health
     {
         public override string Name => "Health";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 13;
 
         private static HealthOptions GetHealthOptions() => 
             DotBoilApp.Configuration.GetConfigurations<HealthOptions>();

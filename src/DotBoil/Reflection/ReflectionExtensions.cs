@@ -1,12 +1,21 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 
 namespace DotBoil.Reflection
 {
     public static class ReflectionExtensions
     {
+        private static IEnumerable<Assembly> GetFilteredAssemblies()
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.GetName().Name!.StartsWith("Microsoft.Build"))
+                .Where(a => !a.GetName().Name!.StartsWith("Microsoft.CodeAnalysis"))
+                .ToList();
+        }
+
         public static Type FindType(this AppDomain appDomain, string typeName)
         {
-            foreach (var assembly in appDomain.GetAssemblies())
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 var type = assembly.GetType(typeName, false);
 
@@ -19,7 +28,7 @@ namespace DotBoil.Reflection
 
         public static Type FindTypeWithBaseType(this AppDomain appDomain, Type baseType)
         {
-            foreach (var assembly in appDomain.GetAssemblies())
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 var type = assembly
                     .GetTypes()
@@ -34,7 +43,8 @@ namespace DotBoil.Reflection
 
         public static IEnumerable<Type> FindTypesWithBaseType(this AppDomain appDomain, Type baseType)
         {
-            foreach (var assembly in appDomain.GetAssemblies())
+            var response = new List<Type>();
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 var types = assembly
                     .GetTypes()
@@ -42,31 +52,32 @@ namespace DotBoil.Reflection
                     .ToList();
 
                 if (types is not null && types.Any())
-                    return types;
+                    response.AddRange(types);
             }
 
-            return Enumerable.Empty<Type>();
+            return response;
         }
 
         public static IEnumerable<Type> FindTypesWithBaseType(this AppDomain appDomain, Func<Type, bool> predicate)
         {
-            foreach (var assembly in appDomain.GetAssemblies())
+            var response = new List<Type>();
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 var types = assembly
-                .GetTypes()
+                    .GetTypes()
                     .Where(predicate)
                     .ToList();
 
                 if (types is not null && types.Any())
-                    return types;
+                    response.AddRange(types);
             }
 
-            return Enumerable.Empty<Type>();
+            return response;
         }
 
         public static Type FindTypeWithInterface(this AppDomain appDomain, Type interfaceType)
         {
-            foreach (var assembly in appDomain.GetAssemblies())
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 var type = assembly
                     .GetTypes()
@@ -82,7 +93,7 @@ namespace DotBoil.Reflection
         public static IEnumerable<Type> FindTypesWithInterface(this AppDomain appDomain, Type interfaceType)
         {
             var responseTypes = new List<Type>();
-            foreach (var assembly in appDomain.GetAssemblies())
+            foreach (var assembly in GetFilteredAssemblies())
             {
                 try
                 {

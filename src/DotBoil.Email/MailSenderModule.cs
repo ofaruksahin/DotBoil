@@ -7,7 +7,7 @@ namespace DotBoil.Email
     {
         public override string Name => "MailSender";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 11;
 
         public override Task AddModule()
         {

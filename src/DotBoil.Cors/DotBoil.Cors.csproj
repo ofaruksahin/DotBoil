@@ -9,7 +9,7 @@
 		<Description>Configurable CORS policy management for DotBoil applications. Define allowed origins, headers, and methods through appsettings.json without writing manual middleware setup code.</Description>
 		<PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-		<Version>1.1.0</Version>
+		<Version>1.9.3</Version>
 		<PackageIcon>dotboil.png</PackageIcon>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>

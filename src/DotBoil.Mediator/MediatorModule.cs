@@ -1,36 +1,57 @@
 using DotBoil.Configuration;
-using DotBoil.Dependency;
 using DotBoil.Reflection;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using Module = DotBoil.Dependency.Module;
 
 namespace DotBoil.Mediator;
 
 internal class MediatorModule : Module
 {
     public override string Name => "Mediator";
-    public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-    public override int Order { get; } = 0;
+
+    public override IEnumerable<string> DependsOn { get; } = new List<string>
+    {
+        "Parameter"
+    };
+    
+    public override int Order { get; } = 10;
 
     public override Task AddModule()
     {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-        DotBoilApp.Services.AddMediatR(configure =>
+        try
         {
-            configure.RegisterServicesFromAssemblies(assemblies);
-        });
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.GetName().Name!.StartsWith("Microsoft.Build"))
+                .Where(a => !a.GetName().Name!.StartsWith("Microsoft.CodeAnalysis"))
+                .ToList();
 
-        var mediatorOptions = DotBoilApp.Configuration.GetConfigurations<MediatorOptions>();
+            DotBoilApp.Services.AddMediatR(configure =>
+            {
+                configure.RegisterServicesFromAssemblies(assemblies.ToArray());
+            });
 
-        foreach (var pipeline in mediatorOptions.Pipelines)
+            var mediatorOptions = DotBoilApp.Configuration.GetConfigurations<MediatorOptions>();
+
+            foreach (var pipeline in mediatorOptions.Pipelines)
+            {
+                var pipelineType = AppDomain.CurrentDomain.FindType($"{pipeline}`2");
+
+                if (pipelineType is null)
+                    continue;
+
+                DotBoilApp.Services.AddTransient(typeof(IPipelineBehavior<,>), pipelineType);
+            }
+        }
+        catch (ReflectionTypeLoadException ex)
         {
-            var pipelineType = AppDomain.CurrentDomain.FindType($"{pipeline}`2");
-
-            if (pipelineType is null)
-                continue;
-
-            DotBoilApp.Services.AddTransient(typeof(IPipelineBehavior<,>), pipelineType);
+            Console.WriteLine($"⚠️ Mediator registration error: {ex.Message}");
+            
+            DotBoilApp.Services.AddMediatR(configure =>
+            {
+                configure.RegisterServicesFromAssembly(Assembly.GetEntryAssembly()!);
+            });
         }
 
         return Task.CompletedTask;

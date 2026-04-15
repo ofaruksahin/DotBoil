@@ -9,7 +9,7 @@ namespace DotBoil.Mapper
     {
         public override string Name => "Mapper";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 14;
 
         public override Task AddModule()
         {

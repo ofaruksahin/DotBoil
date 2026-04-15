@@ -12,7 +12,7 @@ namespace DotBoil.Logging
     {
         public override string Name => "Logging";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 12;
 
         public override async Task AddModule()
         {

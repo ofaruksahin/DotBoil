@@ -101,9 +101,28 @@
     private string _search = string.Empty;
     private string? _activeCategory;
 
-    private List<BaseComponent> _allFields => AppDomain.CurrentDomain
-        .GetAssemblies()
-        .SelectMany(a => a.GetTypes())
+    private static IEnumerable<System.Reflection.Assembly> GetFilteredAssemblies()
+    {
+        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+        var assemblies = new List<System.Reflection.Assembly>();
+
+        if (entryAssembly == null)
+            return assemblies;
+
+        assemblies.Add(entryAssembly);
+
+        var referenced = entryAssembly
+            .GetReferencedAssemblies()
+            .Where(a => !a.Name.StartsWith("Microsoft.Build"))
+            .Select(a => { try { return System.Reflection.Assembly.Load(a); } catch { return null; } })
+            .Where(a => a != null);
+
+        assemblies.AddRange(referenced);
+        return assemblies;
+    }
+
+    private List<BaseComponent> _allFields => GetFilteredAssemblies()
+        .SelectMany(a => { try { return a.GetTypes(); } catch { return []; } })
         .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(BaseComponent)) &&
                     (!ExcludeContainers || !t.IsSubclassOf(typeof(ContainerComponent))))
         .Select(t => (BaseComponent)Activator.CreateInstance(t)!)

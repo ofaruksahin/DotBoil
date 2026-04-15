@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,9 +26,21 @@ public class PolymorphicJsonConverter<T> : JsonConverter<T> where T : class
         var typeName = typeProp.GetString()
             ?? throw new JsonException($"'{TypeDiscriminator}' is null.");
 
+        var entryAssembly = Assembly.GetEntryAssembly();
+        var searchAssemblies = new List<Assembly>();
+        if (entryAssembly != null)
+        {
+            searchAssemblies.Add(entryAssembly);
+            var referenced = entryAssembly
+                .GetReferencedAssemblies()
+                .Where(a => !a.Name.StartsWith("Microsoft.Build"))
+                .Select(a => { try { return Assembly.Load(a); } catch { return null; } })
+                .Where(a => a != null);
+            searchAssemblies.AddRange(referenced);
+        }
+
         var concreteType = Type.GetType(typeName)
-            ?? AppDomain.CurrentDomain
-                .GetAssemblies()
+            ?? searchAssemblies
                 .SelectMany(a => { try { return a.GetTypes(); } catch { return []; } })
                 .FirstOrDefault(t => t.AssemblyQualifiedName == typeName || t.FullName == typeName)
             ?? throw new JsonException($"Cannot resolve type '{typeName}'.");

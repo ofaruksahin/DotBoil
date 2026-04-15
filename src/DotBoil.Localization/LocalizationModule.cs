@@ -13,7 +13,7 @@ namespace DotBoil.Localization
     {
         public override string Name => "Localization";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 7;
 
         public override Task AddModule()
         {

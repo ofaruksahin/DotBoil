@@ -10,7 +10,7 @@ namespace DotBoil.Versioning
     {
         public override string Name => "Versioning";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 3;
 
         public override Task AddModule()
         {

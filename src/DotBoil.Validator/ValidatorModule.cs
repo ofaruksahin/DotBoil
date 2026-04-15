@@ -9,7 +9,7 @@ namespace DotBoil.Validator
     {
         public override string Name => "Validator";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 4;
 
         public override Task AddModule()
         {

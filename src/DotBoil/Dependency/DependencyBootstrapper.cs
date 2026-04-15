@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using DotBoil.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
@@ -9,6 +10,14 @@ namespace DotBoil.Dependency
     {
         public static async Task<IReadOnlyList<Module>> AddDotBoilDependencies()
         {
+            var applicationConfiguration = DotBoilApp.Configuration.GetConfigurations<ApplicationConfiguration>();
+            
+            if (!applicationConfiguration.PreloadPrefix.Contains("DotBoil"))
+                applicationConfiguration.PreloadPrefix.Add("DotBoil");
+                
+            foreach (var preloadPrefix in applicationConfiguration.PreloadPrefix)
+                PreloadAssemblies(preloadPrefix);
+            
             var modules = DiscoverModules();
             var sortedModules = SortModules(modules);
 
@@ -32,9 +41,13 @@ namespace DotBoil.Dependency
             var assemblies = DependencyContext.Default
                 .GetDefaultAssemblyNames()
                 .Select(Assembly.Load);
-
+            
             var modules = assemblies
-                .SelectMany(a => a.GetTypes())
+                .SelectMany(a =>
+                {
+                    try { return a.GetTypes(); }
+                    catch (ReflectionTypeLoadException e) { return e.Types.Where(t => t != null)!; }
+                })
                 .Where(t => typeof(Module).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
                 .Select(t => (Module)Activator.CreateInstance(t))
                 .ToList();
@@ -84,6 +97,19 @@ namespace DotBoil.Dependency
             return result
                 .OrderBy(m => m.Order)
                 .ToList();
+        }
+        
+        private static void PreloadAssemblies(string prefix)
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+    
+            foreach (var dll in Directory.GetFiles(baseDir, $"{prefix}.*.dll"))
+            {
+                var name = AssemblyName.GetAssemblyName(dll);
+        
+                if (AppDomain.CurrentDomain.GetAssemblies().All(a => a.FullName != name.FullName))
+                    Assembly.Load(name);
+            }
         }
     }
 }

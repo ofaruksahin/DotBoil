@@ -11,7 +11,7 @@ namespace DotBoil.Caching
     {
         public override string Name => "Caching";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 5;
 
         public override Task AddModule()
         {

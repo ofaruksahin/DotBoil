@@ -11,7 +11,7 @@ namespace DotBoil.Parameter
     {
         public override string Name => "Parameter";
         public override IEnumerable<string> DependsOn { get; } = Enumerable.Empty<string>();
-        public override int Order { get; } = 0;
+        public override int Order { get; } = 8;
 
         public override Task AddModule()
         {
