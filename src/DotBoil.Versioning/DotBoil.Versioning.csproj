@@ -9,7 +9,7 @@
 	  <Description>API versioning for DotBoil applications using Asp.Versioning. Configures URL segment, query string, and header-based version negotiation with API Explorer support for generating versioned Swagger documents.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.3</Version>
+	  <Version>1.9.4</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

@@ -9,7 +9,7 @@
 	  <Description>Entity Framework Core integration for DotBoil applications. Manages DbContext registration, multi-database provider support (MySQL, SQL Server), automated migrations, and a generic repository pattern.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.3</Version>
+	  <Version>1.9.4</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

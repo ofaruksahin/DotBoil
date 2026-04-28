@@ -10,7 +10,7 @@
     <Description>Message bus integration for DotBoil applications using MassTransit and RabbitMQ. Auto-discovers consumers, configures queues via [Queue] attributes, and exposes IBusPublisher for fire-and-forget domain event publishing.</Description>
     <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-    <Version>1.9.3</Version>
+    <Version>1.9.4</Version>
     <PackageIcon>dotboil.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

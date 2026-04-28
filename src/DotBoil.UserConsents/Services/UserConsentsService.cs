@@ -227,7 +227,8 @@ namespace DotBoil.UserConsents.Services
             {
                 IsUpToDate = acceptedVersion.HasValue && acceptedVersion.Value >= current.Version,
                 CurrentVersion = current.Version,
-                AcceptedVersion = acceptedVersion
+                AcceptedVersion = acceptedVersion,
+                Content = current.Content
             };
         }
 
@@ -277,6 +278,7 @@ namespace DotBoil.UserConsents.Services
         public bool IsUpToDate { get; init; }
         public int CurrentVersion { get; init; }
         public int? AcceptedVersion { get; init; }
+        public string Content { get; init; }
     }
 
     internal sealed class CreateConsentRequest

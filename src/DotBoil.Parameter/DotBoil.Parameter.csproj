@@ -9,7 +9,7 @@
     <Description>Runtime application parameter management for DotBoil. Stores named key-value parameters in a MySQL database with Redis caching, enabling typed read/write access to configuration values without application restarts.</Description>
     <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-    <Version>1.9.3</Version>
+    <Version>1.9.4</Version>
     <PackageIcon>dotboil.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

@@ -9,7 +9,7 @@
 	  <Description>Health check dashboard for DotBoil applications powered by AspNetCore.HealthChecks.UI. Exposes real-time readiness and liveness endpoints with pluggable storage backends (MySQL, PostgreSQL, SQLite, SQL Server, in-memory).</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.3</Version>
+	  <Version>1.9.4</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

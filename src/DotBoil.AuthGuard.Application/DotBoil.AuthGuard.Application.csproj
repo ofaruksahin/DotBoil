@@ -10,7 +10,7 @@
         <Description>Full-stack authorization server for DotBoil applications. Implements OAuth 2.0/OpenID Connect flows with JWT issuance, refresh tokens, external provider support (Google, GitHub), role-based access control, OTP verification, password reset, and GDPR consent management.</Description>
         <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
         <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-        <Version>1.9.3</Version>
+        <Version>1.9.4</Version>
         <PackageIcon>dotboil.png</PackageIcon>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
