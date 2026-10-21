@@ -9,13 +9,14 @@
 	  <Description>Razor-powered template engine for DotBoil applications. Renders .cshtml templates with dynamic models using RazorLight — ideal for HTML email bodies, report generation, and any server-side text templating.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.4</Version>
+	  <Version>2.0.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="RazorLight" Version="2.3.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>

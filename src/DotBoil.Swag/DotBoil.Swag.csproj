@@ -10,14 +10,14 @@
 	  <Description>OpenAPI/Swagger documentation for DotBoil applications. Configures Swashbuckle with version-aware document generation, JWT bearer auth support, and the Swagger UI explorer endpoint.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.4</Version>
+	  <Version>2.0.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.3.1" />
   </ItemGroup>
 
   <ItemGroup>

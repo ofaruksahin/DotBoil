@@ -9,7 +9,7 @@
 	  <Description>Health check dashboard for DotBoil applications powered by AspNetCore.HealthChecks.UI. Exposes real-time readiness and liveness endpoints with pluggable storage backends (MySQL, PostgreSQL, SQLite, SQL Server, in-memory).</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.4</Version>
+	  <Version>2.0.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -19,9 +19,8 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.MySql.Storage" Version="9.0.0" />
-    <PackageReference Include="AspNetCore.HealthChecks.UI.PostgreSQL.Storage" Version="9.0.0" />
-    <PackageReference Include="AspNetCore.HealthChecks.UI.SQLite.Storage" Version="9.0.0" />
-    <PackageReference Include="AspNetCore.HealthChecks.UI.SqlServer.Storage" Version="9.0.0" />
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>

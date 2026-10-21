@@ -9,13 +9,13 @@
 	  <Description>FluentValidation integration for DotBoil applications. Auto-discovers and registers validators across all loaded assemblies for use in both direct service validation and MediatR pipeline behaviors.</Description>
 	  <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
-	  <Version>1.9.4</Version>
+	  <Version>2.0.0</Version>
 	  <PackageIcon>dotboil.png</PackageIcon>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation" Version="12.2.0" />
   </ItemGroup>
 
   <ItemGroup>
