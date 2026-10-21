@@ -9,6 +9,7 @@ public class OtpCode : BaseEntity
     public DateTime ExpiryDate { get; set; }
     public bool IsUsed { get; set; }
     public bool IsExpired { get; set; }
+    public int Purpose { get; set; }
     
     public virtual User User { get; set; }
 

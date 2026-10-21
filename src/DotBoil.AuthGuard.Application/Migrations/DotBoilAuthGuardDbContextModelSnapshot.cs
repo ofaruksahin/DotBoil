@@ -16,7 +16,7 @@ namespace DotBoil.AuthGuard.Application.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.ApiEndpoint", b =>
@@ -224,6 +224,9 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
+                    b.Property<int>("Purpose")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("datetime(6)");
 
@@ -232,7 +235,7 @@ namespace DotBoil.AuthGuard.Application.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "Purpose");
 
                     b.ToTable("OtpCodes", (string)null);
                 });
@@ -397,6 +400,10 @@ namespace DotBoil.AuthGuard.Application.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("ActiveLanguage")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<DateTime>("CreateTime")
                         .HasColumnType("datetime(6)");
 
@@ -412,6 +419,12 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsPassive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("ModifyUser")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -419,6 +432,9 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("PassiveDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Password")
                         .HasMaxLength(255)
@@ -443,6 +459,49 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserNotificationPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreateUser")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifyUser")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Channel")
+                        .IsUnique();
+
+                    b.ToTable("UserNotificationPreferences", (string)null);
                 });
 
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserRole", b =>
@@ -571,6 +630,17 @@ namespace DotBoil.AuthGuard.Application.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserNotificationPreference", b =>
+                {
+                    b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.User", "User")
+                        .WithMany("NotificationPreferences")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("DotBoil.AuthGuard.Application.Domain.Entities.Role", "Role")
@@ -622,6 +692,8 @@ namespace DotBoil.AuthGuard.Application.Migrations
 
             modelBuilder.Entity("DotBoil.AuthGuard.Application.Domain.Entities.User", b =>
                 {
+                    b.Navigation("NotificationPreferences");
+
                     b.Navigation("OtpCodes");
 
                     b.Navigation("Roles");

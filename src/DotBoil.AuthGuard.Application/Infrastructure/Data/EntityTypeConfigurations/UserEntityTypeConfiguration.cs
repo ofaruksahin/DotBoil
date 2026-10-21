@@ -43,6 +43,23 @@ public class UserEntityTypeConfiguration : EFCoreEntityTypeConfiguration<User>
             .IsRequired(false);
 
         builder
+            .Property(p => p.LastLoginDate)
+            .IsRequired(false);
+
+        builder
+            .Property(p => p.ActiveLanguage)
+            .HasMaxLength(20)
+            .IsRequired(false);
+
+        builder
+            .Property(p => p.IsPassive)
+            .IsRequired();
+
+        builder
+            .Property(p => p.PassiveDate)
+            .IsRequired(false);
+
+        builder
             .HasMany(p => p.Roles)
             .WithOne(p => p.User)
             .HasForeignKey(p => p.UserId)

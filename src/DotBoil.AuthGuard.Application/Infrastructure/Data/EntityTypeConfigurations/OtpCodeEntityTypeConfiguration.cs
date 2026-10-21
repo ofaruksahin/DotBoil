@@ -34,6 +34,13 @@ public class OtpCodeEntityTypeConfiguration : EFCoreEntityTypeConfiguration<OtpC
             .IsRequired();
 
         builder
+            .Property(p => p.Purpose)
+            .IsRequired();
+
+        builder
+            .HasIndex(p => new { p.UserId, p.Purpose });
+
+        builder
             .HasOne<User>(p => p.User)
             .WithMany(p => p.OtpCodes)
             .HasForeignKey(p => p.UserId)

@@ -160,3 +160,9 @@ VALUES(53, 'TR', 'Login', 'ResendOtp', 'Yeniden otp kodu gönder');
 INSERT INTO DotBoilAuthGuard.Localizations
 (Id, `Language`, `Group`, `Key`, Value)
 VALUES(54, 'EN', 'Login', 'ResendOtp', 'Resend otp code');
+INSERT INTO DotBoilAuthGuard.Localizations
+(Id, `Language`, `Group`, `Key`, Value)
+VALUES(55, 'TR', 'Login', 'AccountPassive', 'Hesabınız pasif durumda. Hesabınızı aktifleştirmek için e-posta adresinize bir doğrulama kodu gönderildi.');
+INSERT INTO DotBoilAuthGuard.Localizations
+(Id, `Language`, `Group`, `Key`, Value)
+VALUES(56, 'EN', 'Login', 'AccountPassive', 'Your account is deactivated. A verification code has been sent to your email address to reactivate your account.');

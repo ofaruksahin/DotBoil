@@ -14,6 +14,7 @@ using DotBoil.UserConsents;
 using DotBoil.UserConsents.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using NETCore.Encrypt;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
@@ -29,6 +30,7 @@ public class EmailPasswordBasedLogin : IUserService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserConsentsService _userConsentsService;
     private readonly IBusPublisher _busPublisher;
+    private readonly IConnectionMultiplexer _redis;
 
     public EmailPasswordBasedLogin(
         IRepository<User, DotBoilAuthGuardDbContext> userRepository,
@@ -39,7 +41,8 @@ public class EmailPasswordBasedLogin : IUserService
         ILocalize localize,
         IHttpContextAccessor httpContextAccessor,
         IUserConsentsService userConsentsService,
-        IBusPublisher busPublisher)
+        IBusPublisher busPublisher,
+        IConnectionMultiplexer redis)
     {
         _userRepository = userRepository;
         _otpCodeRepository = otpCodeRepository;
@@ -50,6 +53,7 @@ public class EmailPasswordBasedLogin : IUserService
         _httpContextAccessor = httpContextAccessor;
         _userConsentsService = userConsentsService;
         _busPublisher = busPublisher;
+        _redis = redis;
     }
     
     public async Task<AuthorizeResult> SignIn(Dictionary<string, string> parameters)
@@ -67,6 +71,12 @@ public class EmailPasswordBasedLogin : IUserService
 
         if (user is null)
             return AuthorizeResult.Failure(await _localize.LocalizeText("Login", "InvalidEmailOrPassword"));
+
+        if (user.IsPassive)
+        {
+            await SendAccountActivationCode(user);
+            return AuthorizeResult.Failure(await _localize.LocalizeText("Login", "AccountPassive"));
+        }
         
         var claims = new List<Claim>
         {
@@ -87,6 +97,17 @@ public class EmailPasswordBasedLogin : IUserService
         
         await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
         await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+
+        await _redis.TrackUserToken(
+            user.Id,
+            $"{UserTokenCacheExtensions.AccessTokenKeyPrefix}{createdAccessToken}",
+            TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _redis.TrackUserToken(
+            user.Id,
+            $"{UserTokenCacheExtensions.RefreshTokenKeyPrefix}{createdRefreshToken}",
+            TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+
+        await _userRepository.UpdateLastLoginDate(user.Id);
         
         return AuthorizeResult.Success(
             createdAccessToken,
@@ -108,6 +129,12 @@ public class EmailPasswordBasedLogin : IUserService
         var existingUser = await _userRepository
             .Get()
             .FirstOrDefaultAsync(u => u.Email == email);
+
+        if (existingUser != null && existingUser.IsPassive)
+        {
+            await SendAccountActivationCode(existingUser);
+            return SignupResult.Failure(await _localize.LocalizeText("Login", "AccountPassive"));
+        }
 
         if (existingUser != null)
             return SignupResult.Failure(await _localize.LocalizeText("Login", "UserAlreadyExists"));
@@ -147,10 +174,17 @@ public class EmailPasswordBasedLogin : IUserService
 
         if (acceptedConsents.Any())
         {
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            await _userConsentsService.AcceptConsents(
+                user.Id.ToString(),
+                acceptedConsents.Select(c => c.Type),
+                language,
+                GetIpAddress(httpContext),
+                GetUserAgent(httpContext));
+
             foreach (var consent in acceptedConsents)
             {
-                await _userConsentsService.AcceptConsent(user.Id.ToString(), consent.Type, language);
-
                 await _busPublisher.Publish(new ConsentAcceptedDomainEvent(
                     user.Id.ToString(),
                     consent.Type.ToString(),
@@ -173,28 +207,10 @@ public class EmailPasswordBasedLogin : IUserService
         if (user is null)
             return ForgotPasswordResult.Fail(await _localize.LocalizeText("Login", "UserNotFound"));
         
-        await _otpCodeRepository
-            .Get()
-            .Where(oc => oc.UserId == user.Id && (!oc.IsUsed && !oc.IsExpired))
-            .ExecuteUpdateAsync(oc => oc.SetProperty(p => p.IsExpired, true));
-
-        await _otpCodeRepository.SaveChangesAsync();
-
-        var otpCode = new OtpCode
-        {
-            UserId = user.Id,
-            ExpiryDate = DateTime.Now.AddMinutes(10)
-        };
-        
-        otpCode.GenerateOtpCode();
-
-        var forgotPasswordOtpCodeCreatedDomainEvent =
-            new ForgotPasswordOtpCodeCreatedDomainEvent(user.Email, otpCode.Code);
-        
-        otpCode.AddEvent(forgotPasswordOtpCodeCreatedDomainEvent);
-        
-        await _otpCodeRepository.AddAsync(otpCode);
-        await _otpCodeRepository.SaveChangesAsync();
+        await _otpCodeRepository.CreateOtpCode(
+            user.Id,
+            OtpCodePurpose.ForgotPassword,
+            code => new ForgotPasswordOtpCodeCreatedDomainEvent(user.Email, code));
         
         return ForgotPasswordResult.Success(await _localize.LocalizeText("Success"));
     }
@@ -207,7 +223,11 @@ public class EmailPasswordBasedLogin : IUserService
         var otp = await _otpCodeRepository
             .Get()
             .Include(oc => oc.User)
-            .FirstOrDefaultAsync(oc => !oc.IsExpired && !oc.IsUsed && oc.Code == otpCode);
+            .FirstOrDefaultAsync(oc =>
+                oc.Purpose == OtpCodePurpose.ForgotPassword &&
+                !oc.IsExpired &&
+                !oc.IsUsed &&
+                oc.Code == otpCode);
         
         if (otp is null)
             return ForgotPasswordResult.Fail(await _localize.LocalizeText("OtpCodeInvalid"));
@@ -247,5 +267,30 @@ public class EmailPasswordBasedLogin : IUserService
         }
         
         return new GetUserInfoResponse(true, string.Empty, claims.ToDictionary(c => c.Type, c => c.Value));
+    }
+
+    private Task SendAccountActivationCode(User user)
+    {
+        return _otpCodeRepository.CreateOtpCode(
+            user.Id,
+            OtpCodePurpose.AccountActivation,
+            code => new AccountActivationOtpCodeCreatedDomainEvent(user.Email, code));
+    }
+
+    private static string? GetIpAddress(HttpContext? httpContext)
+    {
+        var ipAddress = httpContext?.Connection.RemoteIpAddress;
+        if (ipAddress is null)
+            return null;
+
+        return ipAddress.IsIPv4MappedToIPv6
+            ? ipAddress.MapToIPv4().ToString()
+            : ipAddress.ToString();
+    }
+
+    private static string? GetUserAgent(HttpContext? httpContext)
+    {
+        var userAgent = httpContext?.Request.Headers.UserAgent.ToString();
+        return string.IsNullOrWhiteSpace(userAgent) ? null : userAgent;
     }
 }

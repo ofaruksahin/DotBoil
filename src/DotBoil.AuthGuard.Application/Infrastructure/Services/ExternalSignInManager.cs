@@ -13,6 +13,7 @@ using DotBoil.Caching;
 using DotBoil.EFCore;
 using DotBoil.Localization;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using Newtonsoft.Json.Linq;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
@@ -21,25 +22,31 @@ public class ExternalSignInManager : IExternalSignInManager
 {
     private readonly HttpClient _httpClient;
     private readonly IRepository<User, DotBoilAuthGuardDbContext> _userRepository;
+    private readonly IRepository<OtpCode, DotBoilAuthGuardDbContext> _otpCodeRepository;
     private readonly JwtOptions _jwtOptions;
     private readonly IJwtService _jwtService;
     private readonly ICache _cache;
     private readonly ILocalize _localize;
+    private readonly IConnectionMultiplexer _redis;
 
     public ExternalSignInManager(
         HttpClient httpClient,
         IRepository<User, DotBoilAuthGuardDbContext> userRepository,
+        IRepository<OtpCode, DotBoilAuthGuardDbContext> otpCodeRepository,
         JwtOptions jwtOptions,
         IJwtService jwtService,
         ICache cache,
-        ILocalize localize)
+        ILocalize localize,
+        IConnectionMultiplexer redis)
     {
         _httpClient = httpClient;
         _userRepository = userRepository;
+        _otpCodeRepository = otpCodeRepository;
         _jwtOptions = jwtOptions;
         _jwtService = jwtService;
         _cache = cache;
         _localize = localize;
+        _redis = redis;
     }
     
     public async Task<AuthorizeResult> ExternalLogin(ExternalLoginRequest externalLoginRequest)
@@ -112,6 +119,16 @@ public class ExternalSignInManager : IExternalSignInManager
             await _userRepository.SaveChangesAsync();
         }
 
+        if (user.IsPassive)
+        {
+            await _otpCodeRepository.CreateOtpCode(
+                user.Id,
+                OtpCodePurpose.AccountActivation,
+                code => new AccountActivationOtpCodeCreatedDomainEvent(user.Email, code));
+
+            return AuthorizeResult.Failure(await _localize.LocalizeText("Login", "AccountPassive"));
+        }
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -131,6 +148,17 @@ public class ExternalSignInManager : IExternalSignInManager
         
         await _cache.SetAsync($"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
         await _cache.SetAsync($"DotBoil:AuthGuard:RefreshTokens:{createdRefreshToken}", claimsDictionary, TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+
+        await _redis.TrackUserToken(
+            user.Id,
+            $"{UserTokenCacheExtensions.AccessTokenKeyPrefix}{createdAccessToken}",
+            TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+        await _redis.TrackUserToken(
+            user.Id,
+            $"{UserTokenCacheExtensions.RefreshTokenKeyPrefix}{createdRefreshToken}",
+            TimeSpan.FromMinutes(_jwtOptions.RefreshTokenExpirationMinutes));
+
+        await _userRepository.UpdateLastLoginDate(user.Id);
         
         return AuthorizeResult.Success(
             createdAccessToken,

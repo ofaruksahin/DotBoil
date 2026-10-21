@@ -16,7 +16,7 @@ namespace DotBoil.UserConsents.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("DotBoil.UserConsents.Models.Consent", b =>
@@ -126,6 +126,10 @@ namespace DotBoil.UserConsents.Migrations
                     b.Property<string>("CreateUser")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("varchar(45)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -142,6 +146,10 @@ namespace DotBoil.UserConsents.Migrations
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
 
                     b.Property<string>("UserId")
                         .IsRequired()

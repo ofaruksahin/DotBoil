@@ -79,8 +79,14 @@ public interface IUserConsentsService
 
     // Birden fazla onayı tek seferde kaydeder
     Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, CancellationToken ct = default);
+
+    // Aynı işlemler; kabul anındaki istemci IP adresi ve User-Agent bilgisiyle birlikte kaydeder
+    Task AcceptConsent(string userId, ConsentType type, string language, string ipAddress, string userAgent, CancellationToken ct = default);
+    Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, string ipAddress, string userAgent, CancellationToken ct = default);
 }
 ```
+
+IP adresi ve User-Agent içermeyen overload'lar bu alanları `null` olarak kaydeder. User-Agent 512, IP adresi 45 karakterden uzunsa kırpılır.
 
 ### ConsentResult
 
@@ -104,11 +110,45 @@ Modül yüklendiğinde aşağıdaki endpoint'ler otomatik eklenir:
 
 | Method | Path | Açıklama |
 |--------|------|----------|
-| `GET` | `/consents/{type}/{language}` | Onay metnini getir |
-| `POST` | `/consents/accept` | Kullanıcı onayını kaydet |
-| `POST` | `/consents/accept-all` | Birden fazla onayı kaydet |
-| `GET` | `/consents/admin` | Tüm onayları listele (admin) |
-| `POST` | `/consents/admin` | Yeni onay versiyonu ekle (admin) |
+| `GET` | `/api/consents` | Tüm onay metinlerini listele (Admin) |
+| `GET` | `/api/consents/{id}` | Onay metnini getir (Admin) |
+| `POST` | `/api/consents` | Yeni onay metni ekle (Admin) |
+| `PUT` | `/api/consents/{id}` | Onay metnini güncelle, versiyonu artır (Admin) |
+| `DELETE` | `/api/consents/{id}` | Onay metnini sil (Admin) |
+| `GET` | `/api/consents/check?type=..&language=..` | Kullanıcının tek bir onayı güncel mi |
+| `POST` | `/api/consents/accept` | Tek bir onayı kabul et |
+| `GET` | `/api/consents/check/bulk?types=..&types=..&language=..` | Kullanıcının birden fazla onayını tek seferde kontrol et |
+| `POST` | `/api/consents/accept/bulk` | Birden fazla onayı tek seferde kabul et |
+
+`accept` ve `accept/bulk` endpoint'leri kabul kaydıyla birlikte isteğin **IP adresini** (`Connection.RemoteIpAddress`) ve **User-Agent** başlığını da saklar. Uygulama bir reverse proxy / load balancer arkasındaysa gerçek istemci IP'sinin kaydedilmesi için host uygulamada `UseForwardedHeaders()` yapılandırılmalıdır.
+
+### Toplu kontrol
+
+```http
+GET /api/consents/check/bulk?types=TermsOfService&types=PrivacyPolicy&language=tr
+```
+
+```json
+{
+  "isAllUpToDate": false,
+  "isAllRequiredUpToDate": true,
+  "consents": [
+    { "type": 1, "exists": true, "isRequired": true,  "isUpToDate": true,  "currentVersion": 2, "acceptedVersion": 2, "content": "..." },
+    { "type": 2, "exists": true, "isRequired": false, "isUpToDate": false, "currentVersion": 3, "acceptedVersion": 1, "content": "..." }
+  ]
+}
+```
+
+### Toplu kabul
+
+```http
+POST /api/consents/accept/bulk
+Content-Type: application/json
+
+{ "types": [1, 2, 3], "language": "tr" }
+```
+
+Listedeki tiplerden herhangi biri ilgili dilde bulunamazsa hiçbir kayıt yapılmaz ve `404` döner.
 
 ---
 

@@ -62,34 +62,27 @@ namespace DotBoil.UserConsents.Services
             return consent;
         }
 
-        public async Task AcceptConsent(string userId, ConsentType type, string language, CancellationToken cancellationToken = default)
+        public Task AcceptConsent(string userId, ConsentType type, string language, CancellationToken cancellationToken = default)
+            => AcceptConsentsInternal(userId, [type], language, null, null, cancellationToken);
+
+        public Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, CancellationToken cancellationToken = default)
+            => AcceptConsentsInternal(userId, types, language, null, null, cancellationToken);
+
+        public Task AcceptConsent(string userId, ConsentType type, string language, string ipAddress, string userAgent, CancellationToken cancellationToken = default)
+            => AcceptConsentsInternal(userId, [type], language, ipAddress, userAgent, cancellationToken);
+
+        public Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, string ipAddress, string userAgent, CancellationToken cancellationToken = default)
+            => AcceptConsentsInternal(userId, types, language, ipAddress, userAgent, cancellationToken);
+
+        internal async Task AcceptConsentsInternal(
+            string userId,
+            IEnumerable<ConsentType> types,
+            string language,
+            string ipAddress,
+            string userAgent,
+            CancellationToken cancellationToken)
         {
-            var consent = await GetConsent(type, language, cancellationToken);
-
-            if (consent is null)
-                throw new InvalidOperationException($"Consent not found for type '{type}' and language '{language}'.");
-
-            using var scope = _serviceProvider.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<UserConsentsDbContext>();
-
-            var userConsent = new UserConsent
-            {
-                UserId = userId,
-                Type = type,
-                Language = language,
-                Content = consent.Content,
-                Version = consent.Version,
-                CreateTime = DateTime.UtcNow,
-                CreateUser = userId
-            };
-
-            await dbContext.UserConsents.AddAsync(userConsent, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        public async Task AcceptConsents(string userId, IEnumerable<ConsentType> types, string language, CancellationToken cancellationToken = default)
-        {
-            var typeList = types.ToList();
+            var typeList = types.Distinct().ToList();
 
             var consents = await Task.WhenAll(typeList.Select(t => GetConsent(t, language, cancellationToken)));
 
@@ -98,11 +91,18 @@ namespace DotBoil.UserConsents.Services
                 .Select(x => x.type.ToString())
                 .ToList();
 
+            if (missing.Count == 1 && typeList.Count == 1)
+                throw new InvalidOperationException($"Consent not found for type '{missing[0]}' and language '{language}'.");
+
             if (missing.Count > 0)
                 throw new InvalidOperationException($"Consent(s) not found for type(s) '{string.Join(", ", missing)}' and language '{language}'.");
 
             using var scope = _serviceProvider.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<UserConsentsDbContext>();
+
+            var now = DateTime.UtcNow;
+            ipAddress = Truncate(ipAddress, UserConsent.IpAddressMaxLength);
+            userAgent = Truncate(userAgent, UserConsent.UserAgentMaxLength);
 
             var userConsents = consents.Select(consent => new UserConsent
             {
@@ -111,7 +111,9 @@ namespace DotBoil.UserConsents.Services
                 Language = language,
                 Content = consent.Content,
                 Version = consent.Version,
-                CreateTime = DateTime.UtcNow,
+                IpAddress = ipAddress,
+                UserAgent = userAgent,
+                CreateTime = now,
                 CreateUser = userId
             });
 
@@ -232,6 +234,49 @@ namespace DotBoil.UserConsents.Services
             };
         }
 
+        internal async Task<UserConsentsCheckResult> CheckUserConsentsInternal(
+            string userId,
+            IEnumerable<ConsentType> types,
+            string language,
+            CancellationToken cancellationToken)
+        {
+            var typeList = types.Distinct().ToList();
+
+            var currents = await Task.WhenAll(typeList.Select(t => GetConsent(t, language, cancellationToken)));
+
+            using var scope = _serviceProvider.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<UserConsentsDbContext>();
+
+            var acceptedVersions = await dbContext.UserConsents
+                .Where(uc => uc.UserId == userId && uc.Language == language && typeList.Contains(uc.Type))
+                .GroupBy(uc => uc.Type)
+                .Select(g => new { Type = g.Key, Version = g.Max(uc => uc.Version) })
+                .ToDictionaryAsync(x => x.Type, x => x.Version, cancellationToken);
+
+            var items = typeList.Zip(currents, (type, current) =>
+            {
+                int? acceptedVersion = acceptedVersions.TryGetValue(type, out var version) ? version : null;
+
+                return new UserConsentsCheckItem
+                {
+                    Type = type,
+                    Exists = current is not null,
+                    IsRequired = current?.IsRequired ?? false,
+                    IsUpToDate = current is not null && acceptedVersion.HasValue && acceptedVersion.Value >= current.Version,
+                    CurrentVersion = current?.Version ?? 0,
+                    AcceptedVersion = acceptedVersion,
+                    Content = current?.Content
+                };
+            }).ToList();
+
+            return new UserConsentsCheckResult
+            {
+                IsAllUpToDate = items.All(i => i.IsUpToDate),
+                IsAllRequiredUpToDate = items.Where(i => i.IsRequired).All(i => i.IsUpToDate),
+                Consents = items
+            };
+        }
+
         internal async Task<List<ConsentResult>> GetAllConsentsInternal(CancellationToken cancellationToken)
         {
             using var scope = _serviceProvider.CreateAsyncScope();
@@ -269,12 +314,33 @@ namespace DotBoil.UserConsents.Services
             await _cache.KeyDeleteAsync(cacheKey);
         }
 
+        private static string Truncate(string value, int maxLength)
+            => string.IsNullOrEmpty(value) || value.Length <= maxLength ? value : value[..maxLength];
+
         private string BuildCacheKey(ConsentType type, string language)
             => $"{_cachePrefix}{type}:{language}";
     }
 
     internal sealed class UserConsentCheckResult
     {
+        public bool IsUpToDate { get; init; }
+        public int CurrentVersion { get; init; }
+        public int? AcceptedVersion { get; init; }
+        public string Content { get; init; }
+    }
+
+    internal sealed class UserConsentsCheckResult
+    {
+        public bool IsAllUpToDate { get; init; }
+        public bool IsAllRequiredUpToDate { get; init; }
+        public List<UserConsentsCheckItem> Consents { get; init; }
+    }
+
+    internal sealed class UserConsentsCheckItem
+    {
+        public ConsentType Type { get; init; }
+        public bool Exists { get; init; }
+        public bool IsRequired { get; init; }
         public bool IsUpToDate { get; init; }
         public int CurrentVersion { get; init; }
         public int? AcceptedVersion { get; init; }

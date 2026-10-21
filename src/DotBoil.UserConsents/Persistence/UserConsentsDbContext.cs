@@ -48,6 +48,8 @@ namespace DotBoil.UserConsents.Persistence
                 entity.Property(e => e.Language).HasMaxLength(20).IsRequired();
                 entity.Property(e => e.Content).IsRequired();
                 entity.Property(e => e.Version).IsRequired();
+                entity.Property(e => e.IpAddress).HasMaxLength(UserConsent.IpAddressMaxLength);
+                entity.Property(e => e.UserAgent).HasMaxLength(UserConsent.UserAgentMaxLength);
                 entity.ToTable("UserConsents");
             });
 

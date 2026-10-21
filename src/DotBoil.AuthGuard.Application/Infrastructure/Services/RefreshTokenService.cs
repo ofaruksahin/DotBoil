@@ -1,11 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using DotBoil;
+using DotBoil.AuthGuard.Application.Domain.Entities;
 using DotBoil.AuthGuard.Application.Domain.Interfaces;
 using DotBoil.AuthGuard.Application.Domain.ValueObjects;
 using DotBoil.AuthGuard.Application.Infrastructure.Authorization.Options;
+using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.Caching;
+using DotBoil.EFCore;
 using DotBoil.Localization;
+using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace DotBoil.AuthGuard.Application.Infrastructure.Services;
 
@@ -16,19 +21,25 @@ internal sealed class RefreshTokenService : IRefreshTokenService
     private readonly JwtOptions _jwtOptions;
     private readonly ICache _cache;
     private readonly ILocalize _localize;
+    private readonly IRepository<User, DotBoilAuthGuardDbContext> _userRepository;
+    private readonly IConnectionMultiplexer _redis;
 
     public RefreshTokenService(
         IJwtService jwtService,
         ITokenPermissionService tokenPermissionService,
         JwtOptions jwtOptions,
         ICache cache,
-        ILocalize localize)
+        ILocalize localize,
+        IRepository<User, DotBoilAuthGuardDbContext> userRepository,
+        IConnectionMultiplexer redis)
     {
         _jwtService = jwtService;
         _tokenPermissionService = tokenPermissionService;
         _jwtOptions = jwtOptions;
         _cache = cache;
         _localize = localize;
+        _userRepository = userRepository;
+        _redis = redis;
     }
 
     public async Task<RefreshTokenResult> RefreshToken(string refreshToken)
@@ -47,6 +58,14 @@ internal sealed class RefreshTokenService : IRefreshTokenService
             return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
 
         var claims = claimsDictionary.Select(claim => new Claim(claim.Key, claim.Value)).ToList();
+
+        if (TryGetUserId(claims, out var claimUserId) &&
+            await _userRepository.Get().AnyAsync(u => u.Id == claimUserId && u.IsPassive))
+        {
+            await _cache.RemoveAsync($"DotBoil:AuthGuard:RefreshTokens:{refreshToken}");
+            return RefreshTokenResult.Failure(await _localize.LocalizeText("Login", "AuthorizationFailed"));
+        }
+
         var refreshedClaims = await RefreshPermissionClaims(claims);
         var refreshedClaimsDictionary = BuildCacheClaimsDictionary(refreshedClaims);
 
@@ -57,6 +76,16 @@ internal sealed class RefreshTokenService : IRefreshTokenService
             $"DotBoil:AuthGuard:AccessTokens:{createdAccessToken}",
             refreshedClaimsDictionary,
             TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+
+        if (TryGetUserId(refreshedClaims, out var userId))
+        {
+            await _redis.TrackUserToken(
+                userId,
+                $"{UserTokenCacheExtensions.AccessTokenKeyPrefix}{createdAccessToken}",
+                TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes));
+
+            await _userRepository.UpdateLastLoginDate(userId);
+        }
 
         return RefreshTokenResult.Success(createdAccessToken, createdAccessTokenExpiryTime);
     }

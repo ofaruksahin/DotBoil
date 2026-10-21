@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using DotBoil.AuthGuard.Application.Domain.Entities;
 using DotBoil.AuthGuard.Application.Domain.Interfaces;
@@ -6,6 +7,7 @@ using DotBoil.AuthGuard.Application.Infrastructure.Authorization;
 using DotBoil.AuthGuard.Application.Infrastructure.Authorization.Options;
 using DotBoil.AuthGuard.Application.Infrastructure.Data.Contexts;
 using DotBoil.AuthGuard.Application.Infrastructure.Services;
+using DotBoil.Caching;
 using DotBoil.Configuration;
 using DotBoil.Dependency;
 using DotBoil.EFCore;
@@ -14,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DotBoil.AuthGuard.Application;
@@ -72,6 +75,28 @@ public class AuthGuardModule : Module
                     ValidIssuer = jwtOptions.Issuer,
                     ValidAudience = jwtOptions.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+                };
+
+                // A token is only valid while it is still in the cache, so revoking it (e.g. on account deletion) ends the session.
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var rawToken = context.SecurityToken switch
+                        {
+                            JsonWebToken jsonWebToken => jsonWebToken.EncodedToken,
+                            JwtSecurityToken jwtSecurityToken => jwtSecurityToken.RawData,
+                            _ => null
+                        };
+
+                        var cache = context.HttpContext.RequestServices.GetRequiredService<ICache>();
+
+                        if (string.IsNullOrEmpty(rawToken) ||
+                            !await cache.KeyExistsAsync($"{UserTokenCacheExtensions.AccessTokenKeyPrefix}{rawToken}"))
+                        {
+                            context.Fail("Access token has been revoked.");
+                        }
+                    }
                 };
             });
         

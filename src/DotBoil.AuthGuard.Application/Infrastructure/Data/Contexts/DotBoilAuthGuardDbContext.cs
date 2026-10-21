@@ -15,6 +15,7 @@ public class DotBoilAuthGuardDbContext : EFCoreDbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<OtpCode> OtpCodes { get; set; }
+    public DbSet<UserNotificationPreference> UserNotificationPreferences { get; set; }
     public DbSet<RoleMenu> RoleMenus { get; set; }
     public DbSet<RoleAppModule> RoleAppModules { get; set; }
     public DbSet<RoleApiEndpoint> RoleApiEndpoints { get; set; }

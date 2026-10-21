@@ -6,6 +6,7 @@ using DotBoil.UserConsents.Models;
 using DotBoil.UserConsents.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +36,8 @@ namespace DotBoil.UserConsents.Endpoints
 
             publicGroup.MapGet("/check", CheckUserConsent);
             publicGroup.MapPost("/accept", AcceptConsent);
+            publicGroup.MapGet("/check/bulk", CheckUserConsents);
+            publicGroup.MapPost("/accept/bulk", AcceptConsents);
 
             return endpoints;
         }
@@ -153,7 +156,13 @@ namespace DotBoil.UserConsents.Endpoints
 
             try
             {
-                await service.AcceptConsent(userId, request.Type, request.Language, cancellationToken);
+                await service.AcceptConsentsInternal(
+                    userId,
+                    [request.Type],
+                    request.Language,
+                    GetIpAddress(httpContext),
+                    GetUserAgent(httpContext),
+                    cancellationToken);
             }
             catch (InvalidOperationException ex)
             {
@@ -161,6 +170,82 @@ namespace DotBoil.UserConsents.Endpoints
             }
 
             return JsonResponse(BaseResponse.Response(HttpStatusCode.OK, "Consent accepted successfully."));
+        }
+
+        private static async Task<IResult> CheckUserConsents(
+            [FromQuery] ConsentType[] types,
+            string language,
+            HttpContext httpContext,
+            CancellationToken cancellationToken)
+        {
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.Unauthorized, "User is not authenticated."));
+
+            if (types is null || types.Length == 0)
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.BadRequest, "At least one consent type is required."));
+
+            if (string.IsNullOrWhiteSpace(language))
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.BadRequest, "Language is required."));
+
+            var service = httpContext.RequestServices.GetRequiredService<UserConsentsService>();
+            var result = await service.CheckUserConsentsInternal(userId, types, language, cancellationToken);
+
+            return JsonResponse(BaseResponse.Response((object)result, HttpStatusCode.OK));
+        }
+
+        private static async Task<IResult> AcceptConsents(
+            AcceptConsentsRequest request,
+            HttpContext httpContext,
+            CancellationToken cancellationToken)
+        {
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.Unauthorized, "User is not authenticated."));
+
+            if (request.Types is null || request.Types.Count == 0)
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.BadRequest, "At least one consent type is required."));
+
+            if (string.IsNullOrWhiteSpace(request.Language))
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.BadRequest, "Language is required."));
+
+            var service = httpContext.RequestServices.GetRequiredService<UserConsentsService>();
+
+            try
+            {
+                await service.AcceptConsentsInternal(
+                    userId,
+                    request.Types,
+                    request.Language,
+                    GetIpAddress(httpContext),
+                    GetUserAgent(httpContext),
+                    cancellationToken);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return JsonResponse(BaseResponse.Response(HttpStatusCode.NotFound, ex.Message));
+            }
+
+            return JsonResponse(BaseResponse.Response(HttpStatusCode.OK, "Consents accepted successfully."));
+        }
+
+        // --- Client info ---
+
+        private static string GetIpAddress(HttpContext httpContext)
+        {
+            var ipAddress = httpContext.Connection.RemoteIpAddress;
+            if (ipAddress is null)
+                return null;
+
+            return ipAddress.IsIPv4MappedToIPv6
+                ? ipAddress.MapToIPv4().ToString()
+                : ipAddress.ToString();
+        }
+
+        private static string GetUserAgent(HttpContext httpContext)
+        {
+            var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+            return string.IsNullOrWhiteSpace(userAgent) ? null : userAgent;
         }
 
         // --- Validation ---
@@ -213,6 +298,12 @@ namespace DotBoil.UserConsents.Endpoints
         private sealed class AcceptConsentRequest
         {
             public ConsentType Type { get; set; }
+            public string Language { get; set; }
+        }
+
+        private sealed class AcceptConsentsRequest
+        {
+            public List<ConsentType> Types { get; set; }
             public string Language { get; set; }
         }
     }
