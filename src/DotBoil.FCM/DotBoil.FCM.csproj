@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Title>DotBoil.FCM</Title>
+    <Authors>Ömer Faruk Şahin</Authors>
+    <Description>Firebase Cloud Messaging integration for DotBoil applications. Stores FCM registration tokens of authenticated users per device and sends push notifications by UserId, automatically cleaning up expired tokens.</Description>
+    <PackageProjectUrl>https://github.com/ofaruksahin/DotBoil</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ofaruksahin/DotBoil</RepositoryUrl>
+    <Version>1.0.0</Version>
+    <PackageIcon>dotboil.png</PackageIcon>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="3.7.0" />
+    <ProjectReference Include="..\DotBoil\DotBoil.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.13">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icons\dotboil.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>dotboil.png</Link>
+    </None>
+  </ItemGroup>
+
+</Project>
