@@ -77,6 +77,7 @@ Hiçbir standart modül, DotBoil dışında başka bir modülü doğrudan refera
 | [Versioning](src/DotBoil.Versioning/README.md) | `DotBoil.Versioning` | ASP.NET Core API versiyonlama |
 | [Cronos](src/DotBoil.Cronos/README.md) | `DotBoil.Cronos` | Cron ifadesi tabanlı zamanlanmış görevler |
 | [UserConsents](src/DotBoil.UserConsents/README.md) | `DotBoil.UserConsents` | Kullanıcı KVKK / onay yönetimi |
+| [FCM](src/DotBoil.FCM/README.md) | `DotBoil.FCM` | Firebase Cloud Messaging; kullanıcı cihaz token yönetimi ve UserId ile push bildirim |
 
 ### Mediator Kombinasyonları
 

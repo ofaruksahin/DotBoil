@@ -184,6 +184,7 @@ public interface IInternalService { }  // Gereksiz public
 | `DotBoil.Cronos` | Scheduled jobs | DotBoil |
 | `DotBoil.EFCore` | Entity Framework Core setup | DotBoil |
 | `DotBoil.Email` | Email sending | DotBoil |
+| `DotBoil.FCM` | Firebase push notification, user device token management | DotBoil + EFCore, FirebaseAdmin (NuGet) |
 | `DotBoil.Health` | Health check endpoints | DotBoil |
 | `DotBoil.Localization` | Multi-language support | DotBoil + EFCore, Redis (NuGet) |
 | `DotBoil.Logging` | Logging infrastructure | DotBoil |
